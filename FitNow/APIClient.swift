@@ -10,28 +10,25 @@ enum APIError: LocalizedError {
     }
 }
 
+struct APIConfig {
+    static var baseURL: URL = {
+        #if targetEnvironment(simulator)
+        // Simulador: la API corre en la propia Mac
+        return URL(string: "http://127.0.0.1:3000/api")!
+        #else
+        // Dispositivo físico: usar la IP LAN de la Mac
+        return URL(string: "http://192.168.0.113:3000/api")!
+        #endif
+    }()
+}
+
 final class APIClient {
     static let shared = APIClient()
     private init() {}
 
-    // Lee la base desde Info.plist; si no existe, usa un fallback
-    private let baseURL: URL = {
-        let s = Bundle.main.object(
-            forInfoDictionaryKey: "APIBaseURL"
-        ) as? String ?? {
-            #if targetEnvironment(simulator)
-            return "http://127.0.0.1:3000/api/"
-            #else
-            // Reemplazá por tu IP en caso de no setear Info.plist
-            return "http://192.168.0.113:3000/api/"
-            #endif
-        }()
-        // Aseguramos barra final
-        if s.hasSuffix("/") { return URL(string: s)! }
-        return URL(string: s + "/")!
-    }()
-
+    let baseURL = APIConfig.baseURL
     private let tokenKey = "auth_token"
+
     var token: String? { KeychainService.readToken(for: tokenKey) }
     func setToken(_ t: String) { KeychainService.save(token: t, for: tokenKey) }
     func clearToken() { KeychainService.remove(key: tokenKey) }
@@ -45,25 +42,30 @@ final class APIClient {
         headers: [String: String] = [:]
     ) -> AnyPublisher<T, Error> {
 
-        var comps = URLComponents(url: baseURL, resolvingAgainstBaseURL: false)!
+        var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false)!
         let cleanPath = path.hasPrefix("/") ? String(path.dropFirst()) : path
-        comps.path += cleanPath
-        comps.queryItems = query.isEmpty ? nil : query
+        if components.path.hasSuffix("/") {
+            components.path += cleanPath
+        } else {
+            components.path += "/\(cleanPath)"
+        }
+        components.queryItems = query.isEmpty ? nil : query
 
-        guard let url = comps.url else {
+        guard let url = components.url else {
             return Fail(error: URLError(.badURL)).eraseToAnyPublisher()
         }
 
         var req = URLRequest(url: url, timeoutInterval: 15)
         req.httpMethod = method
+
         if let body = body {
             req.httpBody = body
             req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
         req.setValue("application/json", forHTTPHeaderField: "Accept")
 
-        if authorized, let t = token {
-            req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization")
+        if authorized, let token = token {
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
         headers.forEach { req.setValue($1, forHTTPHeaderField: $0) }
 
@@ -83,20 +85,6 @@ final class APIClient {
             .eraseToAnyPublisher()
     }
 }
-
-// MARK: - Convenience
-extension APIClient {
-    func sessions(activityId: Int) -> AnyPublisher<ListResponse<ActivitySession>, Error> {
-        request("activities/\(activityId)/sessions")
-    }
-    func book(sessionId: Int) -> AnyPublisher<SimpleOK, Error> {
-        request("sessions/\(sessionId)/book", method: "POST", authorized: true)
-    }
-    func cancelBooking(sessionId: Int) -> AnyPublisher<SimpleOK, Error> {
-        request("sessions/\(sessionId)/book", method: "DELETE", authorized: true)
-    }
-}
-
 
 
 

@@ -6,6 +6,34 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		36820F192E82144200B51DAF /* HazardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F092E82144200B51DAF /* HazardService.swift */; };
+		36820F1A2E82144200B51DAF /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F052E82144200B51DAF /* ContentView.swift */; };
+		36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F082E82144200B51DAF /* FitNowApp.swift */; };
+		36820F1C2E82144200B51DAF /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0C2E82144200B51DAF /* KeychainService.swift */; };
+		36820F1D2E82144200B51DAF /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0E2E82144200B51DAF /* LoginView.swift */; };
+		36820F1E2E82144200B51DAF /* ActivityDetailLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820EFE2E82144200B51DAF /* ActivityDetailLoader.swift */; };
+		36820F202E82144200B51DAF /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0A2E82144200B51DAF /* HomeView.swift */; };
+		36820F212E82144200B51DAF /* EnrollmentsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */; };
+		36820F222E82144200B51DAF /* ActivityDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820EFF2E82144200B51DAF /* ActivityDetailView.swift */; };
+		36820F232E82144200B51DAF /* MyEnrollmentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F102E82144200B51DAF /* MyEnrollmentsView.swift */; };
+		36820F242E82144200B51DAF /* ClubSportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F042E82144200B51DAF /* ClubSportsView.swift */; };
+		36820F252E82144200B51DAF /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F032E82144200B51DAF /* AuthViewModel.swift */; };
+		36820F262E82144200B51DAF /* ActivitiesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820EFD2E82144200B51DAF /* ActivitiesViewModel.swift */; };
+		36820F272E82144200B51DAF /* Untitled.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F182E82144200B51DAF /* Untitled.swift */; };
+		36820F282E82144200B51DAF /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0F2E82144200B51DAF /* Models.swift */; };
+		36820F292E82144200B51DAF /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F112E82144200B51DAF /* RootView.swift */; };
+		36820F2A2E82144200B51DAF /* ActivitiesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820EFC2E82144200B51DAF /* ActivitiesListView.swift */; };
+		36820F2B2E82144200B51DAF /* RunPlannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F152E82144200B51DAF /* RunPlannerView.swift */; };
+		36820F2C2E82144200B51DAF /* TrainerBookingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F172E82144200B51DAF /* TrainerBookingsView.swift */; };
+		36820F2D2E82144200B51DAF /* RunNavigatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F142E82144200B51DAF /* RunNavigatorView.swift */; };
+		36820F2E2E82144200B51DAF /* RunRoutePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F162E82144200B51DAF /* RunRoutePreviewView.swift */; };
+		36820F2F2E82144200B51DAF /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F002E82144200B51DAF /* APIClient.swift */; };
+		36820F302E82144200B51DAF /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0D2E82144200B51DAF /* LocationService.swift */; };
+		36820F312E82144200B51DAF /* RunModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F122E82144200B51DAF /* RunModels.swift */; };
+		36820F352E82146300B51DAF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 36820F342E82146300B51DAF /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		36820D652E5E169F00B51DAF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,14 +55,36 @@
 		36820D562E5E169D00B51DAF /* FitNow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FitNow.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		36820D642E5E169F00B51DAF /* FitNowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitNowTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		36820D6E2E5E169F00B51DAF /* FitNowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitNowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		36820EFC2E82144200B51DAF /* ActivitiesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivitiesListView.swift; sourceTree = "<group>"; };
+		36820EFD2E82144200B51DAF /* ActivitiesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivitiesViewModel.swift; sourceTree = "<group>"; };
+		36820EFE2E82144200B51DAF /* ActivityDetailLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityDetailLoader.swift; sourceTree = "<group>"; };
+		36820EFF2E82144200B51DAF /* ActivityDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityDetailView.swift; sourceTree = "<group>"; };
+		36820F002E82144200B51DAF /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		36820F032E82144200B51DAF /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		36820F042E82144200B51DAF /* ClubSportsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubSportsView.swift; sourceTree = "<group>"; };
+		36820F052E82144200B51DAF /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnrollmentsViewModel.swift; sourceTree = "<group>"; };
+		36820F072E82144200B51DAF /* FitNow.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FitNow.entitlements; sourceTree = "<group>"; };
+		36820F082E82144200B51DAF /* FitNowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitNowApp.swift; sourceTree = "<group>"; };
+		36820F092E82144200B51DAF /* HazardService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HazardService.swift; sourceTree = "<group>"; };
+		36820F0A2E82144200B51DAF /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		36820F0B2E82144200B51DAF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		36820F0C2E82144200B51DAF /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
+		36820F0D2E82144200B51DAF /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
+		36820F0E2E82144200B51DAF /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		36820F0F2E82144200B51DAF /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		36820F102E82144200B51DAF /* MyEnrollmentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyEnrollmentsView.swift; sourceTree = "<group>"; };
+		36820F112E82144200B51DAF /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		36820F122E82144200B51DAF /* RunModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunModels.swift; sourceTree = "<group>"; };
+		36820F142E82144200B51DAF /* RunNavigatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunNavigatorView.swift; sourceTree = "<group>"; };
+		36820F152E82144200B51DAF /* RunPlannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunPlannerView.swift; sourceTree = "<group>"; };
+		36820F162E82144200B51DAF /* RunRoutePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunRoutePreviewView.swift; sourceTree = "<group>"; };
+		36820F172E82144200B51DAF /* TrainerBookingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainerBookingsView.swift; sourceTree = "<group>"; };
+		36820F182E82144200B51DAF /* Untitled.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Untitled.swift; sourceTree = "<group>"; };
+		36820F342E82146300B51DAF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		36820D582E5E169D00B51DAF /* FitNow */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = FitNow;
-			sourceTree = "<group>";
-		};
 		36820D672E5E169F00B51DAF /* FitNowTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = FitNowTests;
@@ -75,9 +125,10 @@
 		36820D4D2E5E169D00B51DAF = {
 			isa = PBXGroup;
 			children = (
-				36820D582E5E169D00B51DAF /* FitNow */,
+				36820EFB2E82142A00B51DAF /* FitNow */,
 				36820D672E5E169F00B51DAF /* FitNowTests */,
 				36820D712E5E169F00B51DAF /* FitNowUITests */,
+				36820E1D2E789D0D00B51DAF /* Frameworks */,
 				36820D572E5E169D00B51DAF /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +141,47 @@
 				36820D6E2E5E169F00B51DAF /* FitNowUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		36820E1D2E789D0D00B51DAF /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		36820EFB2E82142A00B51DAF /* FitNow */ = {
+			isa = PBXGroup;
+			children = (
+				36820EFC2E82144200B51DAF /* ActivitiesListView.swift */,
+				36820EFD2E82144200B51DAF /* ActivitiesViewModel.swift */,
+				36820EFE2E82144200B51DAF /* ActivityDetailLoader.swift */,
+				36820EFF2E82144200B51DAF /* ActivityDetailView.swift */,
+				36820F002E82144200B51DAF /* APIClient.swift */,
+				36820F032E82144200B51DAF /* AuthViewModel.swift */,
+				36820F042E82144200B51DAF /* ClubSportsView.swift */,
+				36820F052E82144200B51DAF /* ContentView.swift */,
+				36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */,
+				36820F072E82144200B51DAF /* FitNow.entitlements */,
+				36820F082E82144200B51DAF /* FitNowApp.swift */,
+				36820F092E82144200B51DAF /* HazardService.swift */,
+				36820F0A2E82144200B51DAF /* HomeView.swift */,
+				36820F0B2E82144200B51DAF /* Info.plist */,
+				36820F0C2E82144200B51DAF /* KeychainService.swift */,
+				36820F0D2E82144200B51DAF /* LocationService.swift */,
+				36820F0E2E82144200B51DAF /* LoginView.swift */,
+				36820F0F2E82144200B51DAF /* Models.swift */,
+				36820F102E82144200B51DAF /* MyEnrollmentsView.swift */,
+				36820F112E82144200B51DAF /* RootView.swift */,
+				36820F122E82144200B51DAF /* RunModels.swift */,
+				36820F142E82144200B51DAF /* RunNavigatorView.swift */,
+				36820F152E82144200B51DAF /* RunPlannerView.swift */,
+				36820F162E82144200B51DAF /* RunRoutePreviewView.swift */,
+				36820F172E82144200B51DAF /* TrainerBookingsView.swift */,
+				36820F182E82144200B51DAF /* Untitled.swift */,
+				36820F342E82146300B51DAF /* Assets.xcassets */,
+			);
+			path = FitNow;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -106,9 +198,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				36820D582E5E169D00B51DAF /* FitNow */,
 			);
 			name = FitNow;
 			packageProductDependencies = (
@@ -175,6 +264,7 @@
 				TargetAttributes = {
 					36820D552E5E169D00B51DAF = {
 						CreatedOnToolsVersion = 16.4;
+						LastSwiftMigration = 1640;
 					};
 					36820D632E5E169F00B51DAF = {
 						CreatedOnToolsVersion = 16.4;
@@ -195,6 +285,9 @@
 			);
 			mainGroup = 36820D4D2E5E169D00B51DAF;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				36820EE12E78B08500B51DAF /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 36820D572E5E169D00B51DAF /* Products */;
 			projectDirPath = "";
@@ -212,6 +305,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				36820F352E82146300B51DAF /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -236,6 +330,30 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				36820F192E82144200B51DAF /* HazardService.swift in Sources */,
+				36820F1A2E82144200B51DAF /* ContentView.swift in Sources */,
+				36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */,
+				36820F1C2E82144200B51DAF /* KeychainService.swift in Sources */,
+				36820F1D2E82144200B51DAF /* LoginView.swift in Sources */,
+				36820F1E2E82144200B51DAF /* ActivityDetailLoader.swift in Sources */,
+				36820F202E82144200B51DAF /* HomeView.swift in Sources */,
+				36820F212E82144200B51DAF /* EnrollmentsViewModel.swift in Sources */,
+				36820F222E82144200B51DAF /* ActivityDetailView.swift in Sources */,
+				36820F232E82144200B51DAF /* MyEnrollmentsView.swift in Sources */,
+				36820F242E82144200B51DAF /* ClubSportsView.swift in Sources */,
+				36820F252E82144200B51DAF /* AuthViewModel.swift in Sources */,
+				36820F262E82144200B51DAF /* ActivitiesViewModel.swift in Sources */,
+				36820F272E82144200B51DAF /* Untitled.swift in Sources */,
+				36820F282E82144200B51DAF /* Models.swift in Sources */,
+				36820F292E82144200B51DAF /* RootView.swift in Sources */,
+				36820F2A2E82144200B51DAF /* ActivitiesListView.swift in Sources */,
+				36820F2B2E82144200B51DAF /* RunPlannerView.swift in Sources */,
+				36820F2C2E82144200B51DAF /* TrainerBookingsView.swift in Sources */,
+				36820F2D2E82144200B51DAF /* RunNavigatorView.swift in Sources */,
+				36820F2E2E82144200B51DAF /* RunRoutePreviewView.swift in Sources */,
+				36820F2F2E82144200B51DAF /* APIClient.swift in Sources */,
+				36820F302E82144200B51DAF /* LocationService.swift in Sources */,
+				36820F312E82144200B51DAF /* RunModels.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -325,6 +443,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -379,6 +498,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -388,11 +508,16 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = FitNow/FitNow.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8789Q7JGK2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FitNow/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Usamos tu ubicación para guiarte en tus rutas y navegación en tiempo real.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -412,8 +537,9 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				XROS_DEPLOYMENT_TARGET = 2.5;
@@ -425,11 +551,16 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = FitNow/FitNow.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8789Q7JGK2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FitNow/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Usamos tu ubicación para guiarte en tus rutas y navegación en tiempo real.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -449,7 +580,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
@@ -583,6 +714,17 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		36820EE12E78B08500B51DAF /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mapbox/mapbox-navigation-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = 36820D4E2E5E169D00B51DAF /* Project object */;
 }
