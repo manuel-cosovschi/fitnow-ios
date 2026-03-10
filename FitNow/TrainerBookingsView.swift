@@ -161,7 +161,7 @@ struct TrainerBookingsView: View {
     }
 
     private func isBooked(_ s: ActivitySession) -> Bool {
-        myItems.contains { $0.activity_id == s.activity_id && $0.date_start == s.start_at }
+        myItems.contains { $0.session_id == s.id }
     }
 
     private func bookedThisWeek() -> Int {

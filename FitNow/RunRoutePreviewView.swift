@@ -96,13 +96,11 @@ struct RunRoutePreviewView: View {
 
     private func sendFeedback() {
         message = nil
-        let body: [String: Any] = [
-            "route_id": option.id,
-            "rating": rating
-        ]
+        // route_id comes from the path parameter; body only needs rating (and optional fields)
+        let body: [String: Any] = ["rating": rating]
         let data = try! JSONSerialization.data(withJSONObject: body)
 
-        APIClient.shared.request("run/feedback", method: "POST", body: data, authorized: true)
+        APIClient.shared.request("run/routes/\(option.id)/feedback", method: "POST", body: data, authorized: true)
             .sink { completion in
                 if case .failure(let e) = completion { self.message = e.localizedDescription }
             } receiveValue: { (_: SimpleOK) in
