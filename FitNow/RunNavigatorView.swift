@@ -16,6 +16,7 @@ struct RunNavigatorView: View {
     let origin: CLLocationCoordinate2D
     let userPrefs: RunUserPrefs
 
+    @StateObject private var tracker = RunSessionTracker()
     @State private var statusText: String = "Preparando navegación…"
     @State private var nextInstruction: String = "—"
     @State private var remainingToStep: String = "—"
@@ -35,6 +36,9 @@ struct RunNavigatorView: View {
                         nextInstruction = instr
                         remainingToStep = Self.prettyDistance(dist)
                     }
+                },
+                onLocation: { loc in
+                    Task { @MainActor in tracker.addPoint(loc) }
                 }
             )
             .overlay(alignment: .top) {
@@ -73,7 +77,19 @@ struct RunNavigatorView: View {
         }
         .navigationTitle("Navegación")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear { LocationService.shared.start() }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Finalizar") { tracker.finish() }
+                    .tint(.red)
+            }
+        }
+        .onAppear {
+            LocationService.shared.start()
+            tracker.start(routeId: option.id > 0 ? option.id : nil,
+                          originLat: origin.latitude,
+                          originLng: origin.longitude)
+        }
+        .onDisappear { tracker.abandon() }
     }
 
     private static func prettyDistance(_ m: CLLocationDistance) -> String {
@@ -92,13 +108,15 @@ fileprivate struct NavigatorMapRepresentable: UIViewRepresentable {
     let userPrefs: RunUserPrefs
     let onStatus: (String) -> Void
     let onStep: (String, CLLocationDistance) -> Void
+    var onLocation: ((CLLocation) -> Void)? = nil
 
     func makeCoordinator() -> Coordinator {
         Coordinator(option: option,
                     origin: origin,
                     userPrefs: userPrefs,
                     onStatus: onStatus,
-                    onStep: onStep)
+                    onStep: onStep,
+                    onLocation: onLocation)
     }
 
     func makeUIView(context: Context) -> MKMapView {
@@ -122,6 +140,7 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
     private let userPrefs: RunUserPrefs
     private let onStatus: (String) -> Void
     private let onStep: (String, CLLocationDistance) -> Void
+    private let onLocation: ((CLLocation) -> Void)?
 
     private var map: MKMapView!
     private let loc = CLLocationManager()
@@ -140,13 +159,15 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
          origin: CLLocationCoordinate2D,
          userPrefs: RunUserPrefs,
          onStatus: @escaping (String) -> Void,
-         onStep: @escaping (String, CLLocationDistance) -> Void) {
+         onStep: @escaping (String, CLLocationDistance) -> Void,
+         onLocation: ((CLLocation) -> Void)? = nil) {
         self.option = option
         self.origin = origin
         self.destination = option.geojson.coords2D.last ?? origin
         self.userPrefs = userPrefs
         self.onStatus = onStatus
         self.onStep = onStep
+        self.onLocation = onLocation
     }
 
     func attach(to map: MKMapView) {
@@ -315,6 +336,9 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
     // MARK: CLLocationManagerDelegate
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let loc = locations.last else { return }
+
+        // Forward location to telemetry tracker
+        onLocation?(loc)
 
         // refrescá hazards según movimiento/tiempo
         HazardService.shared.refreshIfNeeded(around: loc.coordinate)
