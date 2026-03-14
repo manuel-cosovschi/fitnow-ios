@@ -111,7 +111,9 @@ struct JSONAny: Decodable {
 
 // MARK: - Generic responses
 struct Paged<T: Decodable>: Decodable {
-    let items: [T]; let limit: Int; let offset: Int
+    let items: [T]
+    let limit: Int?
+    let offset: Int?
 }
 struct SimpleOK: Codable { let status: String }
 struct ListResponse<T: Decodable>: Decodable { let items: [T] }
@@ -122,12 +124,18 @@ struct EnrollmentItem: Identifiable, Decodable {
     let activity_id: Int?
     let session_id: Int?
     let activity_kind: String?
-    let provider_id: Int?    
+    let provider_id: Int?
     let title: String
     let location: String?
     let date_start: String?
     let date_end: String?
-    let price: Double?
+    let price: Double?          // backend returns this as "price_paid"
+
+    enum CodingKeys: String, CodingKey {
+        case id, activity_id, session_id, activity_kind, provider_id
+        case title, location, date_start, date_end
+        case price = "price_paid"
+    }
 }
 
 
