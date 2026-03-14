@@ -4,15 +4,17 @@ import Combine
 
 struct HazardArea: Codable, Identifiable {
     let id: Int
-    let title: String
-    let description: String?
-    let center_lat: Double
-    let center_lng: Double
-    let radius_m: Double
-    let severity: String?
+    let lat: Double
+    let lng: Double
+    let type: String
+    let note: String?
+    let severity: Int?
+    let votes: Int?
+    let status: String?
+    let distance_m: Double?
 
     var center: CLLocationCoordinate2D {
-        CLLocationCoordinate2D(latitude: center_lat, longitude: center_lng)
+        CLLocationCoordinate2D(latitude: lat, longitude: lng)
     }
 }
 
@@ -51,16 +53,16 @@ final class HazardService {
         let query = [
             URLQueryItem(name: "lat", value: "\(c.latitude)"),
             URLQueryItem(name: "lng", value: "\(c.longitude)"),
-            URLQueryItem(name: "radius", value: "800")
+            URLQueryItem(name: "radius_m", value: "800")
         ]
 
-        APIClient.shared.request("hazards", authorized: true, query: query)
+        APIClient.shared.request("hazards/near", authorized: true, query: query)
             .sink { completion in
                 if case .failure(let e) = completion {
                     print("Hazards fetch error:", e.localizedDescription)
                 }
-            } receiveValue: { (resp: ListResponse<HazardArea>) in
-                self.hazards = resp.items
+            } receiveValue: { (resp: [HazardArea]) in
+                self.hazards = resp
             }
             .store(in: &bag)
     }
@@ -70,7 +72,7 @@ final class HazardService {
         var best: (idx: Int, dist: CLLocationDistance)?
         for (i, h) in hazards.enumerated() {
             let d = CLLocation(latitude: c.latitude, longitude: c.longitude)
-                .distance(from: CLLocation(latitude: h.center_lat, longitude: h.center_lng))
+                .distance(from: CLLocation(latitude: h.lat, longitude: h.lng))
             if d <= within {
                 if best == nil || d < best!.dist { best = (i, d) }
             }
@@ -78,12 +80,12 @@ final class HazardService {
         return best.map { hazards[$0.idx] }
     }
 
-    /// 🔹 NUEVO: solo la distancia al hazard más cercano (si está dentro de `within`)
+    /// Solo la distancia al hazard más cercano (si está dentro de `within`)
     func nearestHazardDistance(from c: CLLocationCoordinate2D, within: CLLocationDistance) -> CLLocationDistance? {
         var best: CLLocationDistance?
         for h in hazards {
             let d = CLLocation(latitude: c.latitude, longitude: c.longitude)
-                .distance(from: CLLocation(latitude: h.center_lat, longitude: h.center_lng))
+                .distance(from: CLLocation(latitude: h.lat, longitude: h.lng))
             if d <= within {
                 if best == nil || d < best! { best = d }
             }
@@ -91,8 +93,3 @@ final class HazardService {
         return best
     }
 }
-
-
-
-
-
