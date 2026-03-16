@@ -1,14 +1,82 @@
 import SwiftUI
+import Combine
+
+// MARK: - HomeViewModel
+
+final class HomeViewModel: ObservableObject {
+    @Published var upcomingCount = 0
+    @Published var weeklyRunKm: Double = 0
+    @Published var streakDays = 0
+
+    private var bag = Set<AnyCancellable>()
+
+    func load() {
+        // Upcoming enrollments count
+        let q = [URLQueryItem(name: "when", value: "upcoming")]
+        APIClient.shared.request("enrollments/mine", authorized: true, query: q)
+            .sink { _ in }
+            receiveValue: { [weak self] (resp: ListResponse<EnrollmentItem>) in
+                self?.upcomingCount = resp.items.count
+                self?.computeStreak(from: resp.items)
+            }
+            .store(in: &bag)
+
+        // Weekly run km from run sessions
+        APIClient.shared.request("run/sessions/mine", authorized: true)
+            .sink { _ in }
+            receiveValue: { [weak self] (resp: RunSessionsResponse) in
+                let cal = Calendar.current
+                let weekAgo = Date().addingTimeInterval(-7 * 86_400)
+                let recentSessions = resp.items.filter { s in
+                    guard let ds = s.started_at else { return false }
+                    let fracF = ISO8601DateFormatter()
+                    fracF.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                    let basicF = ISO8601DateFormatter()
+                    basicF.formatOptions = [.withInternetDateTime]
+                    let date = fracF.date(from: ds) ?? basicF.date(from: ds)
+                    return (date ?? .distantPast) >= weekAgo
+                }
+                self?.weeklyRunKm = recentSessions.compactMap { $0.distance_m }.reduce(0, +) / 1000
+            }
+            .store(in: &bag)
+    }
+
+    private func computeStreak(from items: [EnrollmentItem]) {
+        // Count distinct days with upcoming activities starting from today
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        var days = Set<Date>()
+        for item in items {
+            guard let ds = item.date_start else { continue }
+            let fracF = ISO8601DateFormatter(); fracF.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            let basicF = ISO8601DateFormatter(); basicF.formatOptions = [.withInternetDateTime]
+            if let d = fracF.date(from: ds) ?? basicF.date(from: ds) {
+                days.insert(cal.startOfDay(for: d))
+            }
+        }
+        // Streak = consecutive days from today that have at least one activity
+        var streak = 0
+        var cursor = today
+        while days.contains(cursor) {
+            streak += 1
+            cursor = cal.date(byAdding: .day, value: 1, to: cursor) ?? cursor.addingTimeInterval(86_400)
+        }
+        streakDays = streak
+    }
+}
+
+// MARK: - HomeView
 
 struct HomeView: View {
     @EnvironmentObject private var auth: AuthViewModel
+    @StateObject private var vm = HomeViewModel()
     @State private var greeting = ""
     @State private var appeared = false
-    @State private var showProfile = false
 
     private var firstName: String {
         let name = auth.user?.name ?? ""
-        return name.components(separatedBy: " ").first ?? (name.isEmpty ? "Atleta" : name)
+        let first = name.components(separatedBy: " ").first ?? ""
+        return first.isEmpty ? "Atleta" : first
     }
 
     var body: some View {
@@ -23,35 +91,13 @@ struct HomeView: View {
             }
             .background(Color(.systemBackground))
             .ignoresSafeArea(edges: .top)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        showProfile = true
-                    } label: {
-                        Image(systemName: "person.circle.fill")
-                            .font(.system(size: 22, weight: .medium))
-                            .foregroundColor(.white)
-                    }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        auth.logout()
-                    } label: {
-                        Image(systemName: "rectangle.portrait.and.arrow.right")
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(.white)
-                    }
-                }
-            }
-            .sheet(isPresented: $showProfile) {
-                ProfileView()
-                    .environmentObject(auth)
-            }
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
         .onAppear {
             updateGreeting()
+            vm.load()
+            NotificationsService.shared.requestPermission()
             withAnimation(.spring(response: 0.7, dampingFraction: 0.82).delay(0.05)) {
                 appeared = true
             }
@@ -62,7 +108,6 @@ struct HomeView: View {
 
     private var heroHeader: some View {
         ZStack(alignment: .bottomLeading) {
-            // Gradient background
             LinearGradient(
                 colors: [
                     Color.fnPrimary,
@@ -75,7 +120,6 @@ struct HomeView: View {
             .frame(maxWidth: .infinity)
             .frame(height: 260)
 
-            // Decorative circles
             Circle()
                 .fill(Color.white.opacity(0.06))
                 .frame(width: 200, height: 200)
@@ -85,7 +129,6 @@ struct HomeView: View {
                 .frame(width: 120, height: 120)
                 .offset(x: 200, y: 20)
 
-            // Content
             HStack(alignment: .bottom) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(greeting)
@@ -133,6 +176,7 @@ struct HomeView: View {
         VStack(spacing: 28) {
             statsSection
             quickActionsSection
+            upcomingSection
             promoBannerSection
             newsSection
         }
@@ -149,9 +193,24 @@ struct HomeView: View {
                 .padding(.horizontal, 20)
 
             HStack(spacing: 12) {
-                StatCard(value: "0", label: "Actividades", icon: "figure.run", color: .fnPrimary)
-                StatCard(value: "0 km", label: "Distancia", icon: "map.fill", color: .fnCyan)
-                StatCard(value: "0 🔥", label: "Días racha", icon: "flame.fill", color: .fnYellow)
+                StatCard(
+                    value: "\(vm.upcomingCount)",
+                    label: "Próximas",
+                    icon: "figure.run",
+                    color: .fnPrimary
+                )
+                StatCard(
+                    value: vm.weeklyRunKm > 0 ? String(format: "%.1f", vm.weeklyRunKm) : "0",
+                    label: "Km corridos",
+                    icon: "map.fill",
+                    color: .fnCyan
+                )
+                StatCard(
+                    value: vm.streakDays > 0 ? "\(vm.streakDays) 🔥" : "0",
+                    label: "Días activos",
+                    icon: "flame.fill",
+                    color: .fnYellow
+                )
             }
             .padding(.horizontal, 20)
         }
@@ -164,30 +223,27 @@ struct HomeView: View {
             SectionHeader(title: "Accesos rápidos")
                 .padding(.horizontal, 20)
 
-            HStack(spacing: 12) {
-                NavigationLink {
-                    ActivitiesListView()
-                } label: {
-                    quickActionCard(
-                        title: "Explorar actividades",
-                        subtitle: "Entrenadores, gyms, clubes",
-                        icon: "magnifyingglass",
-                        gradient: FNGradient.primary
-                    )
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    NavigationLink { ActivitiesListView() } label: {
+                        quickActionCard(title: "Explorar", subtitle: "Gyms, trainers, clubes",
+                                        icon: "magnifyingglass", gradient: FNGradient.primary)
+                    }
+                    NavigationLink { CalendarView() } label: {
+                        quickActionCard(title: "Calendario", subtitle: "Tus próximas clases",
+                                        icon: "calendar", gradient: FNGradient.run)
+                    }
+                    NavigationLink { FavoritesView() } label: {
+                        quickActionCard(title: "Favoritos", subtitle: "Actividades guardadas",
+                                        icon: "heart.fill", gradient: FNGradient.club)
+                    }
+                    NavigationLink { RunPlannerView() } label: {
+                        quickActionCard(title: "Correr", subtitle: "Planificá tu ruta",
+                                        icon: "figure.run", gradient: FNGradient.sport)
+                    }
                 }
-
-                NavigationLink {
-                    MyEnrollmentsView()
-                } label: {
-                    quickActionCard(
-                        title: "Mis inscripciones",
-                        subtitle: "Clases y membresías",
-                        icon: "list.bullet.rectangle.portrait.fill",
-                        gradient: FNGradient.run
-                    )
-                }
+                .padding(.horizontal, 20)
             }
-            .padding(.horizontal, 20)
             .buttonStyle(ScaleButtonStyle())
         }
     }
@@ -212,21 +268,71 @@ struct HomeView: View {
                 Text(title)
                     .font(.system(size: 14, weight: .bold))
                     .foregroundColor(.white)
-                    .multilineTextAlignment(.leading)
                 Text(subtitle)
                     .font(.system(size: 11, weight: .medium))
                     .foregroundColor(.white.opacity(0.72))
-                    .multilineTextAlignment(.leading)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(width: 136, alignment: .leading)
         .padding(18)
         .frame(height: 136)
-        .background(
-            RoundedRectangle(cornerRadius: 22)
-                .fill(gradient)
-        )
+        .background(RoundedRectangle(cornerRadius: 22).fill(gradient))
         .fnShadowBrand()
+    }
+
+    // MARK: - Upcoming activities teaser
+
+    private var upcomingSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            SectionHeader(
+                title: "Mis inscripciones",
+                actionTitle: "Ver todas",
+                action: nil   // navigation handled via tab
+            )
+            .padding(.horizontal, 20)
+
+            NavigationLink(destination: { NavigationStack { MyEnrollmentsView() } }) {
+                HStack(spacing: 14) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(FNGradient.primary)
+                            .frame(width: 50, height: 50)
+                        Image(systemName: "list.bullet.rectangle.portrait.fill")
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
+                    .fnShadowBrand()
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(vm.upcomingCount > 0
+                             ? "\(vm.upcomingCount) actividad\(vm.upcomingCount == 1 ? "" : "es") próxima\(vm.upcomingCount == 1 ? "" : "s")"
+                             : "Sin actividades próximas")
+                            .font(.system(size: 15, weight: .bold))
+                        Text(vm.upcomingCount > 0
+                             ? "Tus clases y membresías activas"
+                             : "Explorá y agendá tu próximo entreno")
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Color(.tertiaryLabel))
+                }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(Color(.secondarySystemBackground))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 18)
+                                .stroke(Color(.separator).opacity(0.4), lineWidth: 0.5)
+                        )
+                )
+                .fnShadow()
+            }
+            .buttonStyle(ScaleButtonStyle())
+            .padding(.horizontal, 20)
+        }
     }
 
     // MARK: - Promo Banner
@@ -300,8 +406,8 @@ struct HomeView: View {
                 FNInfoRow(
                     icon: "bell.badge.fill",
                     iconColor: .fnYellow,
-                    title: "Activá recordatorios de clases",
-                    subtitle: "Recibí notificaciones para no perder nada"
+                    title: "Recordatorios automáticos",
+                    subtitle: "Te avisamos 24h y 1h antes de cada clase"
                 )
             }
             .padding(.horizontal, 20)
