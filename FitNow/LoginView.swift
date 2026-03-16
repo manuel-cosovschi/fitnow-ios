@@ -5,6 +5,8 @@ struct LoginView: View {
     @State private var isRegister = false
     @State private var appeared = false
 
+    private let roles = ["Usuario", "Proveedor"]
+
     var body: some View {
         ZStack {
             // Background gradient
@@ -80,6 +82,22 @@ struct LoginView: View {
 
     private var formCard: some View {
         VStack(spacing: 20) {
+            // Role picker (register only)
+            if isRegister {
+                Picker("Tipo de cuenta", selection: Binding(
+                    get: { auth.selectedRole },
+                    set: { auth.selectedRole = $0 }
+                )) {
+                    Text("Usuario").tag("user")
+                    Text("Proveedor").tag("provider")
+                }
+                .pickerStyle(.segmented)
+                .transition(.asymmetric(
+                    insertion: .push(from: .top).combined(with: .opacity),
+                    removal: .push(from: .bottom).combined(with: .opacity)
+                ))
+            }
+
             // Name field (register only)
             if isRegister {
                 FNTextField(
