@@ -65,6 +65,7 @@ struct ActivityDetailView: View {
     @State private var message: String?
     @StateObject private var helper = EnrollHelper()
     @State private var appeared = false
+    @ObservedObject private var favorites = FavoritesService.shared
 
     init(activity: Activity, previousTitle: String? = nil) {
         self.activity = activity
@@ -82,6 +83,14 @@ struct ActivityDetailView: View {
     private var supportsRunning: Bool { ["trainer", "gym", "club"].contains(kind) }
 
     private var typeInfo: ActivityTypeInfo { ActivityTypeInfo.from(kind: kind) }
+
+    private var shareMessage: String {
+        var parts: [String] = [activity.title]
+        if let loc = activity.location, !loc.isEmpty { parts.append("📍 \(loc)") }
+        if let price = activity.price, price > 0 { parts.append("💰 $\(Int(price))") }
+        parts.append("Encontralo en FitNow 🏋️")
+        return parts.joined(separator: "\n")
+    }
 
     private var promos: [String] {
         switch kind {
@@ -111,8 +120,32 @@ struct ActivityDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .modifier(CustomBackToolbar(previousTitle: previousTitle, dismiss: dismiss))
         .toolbar {
-            if supportsRunning && enrolled {
-                ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
+                // Favorite toggle
+                Button {
+                    withAnimation(.spring(response: 0.3)) {
+                        favorites.toggle(activity)
+                    }
+                } label: {
+                    Image(systemName: favorites.isFavorite(activity.id) ? "heart.fill" : "heart")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(favorites.isFavorite(activity.id) ? .fnSecondary : .white)
+                }
+                .accessibilityLabel(favorites.isFavorite(activity.id) ? "Quitar de favoritos" : "Guardar en favoritos")
+
+                // Share
+                ShareLink(
+                    item: activity.title,
+                    subject: Text(activity.title),
+                    message: Text(shareMessage)
+                ) {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+
+                // Running (if enrolled)
+                if supportsRunning && enrolled {
                     NavigationLink { RunPlannerView() } label: {
                         Image(systemName: "figure.run.circle.fill")
                             .font(.system(size: 18))
@@ -669,6 +702,11 @@ struct ActivityDetailView: View {
                 }
             } receiveValue: { (_: SimpleOK) in
                 message = "¡Inscripción exitosa!"
+                NotificationsService.shared.scheduleReminders(
+                    activityTitle: activity.title,
+                    activityId: activity.id,
+                    dateStart: activity.date_start
+                )
                 fetchActivity(); checkEnrollment()
             }
             .store(in: &helper.bag)
@@ -681,7 +719,9 @@ struct ActivityDetailView: View {
             .sink { completion in
                 if case .failure(let e) = completion { message = (e as NSError).localizedDescription; enrolling = false }
             } receiveValue: { (_: SimpleOK) in
-                message = "Inscripción cancelada."; enrolled = false; enrollmentId = nil; fetchActivity()
+                message = "Inscripción cancelada."
+                NotificationsService.shared.cancelReminders(activityId: activity.id)
+                enrolled = false; enrollmentId = nil; fetchActivity()
             }
             .store(in: &helper.bag)
     }

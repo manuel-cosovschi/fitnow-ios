@@ -2,7 +2,6 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject private var auth: AuthViewModel
-    @Environment(\.dismiss) private var dismiss
 
     private var initials: String {
         let parts = (auth.user?.name ?? "").split(separator: " ").prefix(2)
@@ -70,6 +69,16 @@ struct ProfileView: View {
                     } label: {
                         Label("Membresía", systemImage: "star.circle")
                     }
+                    NavigationLink {
+                        FavoritesView()
+                    } label: {
+                        Label("Favoritos", systemImage: "heart.fill")
+                    }
+                    NavigationLink {
+                        CalendarView()
+                    } label: {
+                        Label("Calendario", systemImage: "calendar")
+                    }
                 }
 
                 // ── Seguridad ──
@@ -126,13 +135,7 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("Mi perfil")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Listo") { dismiss() }
-                        .fontWeight(.semibold)
-                }
-            }
+            .navigationBarTitleDisplayMode(.large)
         }
     }
 }
