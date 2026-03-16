@@ -33,6 +33,7 @@
 		36820F312E82144200B51DAF /* RunModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F122E82144200B51DAF /* RunModels.swift */; };
 		36820F352E82146300B51DAF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 36820F342E82146300B51DAF /* Assets.xcassets */; };
 		AABB0022CCDD0022EEFF0022 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABB0011CCDD0011EEFF0011 /* DesignSystem.swift */; };
+		BBCC0022DDEE0022FFAA0022 /* RunSessionTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCC0011DDEE0011FFAA0011 /* RunSessionTracker.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -84,6 +85,7 @@
 		36820F182E82144200B51DAF /* Untitled.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Untitled.swift; sourceTree = "<group>"; };
 		36820F342E82146300B51DAF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AABB0011CCDD0011EEFF0011 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		BBCC0011DDEE0011FFAA0011 /* RunSessionTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunSessionTracker.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -183,6 +185,7 @@
 				36820F182E82144200B51DAF /* Untitled.swift */,
 				36820F342E82146300B51DAF /* Assets.xcassets */,
 				AABB0011CCDD0011EEFF0011 /* DesignSystem.swift */,
+				BBCC0011DDEE0011FFAA0011 /* RunSessionTracker.swift */,
 			);
 			path = FitNow;
 			sourceTree = "<group>";
@@ -358,6 +361,7 @@
 				36820F302E82144200B51DAF /* LocationService.swift in Sources */,
 				36820F312E82144200B51DAF /* RunModels.swift in Sources */,
 				AABB0022CCDD0022EEFF0022 /* DesignSystem.swift in Sources */,
+				BBCC0022DDEE0022FFAA0022 /* RunSessionTracker.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
