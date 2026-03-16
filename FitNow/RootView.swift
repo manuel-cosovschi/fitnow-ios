@@ -6,7 +6,7 @@ struct RootView: View {
     var body: some View {
         Group {
             if auth.isAuthenticated {
-                HomeView()            // NO agregar .environmentObject acá
+                MainTabView()
             } else {
                 LoginView()
             }

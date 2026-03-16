@@ -11,7 +11,24 @@ final class AuthViewModel: ObservableObject {
     @Published var error: String?
     @Published var user: User? = nil
 
+    private static let userKey = "saved_user"
     private var bag = Set<AnyCancellable>()
+
+    init() {
+        if APIClient.shared.token != nil {
+            isAuthenticated = true
+            if let data = UserDefaults.standard.data(forKey: Self.userKey),
+               let saved = try? JSONDecoder().decode(User.self, from: data) {
+                user = saved
+            }
+        }
+    }
+
+    private func saveUser(_ u: User) {
+        if let data = try? JSONEncoder().encode(u) {
+            UserDefaults.standard.set(data, forKey: Self.userKey)
+        }
+    }
 
     func login() {
         error = nil; loading = true
@@ -24,6 +41,7 @@ final class AuthViewModel: ObservableObject {
             } receiveValue: { [weak self] (resp: AuthResponse) in
                 APIClient.shared.setToken(resp.token)
                 self?.user = resp.user
+                self?.saveUser(resp.user)
                 self?.isAuthenticated = true
             }.store(in: &bag)
     }
@@ -40,12 +58,14 @@ final class AuthViewModel: ObservableObject {
             } receiveValue: { [weak self] (resp: AuthResponse) in
                 APIClient.shared.setToken(resp.token)
                 self?.user = resp.user
+                self?.saveUser(resp.user)
                 self?.isAuthenticated = true
             }.store(in: &bag)
     }
 
     func logout() {
         APIClient.shared.clearToken()
+        UserDefaults.standard.removeObject(forKey: Self.userKey)
         user = nil
         isAuthenticated = false
     }

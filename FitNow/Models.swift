@@ -136,6 +136,25 @@ struct EnrollmentItem: Identifiable, Decodable {
         case title, location, date_start, date_end
         case price = "price_paid"
     }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id           = try c.decode(Int.self, forKey: .id)
+        activity_id  = try c.decodeIfPresent(Int.self, forKey: .activity_id)
+        session_id   = try c.decodeIfPresent(Int.self, forKey: .session_id)
+        activity_kind = try c.decodeIfPresent(String.self, forKey: .activity_kind)
+        provider_id  = try c.decodeIfPresent(Int.self, forKey: .provider_id)
+        title        = try c.decode(String.self, forKey: .title)
+        location     = try c.decodeIfPresent(String.self, forKey: .location)
+        date_start   = try c.decodeIfPresent(String.self, forKey: .date_start)
+        date_end     = try c.decodeIfPresent(String.self, forKey: .date_end)
+        if let p = try? c.decode(Double.self, forKey: .price) {
+            price = p
+        } else if let s = try? c.decode(String.self, forKey: .price),
+                  let p = Double(s.replacingOccurrences(of: ",", with: ".")) {
+            price = p
+        } else { price = nil }
+    }
 }
 
 
