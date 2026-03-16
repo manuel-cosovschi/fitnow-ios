@@ -17,7 +17,7 @@ struct APIConfig {
         return URL(string: "http://127.0.0.1:3000/api")!
         #else
         // Dispositivo físico: usar la IP LAN de la Mac
-        return URL(string: "http://192.168.0.113:3000/api")!
+        return URL(string: "http://192.168.0.240:3000/api")!
         #endif
     }()
 }
