@@ -58,6 +58,20 @@ struct ProfileView: View {
                     .padding(.vertical, 8)
                 }
 
+                // ── Mi cuenta ──
+                Section("Mi cuenta") {
+                    NavigationLink {
+                        PersonalInfoView()
+                    } label: {
+                        Label("Información personal", systemImage: "person.circle")
+                    }
+                    NavigationLink {
+                        MembershipView()
+                    } label: {
+                        Label("Membresía", systemImage: "star.circle")
+                    }
+                }
+
                 // ── Seguridad ──
                 Section("Seguridad") {
                     NavigationLink {
@@ -67,8 +81,22 @@ struct ProfileView: View {
                     }
                 }
 
+                // ── Configuración ──
+                Section("Configuración") {
+                    NavigationLink {
+                        AppSettingsView()
+                    } label: {
+                        Label("Preferencias", systemImage: "gearshape")
+                    }
+                }
+
                 // ── Información de la app ──
                 Section("Información") {
+                    NavigationLink {
+                        TermsView()
+                    } label: {
+                        Label("Términos y condiciones", systemImage: "doc.text")
+                    }
                     HStack {
                         Label("Versión", systemImage: "info.circle")
                         Spacer()
@@ -105,6 +133,175 @@ struct ProfileView: View {
                         .fontWeight(.semibold)
                 }
             }
+        }
+    }
+}
+
+// MARK: - Personal Info
+private struct PersonalInfoView: View {
+    @EnvironmentObject private var auth: AuthViewModel
+
+    var body: some View {
+        Form {
+            Section("Nombre") {
+                Text(auth.user?.name ?? "—")
+                    .foregroundColor(.primary)
+            }
+            Section("Email") {
+                Text(auth.user?.email ?? "—")
+                    .foregroundColor(.primary)
+            }
+            Section("Rol") {
+                Text({
+                    switch auth.user?.role {
+                    case "provider": return "Proveedor"
+                    case "admin":    return "Admin"
+                    default:         return "Usuario"
+                    }
+                }())
+                .foregroundColor(.secondary)
+            }
+        }
+        .navigationTitle("Información personal")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// MARK: - Membership
+private struct MembershipView: View {
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 24) {
+                ZStack {
+                    Circle()
+                        .fill(FNGradient.primary)
+                        .frame(width: 80, height: 80)
+                        .fnShadowBrand()
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 34, weight: .bold))
+                        .foregroundColor(.white)
+                }
+                .padding(.top, 40)
+
+                VStack(spacing: 8) {
+                    Text("Plan Gratuito")
+                        .font(.system(size: 26, weight: .heavy, design: .rounded))
+                    Text("Accedé a actividades básicas sin costo")
+                        .font(.system(size: 15))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+
+                VStack(spacing: 0) {
+                    membershipRow(icon: "checkmark.circle.fill", color: .fnGreen, text: "Búsqueda de actividades")
+                    Divider().padding(.leading, 44)
+                    membershipRow(icon: "checkmark.circle.fill", color: .fnGreen, text: "Inscripción a clases")
+                    Divider().padding(.leading, 44)
+                    membershipRow(icon: "checkmark.circle.fill", color: .fnGreen, text: "Historial de actividades")
+                    Divider().padding(.leading, 44)
+                    membershipRow(icon: "lock.fill", color: Color(.tertiaryLabel), text: "Descuentos exclusivos (Premium)")
+                    Divider().padding(.leading, 44)
+                    membershipRow(icon: "lock.fill", color: Color(.tertiaryLabel), text: "Rutas ilimitadas (Premium)")
+                }
+                .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14))
+                .padding(.horizontal, 20)
+
+                Text("Próximamente podrás actualizar a Premium")
+                    .font(.system(size: 13))
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 30)
+
+                Spacer(minLength: 40)
+            }
+        }
+        .navigationTitle("Membresía")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func membershipRow(icon: String, color: Color, text: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 18))
+                .foregroundColor(color)
+                .frame(width: 24)
+            Text(text)
+                .font(.system(size: 15))
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+    }
+}
+
+// MARK: - App Settings
+private struct AppSettingsView: View {
+    @AppStorage("notificationsEnabled") private var notificationsEnabled = true
+    @AppStorage("weeklyDigest") private var weeklyDigest = false
+
+    var body: some View {
+        Form {
+            Section("Notificaciones") {
+                Toggle("Recordatorios de actividades", isOn: $notificationsEnabled)
+                Toggle("Resumen semanal", isOn: $weeklyDigest)
+            }
+            Section("Apariencia") {
+                HStack {
+                    Label("Tema", systemImage: "circle.lefthalf.filled")
+                    Spacer()
+                    Text("Sistema")
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 14))
+                }
+            }
+        }
+        .navigationTitle("Preferencias")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// MARK: - Terms
+private struct TermsView: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Group {
+                    termSection(title: "1. Aceptación de los términos",
+                        body: "Al usar FitNow, aceptás estos términos y condiciones de uso. Si no estás de acuerdo con alguna parte, por favor no uses la aplicación.")
+                    termSection(title: "2. Uso del servicio",
+                        body: "FitNow es una plataforma para conectar usuarios con proveedores de actividades físicas. El servicio se ofrece tal como está, sin garantías de disponibilidad continua.")
+                    termSection(title: "3. Inscripciones y pagos",
+                        body: "Las inscripciones a actividades son gestionadas a través de la plataforma. Los pagos se procesan directamente con cada proveedor. FitNow no se responsabiliza por disputas de pago entre usuarios y proveedores.")
+                    termSection(title: "4. Privacidad de datos",
+                        body: "Tus datos personales (nombre, email) se usan únicamente para autenticación y personalización dentro de la app. No compartimos tu información con terceros sin consentimiento.")
+                    termSection(title: "5. Cancelaciones",
+                        body: "Podés cancelar tu inscripción a una actividad desde la sección 'Mis inscripciones'. Las políticas de reembolso dependen de cada proveedor.")
+                    termSection(title: "6. Modificaciones",
+                        body: "FitNow se reserva el derecho de modificar estos términos en cualquier momento. Te notificaremos de cambios importantes a través de la aplicación.")
+                }
+                .padding(.horizontal, 20)
+
+                Text("Última actualización: marzo 2026")
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 8)
+                    .padding(.bottom, 40)
+            }
+            .padding(.top, 20)
+        }
+        .navigationTitle("Términos y condiciones")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func termSection(title: String, body: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.system(size: 15, weight: .semibold))
+            Text(body)
+                .font(.system(size: 14))
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

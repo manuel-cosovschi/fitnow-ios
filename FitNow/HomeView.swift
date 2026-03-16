@@ -8,7 +8,8 @@ struct HomeView: View {
 
     private var firstName: String {
         let name = auth.user?.name ?? ""
-        return name.components(separatedBy: " ").first ?? (name.isEmpty ? "Atleta" : name)
+        let first = name.components(separatedBy: " ").first ?? ""
+        return first.isEmpty ? "Atleta" : first
     }
 
     var body: some View {

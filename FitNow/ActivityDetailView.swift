@@ -659,9 +659,9 @@ struct ActivityDetailView: View {
             .sink { completion in
                 if case .failure(let e) = completion {
                     if case APIError.http(let code, let body) = e {
-                        if code == 409 && body.contains("Already enrolled") {
-                            message = "Ya estás inscripto en esta actividad."; enrolled = true
-                        } else if code == 409 && body.contains("No seats left") {
+                        if code == 409 && (body.contains("ALREADY_ENROLLED") || body.contains("Already enrolled") || body.contains("Ya estás inscripto")) {
+                            message = nil; enrolled = true
+                        } else if code == 409 && (body.contains("No seats left") || body.contains("NO_SEATS")) {
                             message = "No quedan cupos disponibles."
                         } else { message = "HTTP \(code): \(body)" }
                     } else { message = e.localizedDescription }
