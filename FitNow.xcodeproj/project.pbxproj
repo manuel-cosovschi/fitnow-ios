@@ -1,0 +1,762 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		36820F192E82144200B51DAF /* HazardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F092E82144200B51DAF /* HazardService.swift */; };
+		36820F1A2E82144200B51DAF /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F052E82144200B51DAF /* ContentView.swift */; };
+		36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F082E82144200B51DAF /* FitNowApp.swift */; };
+		36820F1C2E82144200B51DAF /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0C2E82144200B51DAF /* KeychainService.swift */; };
+		36820F1D2E82144200B51DAF /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0E2E82144200B51DAF /* LoginView.swift */; };
+		36820F1E2E82144200B51DAF /* ActivityDetailLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820EFE2E82144200B51DAF /* ActivityDetailLoader.swift */; };
+		36820F202E82144200B51DAF /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0A2E82144200B51DAF /* HomeView.swift */; };
+		36820F212E82144200B51DAF /* EnrollmentsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */; };
+		36820F222E82144200B51DAF /* ActivityDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820EFF2E82144200B51DAF /* ActivityDetailView.swift */; };
+		36820F232E82144200B51DAF /* MyEnrollmentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F102E82144200B51DAF /* MyEnrollmentsView.swift */; };
+		36820F242E82144200B51DAF /* ClubSportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F042E82144200B51DAF /* ClubSportsView.swift */; };
+		36820F252E82144200B51DAF /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F032E82144200B51DAF /* AuthViewModel.swift */; };
+		36820F262E82144200B51DAF /* ActivitiesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820EFD2E82144200B51DAF /* ActivitiesViewModel.swift */; };
+		36820F272E82144200B51DAF /* Untitled.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F182E82144200B51DAF /* Untitled.swift */; };
+		36820F282E82144200B51DAF /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0F2E82144200B51DAF /* Models.swift */; };
+		36820F292E82144200B51DAF /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F112E82144200B51DAF /* RootView.swift */; };
+		36820F2A2E82144200B51DAF /* ActivitiesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820EFC2E82144200B51DAF /* ActivitiesListView.swift */; };
+		36820F2B2E82144200B51DAF /* RunPlannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F152E82144200B51DAF /* RunPlannerView.swift */; };
+		36820F2C2E82144200B51DAF /* TrainerBookingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F172E82144200B51DAF /* TrainerBookingsView.swift */; };
+		36820F2D2E82144200B51DAF /* RunNavigatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F142E82144200B51DAF /* RunNavigatorView.swift */; };
+		36820F2E2E82144200B51DAF /* RunRoutePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F162E82144200B51DAF /* RunRoutePreviewView.swift */; };
+		36820F2F2E82144200B51DAF /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F002E82144200B51DAF /* APIClient.swift */; };
+		36820F302E82144200B51DAF /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0D2E82144200B51DAF /* LocationService.swift */; };
+		36820F312E82144200B51DAF /* RunModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F122E82144200B51DAF /* RunModels.swift */; };
+		36820F352E82146300B51DAF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 36820F342E82146300B51DAF /* Assets.xcassets */; };
+		AABB0022CCDD0022EEFF0022 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABB0011CCDD0011EEFF0011 /* DesignSystem.swift */; };
+		BBCC0022DDEE0022FFAA0022 /* RunSessionTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCC0011DDEE0011FFAA0011 /* RunSessionTracker.swift */; };
+		CC220011DD330011EE440011 /* FavoritesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110011DD220011EE330011 /* FavoritesService.swift */; };
+		CC220012DD330012EE440012 /* FavoritesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110012DD220012EE330012 /* FavoritesView.swift */; };
+		CC220013DD330013EE440013 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110013DD220013EE330013 /* CalendarView.swift */; };
+		CC220014DD330014EE440014 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110014DD220014EE330014 /* MainTabView.swift */; };
+		CC220015DD330015EE440015 /* NotificationsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110015DD220015EE330015 /* NotificationsService.swift */; };
+		CC220016DD330016EE440016 /* RunHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110016DD220016EE330016 /* RunHubView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		36820D652E5E169F00B51DAF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 36820D4E2E5E169D00B51DAF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 36820D552E5E169D00B51DAF;
+			remoteInfo = FitNow;
+		};
+		36820D6F2E5E169F00B51DAF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 36820D4E2E5E169D00B51DAF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 36820D552E5E169D00B51DAF;
+			remoteInfo = FitNow;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		36820D562E5E169D00B51DAF /* FitNow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FitNow.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		36820D642E5E169F00B51DAF /* FitNowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitNowTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		36820D6E2E5E169F00B51DAF /* FitNowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitNowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		36820EFC2E82144200B51DAF /* ActivitiesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivitiesListView.swift; sourceTree = "<group>"; };
+		36820EFD2E82144200B51DAF /* ActivitiesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivitiesViewModel.swift; sourceTree = "<group>"; };
+		36820EFE2E82144200B51DAF /* ActivityDetailLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityDetailLoader.swift; sourceTree = "<group>"; };
+		36820EFF2E82144200B51DAF /* ActivityDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityDetailView.swift; sourceTree = "<group>"; };
+		36820F002E82144200B51DAF /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		36820F032E82144200B51DAF /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		36820F042E82144200B51DAF /* ClubSportsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubSportsView.swift; sourceTree = "<group>"; };
+		36820F052E82144200B51DAF /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnrollmentsViewModel.swift; sourceTree = "<group>"; };
+		36820F072E82144200B51DAF /* FitNow.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FitNow.entitlements; sourceTree = "<group>"; };
+		36820F082E82144200B51DAF /* FitNowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitNowApp.swift; sourceTree = "<group>"; };
+		36820F092E82144200B51DAF /* HazardService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HazardService.swift; sourceTree = "<group>"; };
+		36820F0A2E82144200B51DAF /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		36820F0B2E82144200B51DAF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		36820F0C2E82144200B51DAF /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
+		36820F0D2E82144200B51DAF /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
+		36820F0E2E82144200B51DAF /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		36820F0F2E82144200B51DAF /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		36820F102E82144200B51DAF /* MyEnrollmentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyEnrollmentsView.swift; sourceTree = "<group>"; };
+		36820F112E82144200B51DAF /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		36820F122E82144200B51DAF /* RunModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunModels.swift; sourceTree = "<group>"; };
+		36820F142E82144200B51DAF /* RunNavigatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunNavigatorView.swift; sourceTree = "<group>"; };
+		36820F152E82144200B51DAF /* RunPlannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunPlannerView.swift; sourceTree = "<group>"; };
+		36820F162E82144200B51DAF /* RunRoutePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunRoutePreviewView.swift; sourceTree = "<group>"; };
+		36820F172E82144200B51DAF /* TrainerBookingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainerBookingsView.swift; sourceTree = "<group>"; };
+		36820F182E82144200B51DAF /* Untitled.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Untitled.swift; sourceTree = "<group>"; };
+		36820F342E82146300B51DAF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AABB0011CCDD0011EEFF0011 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		BBCC0011DDEE0011FFAA0011 /* RunSessionTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunSessionTracker.swift; sourceTree = "<group>"; };
+		CC110011DD220011EE330011 /* FavoritesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesService.swift; sourceTree = "<group>"; };
+		CC110012DD220012EE330012 /* FavoritesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesView.swift; sourceTree = "<group>"; };
+		CC110013DD220013EE330013 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
+		CC110014DD220014EE330014 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		CC110015DD220015EE330015 /* NotificationsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsService.swift; sourceTree = "<group>"; };
+		CC110016DD220016EE330016 /* RunHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunHubView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		36820D672E5E169F00B51DAF /* FitNowTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = FitNowTests;
+			sourceTree = "<group>";
+		};
+		36820D712E5E169F00B51DAF /* FitNowUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = FitNowUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		36820D532E5E169D00B51DAF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36820D612E5E169F00B51DAF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36820D6B2E5E169F00B51DAF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		36820D4D2E5E169D00B51DAF = {
+			isa = PBXGroup;
+			children = (
+				36820EFB2E82142A00B51DAF /* FitNow */,
+				36820D672E5E169F00B51DAF /* FitNowTests */,
+				36820D712E5E169F00B51DAF /* FitNowUITests */,
+				36820E1D2E789D0D00B51DAF /* Frameworks */,
+				36820D572E5E169D00B51DAF /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		36820D572E5E169D00B51DAF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				36820D562E5E169D00B51DAF /* FitNow.app */,
+				36820D642E5E169F00B51DAF /* FitNowTests.xctest */,
+				36820D6E2E5E169F00B51DAF /* FitNowUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		36820E1D2E789D0D00B51DAF /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		36820EFB2E82142A00B51DAF /* FitNow */ = {
+			isa = PBXGroup;
+			children = (
+				36820EFC2E82144200B51DAF /* ActivitiesListView.swift */,
+				36820EFD2E82144200B51DAF /* ActivitiesViewModel.swift */,
+				36820EFE2E82144200B51DAF /* ActivityDetailLoader.swift */,
+				36820EFF2E82144200B51DAF /* ActivityDetailView.swift */,
+				36820F002E82144200B51DAF /* APIClient.swift */,
+				36820F032E82144200B51DAF /* AuthViewModel.swift */,
+				36820F042E82144200B51DAF /* ClubSportsView.swift */,
+				36820F052E82144200B51DAF /* ContentView.swift */,
+				36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */,
+				36820F072E82144200B51DAF /* FitNow.entitlements */,
+				36820F082E82144200B51DAF /* FitNowApp.swift */,
+				36820F092E82144200B51DAF /* HazardService.swift */,
+				36820F0A2E82144200B51DAF /* HomeView.swift */,
+				36820F0B2E82144200B51DAF /* Info.plist */,
+				36820F0C2E82144200B51DAF /* KeychainService.swift */,
+				36820F0D2E82144200B51DAF /* LocationService.swift */,
+				36820F0E2E82144200B51DAF /* LoginView.swift */,
+				36820F0F2E82144200B51DAF /* Models.swift */,
+				36820F102E82144200B51DAF /* MyEnrollmentsView.swift */,
+				36820F112E82144200B51DAF /* RootView.swift */,
+				36820F122E82144200B51DAF /* RunModels.swift */,
+				36820F142E82144200B51DAF /* RunNavigatorView.swift */,
+				36820F152E82144200B51DAF /* RunPlannerView.swift */,
+				36820F162E82144200B51DAF /* RunRoutePreviewView.swift */,
+				36820F172E82144200B51DAF /* TrainerBookingsView.swift */,
+				36820F182E82144200B51DAF /* Untitled.swift */,
+				36820F342E82146300B51DAF /* Assets.xcassets */,
+				AABB0011CCDD0011EEFF0011 /* DesignSystem.swift */,
+				BBCC0011DDEE0011FFAA0011 /* RunSessionTracker.swift */,
+				CC110011DD220011EE330011 /* FavoritesService.swift */,
+				CC110012DD220012EE330012 /* FavoritesView.swift */,
+				CC110013DD220013EE330013 /* CalendarView.swift */,
+				CC110014DD220014EE330014 /* MainTabView.swift */,
+				CC110015DD220015EE330015 /* NotificationsService.swift */,
+				CC110016DD220016EE330016 /* RunHubView.swift */,
+			);
+			path = FitNow;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		36820D552E5E169D00B51DAF /* FitNow */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 36820D782E5E169F00B51DAF /* Build configuration list for PBXNativeTarget "FitNow" */;
+			buildPhases = (
+				36820D522E5E169D00B51DAF /* Sources */,
+				36820D532E5E169D00B51DAF /* Frameworks */,
+				36820D542E5E169D00B51DAF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FitNow;
+			packageProductDependencies = (
+			);
+			productName = FitNow;
+			productReference = 36820D562E5E169D00B51DAF /* FitNow.app */;
+			productType = "com.apple.product-type.application";
+		};
+		36820D632E5E169F00B51DAF /* FitNowTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 36820D7B2E5E169F00B51DAF /* Build configuration list for PBXNativeTarget "FitNowTests" */;
+			buildPhases = (
+				36820D602E5E169F00B51DAF /* Sources */,
+				36820D612E5E169F00B51DAF /* Frameworks */,
+				36820D622E5E169F00B51DAF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				36820D662E5E169F00B51DAF /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				36820D672E5E169F00B51DAF /* FitNowTests */,
+			);
+			name = FitNowTests;
+			packageProductDependencies = (
+			);
+			productName = FitNowTests;
+			productReference = 36820D642E5E169F00B51DAF /* FitNowTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		36820D6D2E5E169F00B51DAF /* FitNowUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 36820D7E2E5E169F00B51DAF /* Build configuration list for PBXNativeTarget "FitNowUITests" */;
+			buildPhases = (
+				36820D6A2E5E169F00B51DAF /* Sources */,
+				36820D6B2E5E169F00B51DAF /* Frameworks */,
+				36820D6C2E5E169F00B51DAF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				36820D702E5E169F00B51DAF /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				36820D712E5E169F00B51DAF /* FitNowUITests */,
+			);
+			name = FitNowUITests;
+			packageProductDependencies = (
+			);
+			productName = FitNowUITests;
+			productReference = 36820D6E2E5E169F00B51DAF /* FitNowUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		36820D4E2E5E169D00B51DAF /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					36820D552E5E169D00B51DAF = {
+						CreatedOnToolsVersion = 16.4;
+						LastSwiftMigration = 1640;
+					};
+					36820D632E5E169F00B51DAF = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = 36820D552E5E169D00B51DAF;
+					};
+					36820D6D2E5E169F00B51DAF = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = 36820D552E5E169D00B51DAF;
+					};
+				};
+			};
+			buildConfigurationList = 36820D512E5E169D00B51DAF /* Build configuration list for PBXProject "FitNow" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 36820D4D2E5E169D00B51DAF;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				36820EE12E78B08500B51DAF /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 36820D572E5E169D00B51DAF /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				36820D552E5E169D00B51DAF /* FitNow */,
+				36820D632E5E169F00B51DAF /* FitNowTests */,
+				36820D6D2E5E169F00B51DAF /* FitNowUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		36820D542E5E169D00B51DAF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				36820F352E82146300B51DAF /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36820D622E5E169F00B51DAF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36820D6C2E5E169F00B51DAF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		36820D522E5E169D00B51DAF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				36820F192E82144200B51DAF /* HazardService.swift in Sources */,
+				36820F1A2E82144200B51DAF /* ContentView.swift in Sources */,
+				36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */,
+				36820F1C2E82144200B51DAF /* KeychainService.swift in Sources */,
+				36820F1D2E82144200B51DAF /* LoginView.swift in Sources */,
+				36820F1E2E82144200B51DAF /* ActivityDetailLoader.swift in Sources */,
+				36820F202E82144200B51DAF /* HomeView.swift in Sources */,
+				36820F212E82144200B51DAF /* EnrollmentsViewModel.swift in Sources */,
+				36820F222E82144200B51DAF /* ActivityDetailView.swift in Sources */,
+				36820F232E82144200B51DAF /* MyEnrollmentsView.swift in Sources */,
+				36820F242E82144200B51DAF /* ClubSportsView.swift in Sources */,
+				36820F252E82144200B51DAF /* AuthViewModel.swift in Sources */,
+				36820F262E82144200B51DAF /* ActivitiesViewModel.swift in Sources */,
+				36820F272E82144200B51DAF /* Untitled.swift in Sources */,
+				36820F282E82144200B51DAF /* Models.swift in Sources */,
+				36820F292E82144200B51DAF /* RootView.swift in Sources */,
+				36820F2A2E82144200B51DAF /* ActivitiesListView.swift in Sources */,
+				36820F2B2E82144200B51DAF /* RunPlannerView.swift in Sources */,
+				36820F2C2E82144200B51DAF /* TrainerBookingsView.swift in Sources */,
+				36820F2D2E82144200B51DAF /* RunNavigatorView.swift in Sources */,
+				36820F2E2E82144200B51DAF /* RunRoutePreviewView.swift in Sources */,
+				36820F2F2E82144200B51DAF /* APIClient.swift in Sources */,
+				36820F302E82144200B51DAF /* LocationService.swift in Sources */,
+				36820F312E82144200B51DAF /* RunModels.swift in Sources */,
+				AABB0022CCDD0022EEFF0022 /* DesignSystem.swift in Sources */,
+				BBCC0022DDEE0022FFAA0022 /* RunSessionTracker.swift in Sources */,
+				CC220011DD330011EE440011 /* FavoritesService.swift in Sources */,
+				CC220012DD330012EE440012 /* FavoritesView.swift in Sources */,
+				CC220013DD330013EE440013 /* CalendarView.swift in Sources */,
+				CC220014DD330014EE440014 /* MainTabView.swift in Sources */,
+				CC220015DD330015EE440015 /* NotificationsService.swift in Sources */,
+				CC220016DD330016EE440016 /* RunHubView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36820D602E5E169F00B51DAF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36820D6A2E5E169F00B51DAF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		36820D662E5E169F00B51DAF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 36820D552E5E169D00B51DAF /* FitNow */;
+			targetProxy = 36820D652E5E169F00B51DAF /* PBXContainerItemProxy */;
+		};
+		36820D702E5E169F00B51DAF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 36820D552E5E169D00B51DAF /* FitNow */;
+			targetProxy = 36820D6F2E5E169F00B51DAF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		36820D762E5E169F00B51DAF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		36820D772E5E169F00B51DAF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		36820D792E5E169F00B51DAF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = FitNow/FitNow.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8789Q7JGK2;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FitNow/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Usamos tu ubicación para guiarte en tus rutas y navegación en tiempo real.";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.manuelcosovschi.FitNow;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Debug;
+		};
+		36820D7A2E5E169F00B51DAF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = FitNow/FitNow.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8789Q7JGK2;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FitNow/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Usamos tu ubicación para guiarte en tus rutas y navegación en tiempo real.";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.manuelcosovschi.FitNow;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Release;
+		};
+		36820D7C2E5E169F00B51DAF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.manuelcosovschi.FitNowTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FitNow.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FitNow";
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Debug;
+		};
+		36820D7D2E5E169F00B51DAF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.manuelcosovschi.FitNowTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FitNow.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FitNow";
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Release;
+		};
+		36820D7F2E5E169F00B51DAF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.manuelcosovschi.FitNowUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = FitNow;
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Debug;
+		};
+		36820D802E5E169F00B51DAF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.manuelcosovschi.FitNowUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = FitNow;
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		36820D512E5E169D00B51DAF /* Build configuration list for PBXProject "FitNow" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				36820D762E5E169F00B51DAF /* Debug */,
+				36820D772E5E169F00B51DAF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		36820D782E5E169F00B51DAF /* Build configuration list for PBXNativeTarget "FitNow" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				36820D792E5E169F00B51DAF /* Debug */,
+				36820D7A2E5E169F00B51DAF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		36820D7B2E5E169F00B51DAF /* Build configuration list for PBXNativeTarget "FitNowTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				36820D7C2E5E169F00B51DAF /* Debug */,
+				36820D7D2E5E169F00B51DAF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		36820D7E2E5E169F00B51DAF /* Build configuration list for PBXNativeTarget "FitNowUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				36820D7F2E5E169F00B51DAF /* Debug */,
+				36820D802E5E169F00B51DAF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		36820EE12E78B08500B51DAF /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mapbox/mapbox-navigation-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+	};
+	rootObject = 36820D4E2E5E169D00B51DAF /* Project object */;
+}
