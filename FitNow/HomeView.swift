@@ -4,6 +4,7 @@ struct HomeView: View {
     @EnvironmentObject private var auth: AuthViewModel
     @State private var greeting = ""
     @State private var appeared = false
+    @State private var showProfile = false
 
     private var firstName: String {
         let name = auth.user?.name ?? ""
@@ -23,6 +24,15 @@ struct HomeView: View {
             .background(Color(.systemBackground))
             .ignoresSafeArea(edges: .top)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        showProfile = true
+                    } label: {
+                        Image(systemName: "person.circle.fill")
+                            .font(.system(size: 22, weight: .medium))
+                            .foregroundColor(.white)
+                    }
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         auth.logout()
@@ -32,6 +42,10 @@ struct HomeView: View {
                             .foregroundColor(.white)
                     }
                 }
+            }
+            .sheet(isPresented: $showProfile) {
+                ProfileView()
+                    .environmentObject(auth)
             }
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
