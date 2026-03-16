@@ -5,7 +5,13 @@
 	<key>APIBaseURL</key>
 	<string>http://127.0.0.1:3000/api/</string>
 	<key>MBXAccessToken</key>
-	<string>pk.eyJ1IjoiY29zb3ZzY2hpbSIsImEiOiJjbWZsZzc4bDYwNHVwMmpvaGJkanBwdnBoIn0.z0bpAse2IvSDNW2DbyclKw</string>
+	<string>$(MAPBOX_ACCESS_TOKEN)</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>FitNow necesita acceso a la red local para conectarse al servidor de desarrollo.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_http._tcp</string>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
