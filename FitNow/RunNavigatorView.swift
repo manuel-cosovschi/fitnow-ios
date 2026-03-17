@@ -58,6 +58,7 @@ struct RunNavigatorView: View {
             bottomDashboard
         }
         .navigationBarHidden(true)
+        .toolbar(.hidden, for: .tabBar)
         .ignoresSafeArea(edges: .bottom)
         .onAppear {
             LocationService.shared.start()
