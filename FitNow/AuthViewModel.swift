@@ -42,8 +42,10 @@ final class AuthViewModel: ObservableObject {
     private func resolvedRole(from backendUser: User, fallbackRole: String? = nil) -> String {
         // Prefer any non-"user" role returned by the backend
         if let r = backendUser.role, r != "user", !r.isEmpty { return r }
+        // Heuristic: provider_id set → this is a provider account
+        if backendUser.provider_id != nil { return "provider_admin" }
         // Fall back to local cache (handles backends that always echo "user")
-        if let cached = cachedRole(forEmail: backendUser.email) { return cached }
+        if let cached = cachedRole(forEmail: backendUser.email), cached != "user" { return cached }
         return fallbackRole ?? backendUser.role ?? "user"
     }
 
