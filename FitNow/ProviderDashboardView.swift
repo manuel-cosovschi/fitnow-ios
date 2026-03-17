@@ -326,7 +326,7 @@ struct ProviderActivitiesTab: View {
                     .foregroundColor(.white)
                     .padding(.horizontal, 24)
                     .padding(.vertical, 13)
-                    .background(.fnPurple, in: Capsule())
+                    .background(Color.fnPurple, in: Capsule())
             }
             .buttonStyle(ScaleButtonStyle())
             .padding(.top, 8)

@@ -252,8 +252,8 @@ struct RunRoutePreviewView: View {
         let center = MKMapPoint(x: rect.midX, y: rect.midY).coordinate
         let tl = MKMapPoint(x: rect.minX, y: rect.minY).coordinate
         let br = MKMapPoint(x: rect.maxX, y: rect.maxY).coordinate
-        var latD = max(abs(tl.latitude - br.latitude) * 1.3, 0.01)
-        var lngD = max(abs(tl.longitude - br.longitude) * 1.3, 0.01)
+        let latD = max(abs(tl.latitude - br.latitude) * 1.3, 0.01)
+        let lngD = max(abs(tl.longitude - br.longitude) * 1.3, 0.01)
         mapRegion = MKCoordinateRegion(center: center,
                                        span: MKCoordinateSpan(latitudeDelta: latD, longitudeDelta: lngD))
     }

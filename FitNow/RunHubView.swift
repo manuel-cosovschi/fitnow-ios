@@ -142,7 +142,7 @@ struct RunHubView: View {
                         SkeletonView(cornerRadius: 16).frame(height: 80)
                     }
                 }
-            } else if let err = vm.error {
+            } else if vm.error != nil {
                 HStack(spacing: 10) {
                     Image(systemName: "wifi.slash")
                         .foregroundColor(.secondary)
