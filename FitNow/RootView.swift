@@ -6,7 +6,7 @@ struct RootView: View {
     var body: some View {
         Group {
             if auth.isAuthenticated {
-                switch auth.user?.role {
+                switch auth.user?.role ?? "user" {
                 case "provider_admin":
                     ProviderDashboardView(providerId: auth.user?.provider_id)
                 case "admin":

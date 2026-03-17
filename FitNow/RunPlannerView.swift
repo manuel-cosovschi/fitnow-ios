@@ -113,7 +113,7 @@ struct RunPlannerView: View {
 
             // Custom slider
             VStack(spacing: 8) {
-                Slider(value: $distanceKm, in: 2...20, step: 1)
+                Slider(value: $distanceKm, in: 2...100, step: 1)
                     .tint(.fnCyan)
                     .animation(.spring(response: 0.3), value: distanceKm)
 
@@ -122,7 +122,7 @@ struct RunPlannerView: View {
                         .font(.system(size: 11))
                         .foregroundColor(Color(.tertiaryLabel))
                     Spacer()
-                    Text("20 km")
+                    Text("100 km")
                         .font(.system(size: 11))
                         .foregroundColor(Color(.tertiaryLabel))
                 }
@@ -130,11 +130,11 @@ struct RunPlannerView: View {
 
             // Quick distance buttons
             HStack(spacing: 8) {
-                ForEach([3, 5, 8, 10, 15], id: \.self) { km in
+                ForEach([5, 10, 21, 42], id: \.self) { km in
                     Button {
                         withAnimation(.spring(response: 0.3)) { distanceKm = Double(km) }
                     } label: {
-                        Text("\(km)k")
+                        Text(km == 21 ? "21k" : km == 42 ? "42k" : "\(km)k")
                             .font(.system(size: 13, weight: .bold))
                             .foregroundColor(Int(distanceKm) == km ? .white : Color(.secondaryLabel))
                             .frame(maxWidth: .infinity)

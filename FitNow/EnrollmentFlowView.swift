@@ -42,7 +42,7 @@ struct EnrollmentFlowView: View {
     enum PaymentMethod { case card, transfer }
 
     struct LocalPlan: Identifiable {
-        let id = UUID()
+        var id: String { name }   // stable across re-renders; name is unique per plan
         let name: String
         let price: Double
         let description: String

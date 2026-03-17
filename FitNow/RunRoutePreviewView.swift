@@ -22,6 +22,8 @@ struct RunRoutePreviewView: View {
     @State private var message: String?
     @State private var bag = Set<AnyCancellable>()
     @State private var appeared = false
+    @State private var showNavigator = false
+    @State private var startOrigin = MDP_FALLBACK
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -39,6 +41,9 @@ struct RunRoutePreviewView: View {
         .ignoresSafeArea(edges: .top)
         .navigationTitle("Vista previa")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(isPresented: $showNavigator) {
+            RunNavigatorView(option: option, origin: startOrigin, userPrefs: .default)
+        }
         .onAppear {
             LocationService.shared.start()
             buildPolyline()
@@ -114,17 +119,14 @@ struct RunRoutePreviewView: View {
                 .animation(.spring(response: 0.5).delay(0.15), value: appeared)
 
             // Navigate CTA
-            NavigationLink {
-                let origin = LocationService.shared.lastLocation?.coordinate ?? MDP_FALLBACK
-                RunNavigatorView(option: option, origin: origin, userPrefs: .default)
-            } label: {
-                FitNowButton(
-                    title: "Iniciar ruta",
-                    icon: "location.north.line.fill",
-                    gradient: FNGradient.run
-                ) { }
+            FitNowButton(
+                title: "Iniciar ruta",
+                icon: "location.north.line.fill",
+                gradient: FNGradient.run
+            ) {
+                startOrigin = LocationService.shared.lastLocation?.coordinate ?? MDP_FALLBACK
+                showNavigator = true
             }
-            .buttonStyle(.plain)
             .opacity(appeared ? 1 : 0)
             .animation(.spring(response: 0.5).delay(0.2), value: appeared)
 

@@ -415,7 +415,18 @@ private struct AdminLoginSheet: View {
             .receive(on: DispatchQueue.main)
             .sink { completion in
                 loading = false
-                if case .failure(let e) = completion { localError = e.localizedDescription }
+                if case .failure(let e) = completion {
+                    if case APIError.http(let code, _) = e {
+                        switch code {
+                        case 401: localError = "Email o contraseña incorrectos."
+                        case 403: localError = "No tenés permisos de administrador."
+                        case 404: localError = "Usuario no encontrado."
+                        default:  localError = "Error al iniciar sesión (código \(code))."
+                        }
+                    } else {
+                        localError = "No se pudo conectar. Verificá tu conexión a internet."
+                    }
+                }
             } receiveValue: { (resp: AuthResponse) in
                 loading = false
                 let role = resp.user.role ?? ""
