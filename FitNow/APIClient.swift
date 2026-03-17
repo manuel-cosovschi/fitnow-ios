@@ -12,13 +12,7 @@ enum APIError: LocalizedError {
 
 struct APIConfig {
     static var baseURL: URL = {
-        #if targetEnvironment(simulator)
-        // Simulador: la API corre en la propia Mac
-        return URL(string: "http://127.0.0.1:3000/api")!
-        #else
-        // Dispositivo físico: usar la IP LAN de la Mac
-        return URL(string: "http://192.168.0.240:3000/api")!
-        #endif
+        return URL(string: "https://fitnow-api-production.up.railway.app/api")!
     }()
 }
 
