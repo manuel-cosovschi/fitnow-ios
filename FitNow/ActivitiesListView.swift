@@ -14,7 +14,6 @@ struct ActivitiesListView: View {
         ("Clubes",         "club",        .fnPurple),
         ("Deportes",       "club_sport",  .fnGreen),
     ]
-    @State private var selectedKind = ""
 
     var body: some View {
         VStack(spacing: 0) {
@@ -30,10 +29,10 @@ struct ActivitiesListView: View {
                     ForEach(kindFilters, id: \.value) { f in
                         FilterChip(
                             title: f.label,
-                            isSelected: selectedKind == f.value
+                            isSelected: vm.selectedKind == f.value
                         ) {
                             withAnimation(.spring(response: 0.3)) {
-                                selectedKind = f.value
+                                vm.selectedKind = f.value
                             }
                             vm.fetch()
                         }
@@ -61,7 +60,7 @@ struct ActivitiesListView: View {
             }
         }
         .background(Color(.systemBackground))
-        .navigationTitle("Actividades")
+        .navigationTitle("Explorar")
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -210,7 +209,6 @@ struct ActivitiesListView: View {
                 .multilineTextAlignment(.center)
             FitNowOutlineButton(title: "Limpiar filtros", icon: "xmark.circle") {
                 vm.clearFilters()
-                selectedKind = ""
                 vm.fetch()
             }
             .padding(.horizontal, 80)

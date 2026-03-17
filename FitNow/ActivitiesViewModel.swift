@@ -8,6 +8,7 @@ final class ActivitiesViewModel: ObservableObject {
     @Published var query: String = ""
 
     // Filtros
+    @Published var selectedKind: String = ""         // "", "trainer", "gym", "club", "club_sport"
     @Published var selectedDifficulty: String = ""   // "", "baja", "media", "alta"
     @Published var selectedModality: String = ""     // "", "outdoor", "gimnasio", "clase"
     @Published var minPrice: Int?
@@ -19,6 +20,7 @@ final class ActivitiesViewModel: ObservableObject {
     private var bag = Set<AnyCancellable>()
 
     func clearFilters() {
+        selectedKind = ""
         selectedDifficulty = ""
         selectedModality = ""
         minPrice = nil
@@ -32,6 +34,9 @@ final class ActivitiesViewModel: ObservableObject {
         var qItems: [URLQueryItem] = []
         if !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             qItems.append(URLQueryItem(name: "q", value: query))
+        }
+        if !selectedKind.isEmpty {
+            qItems.append(URLQueryItem(name: "kind", value: selectedKind))
         }
         if !selectedDifficulty.isEmpty {
             qItems.append(URLQueryItem(name: "difficulty", value: selectedDifficulty))

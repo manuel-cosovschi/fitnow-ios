@@ -41,6 +41,10 @@
 		CC220015DD330015EE440015 /* NotificationsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110015DD220015EE330015 /* NotificationsService.swift */; };
 		CC220016DD330016EE440016 /* RunHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110016DD220016EE330016 /* RunHubView.swift */; };
 		CC220017DD330017EE440017 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110017DD220017EE330017 /* ProfileView.swift */; };
+		CC220018DD330018EE440018 /* EnrollmentFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110018DD220018EE330018 /* EnrollmentFlowView.swift */; };
+		CC220019DD330019EE440019 /* EnrollmentDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110019DD220019EE330019 /* EnrollmentDetailView.swift */; };
+		CC220020DD330020EE440020 /* SpecialOffersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110020DD220020EE330020 /* SpecialOffersView.swift */; };
+		CC220021DD330021EE440021 /* AdminView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110021DD220021EE330021 /* AdminView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -100,6 +104,10 @@
 		CC110015DD220015EE330015 /* NotificationsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsService.swift; sourceTree = "<group>"; };
 		CC110016DD220016EE330016 /* RunHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunHubView.swift; sourceTree = "<group>"; };
 		CC110017DD220017EE330017 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		CC110018DD220018EE330018 /* EnrollmentFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnrollmentFlowView.swift; sourceTree = "<group>"; };
+		CC110019DD220019EE330019 /* EnrollmentDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnrollmentDetailView.swift; sourceTree = "<group>"; };
+		CC110020DD220020EE330020 /* SpecialOffersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpecialOffersView.swift; sourceTree = "<group>"; };
+		CC110021DD220021EE330021 /* AdminView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -207,6 +215,10 @@
 				CC110015DD220015EE330015 /* NotificationsService.swift */,
 				CC110016DD220016EE330016 /* RunHubView.swift */,
 				CC110017DD220017EE330017 /* ProfileView.swift */,
+				CC110018DD220018EE330018 /* EnrollmentFlowView.swift */,
+				CC110019DD220019EE330019 /* EnrollmentDetailView.swift */,
+				CC110020DD220020EE330020 /* SpecialOffersView.swift */,
+				CC110021DD220021EE330021 /* AdminView.swift */,
 			);
 			path = FitNow;
 			sourceTree = "<group>";
@@ -390,6 +402,10 @@
 				CC220015DD330015EE440015 /* NotificationsService.swift in Sources */,
 				CC220016DD330016EE440016 /* RunHubView.swift in Sources */,
 				CC220017DD330017EE440017 /* ProfileView.swift in Sources */,
+				CC220018DD330018EE440018 /* EnrollmentFlowView.swift in Sources */,
+				CC220019DD330019EE440019 /* EnrollmentDetailView.swift in Sources */,
+				CC220020DD330020EE440020 /* SpecialOffersView.swift in Sources */,
+				CC220021DD330021EE440021 /* AdminView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

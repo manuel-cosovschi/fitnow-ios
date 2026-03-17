@@ -7,10 +7,20 @@ final class HomeViewModel: ObservableObject {
     @Published var upcomingCount = 0
     @Published var weeklyRunKm: Double = 0
     @Published var streakDays = 0
+    @Published var featuredOffer: SpecialOffer? = nil
 
     private var bag = Set<AnyCancellable>()
 
     func load() {
+        // Featured special offer
+        let offerQ = [URLQueryItem(name: "status", value: "approved"), URLQueryItem(name: "limit", value: "1")]
+        APIClient.shared.request("offers", authorized: false, query: offerQ)
+            .sink { _ in }
+            receiveValue: { [weak self] (resp: OffersListResponse) in
+                self?.featuredOffer = resp.items.first
+            }
+            .store(in: &bag)
+
         // Upcoming enrollments count
         let q = [URLQueryItem(name: "when", value: "upcoming")]
         APIClient.shared.request("enrollments/mine", authorized: true, query: q)
@@ -339,47 +349,100 @@ struct HomeView: View {
 
     private var promoBannerSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            SectionHeader(title: "Oferta especial")
-                .padding(.horizontal, 20)
-
-            NavigationLink { ActivitiesListView() } label: {
-                HStack(spacing: 16) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("2×1 en clases de Yoga")
-                            .font(.system(size: 19, weight: .bold))
-                            .foregroundColor(.white)
-                        Text("Sólo esta semana para socios")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.white.opacity(0.80))
-                        HStack(spacing: 4) {
-                            Text("Ver actividades")
-                                .font(.system(size: 13, weight: .bold))
-                                .foregroundColor(.white)
-                            Image(systemName: "arrow.right")
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundColor(.white)
-                        }
-                        .padding(.top, 2)
-                    }
-                    Spacer()
-                    Image(systemName: "figure.yoga")
-                        .font(.system(size: 58))
-                        .foregroundColor(.white.opacity(0.22))
+            HStack {
+                SectionHeader(title: "Oferta especial")
+                Spacer()
+                NavigationLink { SpecialOffersView() } label: {
+                    Text("Ver todas")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.fnPrimary)
                 }
-                .padding(22)
-                .background(
-                    RoundedRectangle(cornerRadius: 22)
-                        .fill(
-                            LinearGradient(
-                                colors: [.fnPurple, Color(red: 0.38, green: 0.10, blue: 0.92)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                )
             }
-            .buttonStyle(ScaleButtonStyle())
             .padding(.horizontal, 20)
+
+            if let offer = vm.featuredOffer {
+                // Real offer from backend
+                NavigationLink { SpecialOffersView() } label: {
+                    let kindInfo = ActivityTypeInfo.from(kind: offer.activity_kind ?? "")
+                    HStack(spacing: 16) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(offer.discount_label)
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundColor(.white.opacity(0.85))
+                                .padding(.horizontal, 10).padding(.vertical, 4)
+                                .background(Color.white.opacity(0.22), in: Capsule())
+                            Text(offer.title)
+                                .font(.system(size: 19, weight: .bold))
+                                .foregroundColor(.white)
+                            if let desc = offer.description, !desc.isEmpty {
+                                Text(desc)
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(.white.opacity(0.80))
+                                    .lineLimit(2)
+                            }
+                            HStack(spacing: 4) {
+                                Text("Ver oferta")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(.white)
+                                Image(systemName: "arrow.right")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
+                            .padding(.top, 2)
+                        }
+                        Spacer()
+                        Image(systemName: offer.icon_name ?? kindInfo.icon)
+                            .font(.system(size: 52))
+                            .foregroundColor(.white.opacity(0.22))
+                    }
+                    .padding(22)
+                    .background(
+                        RoundedRectangle(cornerRadius: 22)
+                            .fill(offer.activity_kind == nil ? FNGradient.primary : kindInfo.gradient)
+                    )
+                }
+                .buttonStyle(ScaleButtonStyle())
+                .padding(.horizontal, 20)
+            } else {
+                // Fallback banner when no approved offers exist
+                NavigationLink { SpecialOffersView() } label: {
+                    HStack(spacing: 16) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Ofertas especiales")
+                                .font(.system(size: 19, weight: .bold))
+                                .foregroundColor(.white)
+                            Text("Descuentos exclusivos de entrenadores, gimnasios y clubes")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.white.opacity(0.80))
+                            HStack(spacing: 4) {
+                                Text("Ver ofertas")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(.white)
+                                Image(systemName: "arrow.right")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
+                            .padding(.top, 2)
+                        }
+                        Spacer()
+                        Image(systemName: "tag.fill")
+                            .font(.system(size: 52))
+                            .foregroundColor(.white.opacity(0.22))
+                    }
+                    .padding(22)
+                    .background(
+                        RoundedRectangle(cornerRadius: 22)
+                            .fill(
+                                LinearGradient(
+                                    colors: [.fnPurple, Color(red: 0.38, green: 0.10, blue: 0.92)],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing
+                                )
+                            )
+                    )
+                }
+                .buttonStyle(ScaleButtonStyle())
+                .padding(.horizontal, 20)
+            }
         }
     }
 
