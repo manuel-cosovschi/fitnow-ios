@@ -120,8 +120,7 @@ struct ActivityDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .modifier(CustomBackToolbar(previousTitle: previousTitle, dismiss: dismiss))
         .toolbar {
-            ToolbarItemGroup(placement: .navigationBarTrailing) {
-                // Favorite toggle
+            ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     withAnimation(.spring(response: 0.3)) {
                         favorites.toggle(activity)
@@ -132,8 +131,8 @@ struct ActivityDetailView: View {
                         .foregroundColor(favorites.isFavorite(activity.id) ? .fnSecondary : .white)
                 }
                 .accessibilityLabel(favorites.isFavorite(activity.id) ? "Quitar de favoritos" : "Guardar en favoritos")
-
-                // Share
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
                 ShareLink(
                     item: activity.title,
                     subject: Text(activity.title),
@@ -143,8 +142,8 @@ struct ActivityDetailView: View {
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.white)
                 }
-
-                // Running (if enrolled)
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
                 if supportsRunning && enrolled {
                     NavigationLink { RunPlannerView() } label: {
                         Image(systemName: "figure.run.circle.fill")
