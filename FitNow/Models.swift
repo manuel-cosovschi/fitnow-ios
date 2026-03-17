@@ -144,12 +144,13 @@ struct EnrollmentItem: Identifiable, Decodable {
     let price: Double?          // backend returns this as "price_paid"
     let plan_name: String?      // plan chosen at enrollment (e.g. "Trimestral")
     let plan_price: Double?     // price of the chosen plan
+    let status: String?         // "active", "cancelled", "pending"
 
     enum CodingKeys: String, CodingKey {
         case id, activity_id, session_id, activity_kind, provider_id
         case title, location, date_start, date_end
         case price = "price_paid"
-        case plan_name, plan_price
+        case plan_name, plan_price, status
     }
 
     init(from decoder: Decoder) throws {
@@ -176,6 +177,7 @@ struct EnrollmentItem: Identifiable, Decodable {
                   let p = Double(s.replacingOccurrences(of: ",", with: ".")) {
             plan_price = p
         } else { plan_price = nil }
+        status = try c.decodeIfPresent(String.self, forKey: .status)
     }
 }
 

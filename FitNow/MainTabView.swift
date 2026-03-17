@@ -14,11 +14,13 @@ struct MainTabView: View {
                 .tag(0)
 
             // Explorar
-            ActivitiesListView()
-                .tabItem {
-                    Label("Explorar", systemImage: "magnifyingglass")
-                }
-                .tag(1)
+            NavigationStack {
+                ActivitiesListView()
+            }
+            .tabItem {
+                Label("Explorar", systemImage: "magnifyingglass")
+            }
+            .tag(1)
 
             // Mis clases
             NavigationStack {
