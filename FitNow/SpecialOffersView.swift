@@ -189,9 +189,8 @@ struct SpecialOffersView: View {
     }
 
     private func formattedDate(_ s: String) -> String {
-        let formats = [isoFracSO, isoBasicSO, mysqlSO]
-        for fmt in formats {
-            if let d = fmt.date(from: s) { return outDFSO.string(from: d) }
+        if let d = isoFracSO.date(from: s) ?? isoBasicSO.date(from: s) ?? mysqlSO.date(from: s) {
+            return outDFSO.string(from: d)
         }
         return s
     }
