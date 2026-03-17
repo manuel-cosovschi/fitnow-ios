@@ -1,20 +1,33 @@
 import SwiftUI
+import Combine
 
-// MARK: - Models
+// MARK: - Backend Model
 
-struct HubPost: Identifiable {
-    let id: UUID
-    var type: HubPostType
-    var title: String
-    var body: String
-    var fileURL: String?
-    var fileName: String?
-    let createdAt: Date
+struct ActivityPost: Identifiable, Decodable {
+    let id: Int
+    let activity_id: Int
+    let provider_id: Int
+    let type: String
+    let title: String
+    let body: String?
+    let file_url: String?
+    let file_name: String?
+    let created_at: String
 
-    static func make(_ type: HubPostType, title: String, body: String = "", file: String? = nil, fileName: String? = nil) -> HubPost {
-        HubPost(id: UUID(), type: type, title: title, body: body, fileURL: file, fileName: fileName, createdAt: Date())
+    var postType: HubPostType {
+        HubPostType(rawValue: type) ?? .announcement
+    }
+
+    var createdDate: Date {
+        let fracF = ISO8601DateFormatter()
+        fracF.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let basicF = ISO8601DateFormatter()
+        basicF.formatOptions = [.withInternetDateTime]
+        return fracF.date(from: created_at) ?? basicF.date(from: created_at) ?? Date()
     }
 }
+
+// MARK: - Post Type
 
 enum HubPostType: String, CaseIterable {
     case announcement = "announcement"
@@ -52,31 +65,65 @@ enum HubPostType: String, CaseIterable {
 
 @MainActor
 final class ActivityHubViewModel: ObservableObject {
-    @Published var posts: [HubPost] = []
+    @Published var posts: [ActivityPost] = []
     @Published var loading = false
+    @Published var error: String?
 
     private let activityId: Int
+    private var bag = Set<AnyCancellable>()
 
     init(activityId: Int) {
         self.activityId = activityId
-        loadLocalPosts()
+        load()
     }
 
-    private func loadLocalPosts() {
-        // Seed with a welcome announcement on first load
-        if posts.isEmpty {
-            posts = [
-                .make(.announcement, title: "Bienvenidos", body: "¡Hola a todos! Este es el tablón oficial de la actividad. Acá voy a publicar avisos, rutinas y novedades."),
-            ]
+    func load() {
+        loading = true
+        error = nil
+        APIClient.shared.request("activities/\(activityId)/posts", authorized: false)
+            .sink { [weak self] completion in
+                self?.loading = false
+                if case .failure(let e) = completion {
+                    self?.error = e.localizedDescription
+                }
+            } receiveValue: { [weak self] (resp: ListResponse<ActivityPost>) in
+                self?.posts = resp.items
+            }
+            .store(in: &bag)
+    }
+
+    func addPost(type: HubPostType, title: String, body: String, fileName: String?) {
+        var dict: [String: Any] = ["type": type.rawValue, "title": title]
+        if !body.isEmpty { dict["body"] = body }
+        if let fn = fileName, !fn.isEmpty { dict["file_name"] = fn }
+        guard let data = try? JSONSerialization.data(withJSONObject: dict) else { return }
+        APIClient.shared.request(
+            "activities/\(activityId)/posts",
+            method: "POST",
+            body: data,
+            authorized: true
+        )
+        .sink { _ in }
+        receiveValue: { [weak self] (_: ActivityPost) in
+            self?.load()
         }
+        .store(in: &bag)
     }
 
-    func addPost(_ post: HubPost) {
-        posts.insert(post, at: 0)
-    }
-
-    func deletePost(at offsets: IndexSet) {
-        posts.remove(atOffsets: offsets)
+    func deletePost(_ post: ActivityPost) {
+        // Optimistic remove
+        posts.removeAll { $0.id == post.id }
+        // Fire-and-forget (backend returns 204, no body)
+        APIClient.shared.request(
+            "activities/\(activityId)/posts/\(post.id)",
+            method: "DELETE",
+            authorized: true
+        )
+        .sink { [weak self] completion in
+            if case .failure = completion { self?.load() }
+        }
+        receiveValue: { (_: SimpleOK) in }
+        .store(in: &bag)
     }
 }
 
@@ -87,7 +134,7 @@ struct ActivityHubView: View {
 
     @StateObject private var hubVM: ActivityHubViewModel
     @State private var showCompose = false
-    @State private var selectedPost: HubPost?
+    @State private var selectedPost: ActivityPost?
 
     init(activity: Activity) {
         self.activity = activity
@@ -116,8 +163,8 @@ struct ActivityHubView: View {
             }
         }
         .sheet(isPresented: $showCompose) {
-            ComposePostSheet { post in
-                hubVM.addPost(post)
+            ComposePostSheet { type, title, body, fileName in
+                hubVM.addPost(type: type, title: title, body: body, fileName: fileName)
             }
         }
         .sheet(item: $selectedPost) { post in
@@ -183,14 +230,24 @@ struct ActivityHubView: View {
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(.secondary)
                 Spacer()
-                Text("\(hubVM.posts.count) publicaciones")
-                    .font(.system(size: 12))
-                    .foregroundColor(Color(.tertiaryLabel))
+                if hubVM.loading {
+                    ProgressView().scaleEffect(0.8)
+                } else {
+                    Text("\(hubVM.posts.count) publicaciones")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color(.tertiaryLabel))
+                }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
 
-            if hubVM.posts.isEmpty {
+            if let err = hubVM.error {
+                Text(err)
+                    .font(.system(size: 13))
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 16)
+            } else if hubVM.posts.isEmpty && !hubVM.loading {
                 emptyPosts
             } else {
                 LazyVStack(spacing: 10) {
@@ -223,35 +280,36 @@ struct ActivityHubView: View {
         .padding(.vertical, 48)
     }
 
-    private func postCard(_ post: HubPost) -> some View {
-        HStack(alignment: .top, spacing: 12) {
+    private func postCard(_ post: ActivityPost) -> some View {
+        let pType = post.postType
+        return HStack(alignment: .top, spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(post.type.color.opacity(0.12))
+                    .fill(pType.color.opacity(0.12))
                     .frame(width: 40, height: 40)
-                Image(systemName: post.type.icon)
+                Image(systemName: pType.icon)
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(post.type.color)
+                    .foregroundColor(pType.color)
             }
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(post.type.label)
+                    Text(pType.label)
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(post.type.color)
+                        .foregroundColor(pType.color)
                     Spacer()
-                    Text(post.createdAt, style: .relative)
+                    Text(post.createdDate, style: .relative)
                         .font(.system(size: 11))
                         .foregroundColor(Color(.tertiaryLabel))
                 }
                 Text(post.title)
                     .font(.system(size: 15, weight: .semibold))
-                if !post.body.isEmpty {
-                    Text(post.body)
+                if let body = post.body, !body.isEmpty {
+                    Text(body)
                         .font(.system(size: 13))
                         .foregroundColor(.secondary)
                         .lineLimit(2)
                 }
-                if let fileName = post.fileName {
+                if let fileName = post.file_name {
                     HStack(spacing: 4) {
                         Image(systemName: "paperclip")
                             .font(.system(size: 11))
@@ -271,14 +329,13 @@ struct ActivityHubView: View {
 // MARK: - Compose Post Sheet
 
 struct ComposePostSheet: View {
-    let onSave: (HubPost) -> Void
+    let onSave: (HubPostType, String, String, String?) -> Void
     @Environment(\.dismiss) private var dismiss
 
     @State private var postType: HubPostType = .announcement
     @State private var title = ""
     @State private var body = ""
     @State private var fileName = ""
-    @State private var showFilePicker = false
 
     var body: some View {
         NavigationStack {
@@ -325,13 +382,9 @@ struct ComposePostSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Publicar") {
-                        let post = HubPost.make(
-                            postType,
-                            title: title.trimmingCharacters(in: .whitespaces),
-                            body: body.trimmingCharacters(in: .whitespaces),
-                            fileName: fileName.isEmpty ? nil : fileName
-                        )
-                        onSave(post)
+                        onSave(postType, title.trimmingCharacters(in: .whitespaces),
+                               body.trimmingCharacters(in: .whitespaces),
+                               fileName.isEmpty ? nil : fileName)
                         dismiss()
                     }
                     .bold()
@@ -346,39 +399,40 @@ struct ComposePostSheet: View {
 // MARK: - Post Detail View
 
 struct PostDetailView: View {
-    let post: HubPost
+    let post: ActivityPost
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
+                    let pType = post.postType
                     HStack(spacing: 10) {
                         ZStack {
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(post.type.color.opacity(0.12))
+                                .fill(pType.color.opacity(0.12))
                                 .frame(width: 48, height: 48)
-                            Image(systemName: post.type.icon)
+                            Image(systemName: pType.icon)
                                 .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(post.type.color)
+                                .foregroundColor(pType.color)
                         }
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(post.type.label)
+                            Text(pType.label)
                                 .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(post.type.color)
-                            Text(post.createdAt, style: .date)
+                                .foregroundColor(pType.color)
+                            Text(post.createdDate, style: .date)
                                 .font(.system(size: 12))
                                 .foregroundColor(.secondary)
                         }
                     }
                     Text(post.title)
                         .font(.system(size: 20, weight: .bold))
-                    if !post.body.isEmpty {
-                        Text(post.body)
+                    if let body = post.body, !body.isEmpty {
+                        Text(body)
                             .font(.system(size: 15))
                             .foregroundColor(.secondary)
                     }
-                    if let fileName = post.fileName {
+                    if let fileName = post.file_name {
                         HStack(spacing: 8) {
                             Image(systemName: "doc.fill")
                                 .font(.system(size: 20))

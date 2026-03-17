@@ -33,6 +33,18 @@ struct RunRoutesResponse: Decodable {
     let items: [RunRouteOption]
 }
 
+// Sesión de carrera del usuario (GET /run/sessions/mine)
+struct RunSession: Identifiable, Decodable {
+    let id: Int
+    let started_at: String?
+    let distance_m: Double?
+    let status: String?
+}
+
+struct RunSessionsResponse: Decodable {
+    let items: [RunSession]
+}
+
 // Respuesta con una ruta concreta (si la pidieras por id)
 struct RunRouteResponse: Decodable {
     let route: RunRouteDetail
