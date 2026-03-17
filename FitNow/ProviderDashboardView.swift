@@ -17,12 +17,7 @@ final class ProviderDashboardViewModel: ObservableObject {
 
     func load() {
         loading = true; error = nil
-        let url: String
-        if let pid = providerId {
-            url = "activities?provider_id=\(pid)&limit=50"
-        } else {
-            url = "activities?limit=50"
-        }
+        let url = providerId.map { "activities?provider_id=\($0)&limit=50" } ?? "activities?limit=50"
         APIClient.shared.request(url)
             .sink { [weak self] completion in
                 self?.loading = false
@@ -94,9 +89,15 @@ private struct ProviderHomeTab: View {
     @EnvironmentObject private var auth: AuthViewModel
     @ObservedObject var vm: ProviderDashboardViewModel
 
-    private var activeCount: Int { vm.activities.filter { $0.status == "active" }.count }
-    private var totalCapacity: Int { vm.activities.compactMap { $0.capacity }.reduce(0, +) }
-    private var totalSeatsLeft: Int { vm.activities.compactMap { $0.seats_left }.reduce(0, +) }
+    private var activeCount: Int {
+        vm.activities.filter { $0.status == "active" }.count
+    }
+    private var totalCapacity: Int {
+        vm.activities.compactMap { $0.capacity }.reduce(0, +)
+    }
+    private var totalSeatsLeft: Int {
+        vm.activities.compactMap { $0.seats_left }.reduce(0, +)
+    }
     private var occupancyPercent: Int {
         guard totalCapacity > 0 else { return 0 }
         return Int(Double(totalCapacity - totalSeatsLeft) / Double(totalCapacity) * 100)
@@ -107,7 +108,9 @@ private struct ProviderHomeTab: View {
             VStack(spacing: 20) {
                 headerCard
                 statsGrid
-                if !vm.activities.isEmpty { activitySummarySection }
+                if !vm.activities.isEmpty {
+                    activitySummarySection
+                }
                 quickActionsSection
                 Spacer(minLength: 40)
             }
@@ -148,7 +151,7 @@ private struct ProviderHomeTab: View {
     }
 
     private var statsGrid: some View {
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+        HStack(spacing: 12) {
             statCard(value: "\(vm.activities.count)", label: "Total", icon: "list.bullet.rectangle", color: .fnPurple)
             statCard(value: "\(activeCount)", label: "Activas", icon: "checkmark.circle.fill", color: .fnGreen)
             statCard(value: "\(occupancyPercent)%", label: "Ocupación", icon: "person.2.fill", color: .fnCyan)
@@ -188,8 +191,8 @@ private struct ProviderHomeTab: View {
     }
 
     private func activityRow(_ a: Activity) -> some View {
-        HStack(spacing: 12) {
-            let info = ActivityTypeInfo.from(kind: a.kind ?? "")
+        let info = ActivityTypeInfo.from(kind: a.kind ?? "")
+        return HStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(info.color.opacity(0.15))
@@ -213,15 +216,11 @@ private struct ProviderHomeTab: View {
                 }
             }
             Spacer()
-            statusDot(a.status ?? "active")
+            let statusColor: Color = (a.status == "active") ? .fnGreen : (a.status == "cancelled") ? .fnSecondary : .fnYellow
+            Circle().fill(statusColor).frame(width: 8, height: 8)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 11)
-    }
-
-    private func statusDot(_ status: String) -> some View {
-        let color: Color = status == "active" ? .fnGreen : status == "cancelled" ? .fnSecondary : .fnYellow
-        return Circle().fill(color).frame(width: 8, height: 8)
     }
 
     private var quickActionsSection: some View {
@@ -272,70 +271,72 @@ struct ProviderActivitiesTab: View {
     @State private var showCreate = false
 
     var body: some View {
-        Group {
-            if vm.loading && vm.activities.isEmpty {
-                ProgressView("Cargando…").frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if vm.activities.isEmpty {
-                VStack(spacing: 16) {
-                    Image(systemName: "plus.circle")
-                        .font(.system(size: 56))
-                        .foregroundColor(.fnPurple.opacity(0.5))
-                    Text("Sin actividades publicadas")
-                        .font(.system(size: 17, weight: .semibold))
-                    Text("Publicá tu primera actividad para que los usuarios puedan inscribirse.")
-                        .font(.system(size: 14))
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
-                    Button {
-                        showCreate = true
-                    } label: {
-                        Label("Crear primera actividad", systemImage: "plus")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 13)
-                            .background(.fnPurple, in: Capsule())
+        activitiesContent
+            .navigationTitle("Mis actividades")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button { showCreate = true } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 22))
+                            .foregroundColor(.fnPurple)
                     }
-                    .buttonStyle(ScaleButtonStyle())
-                    .padding(.top, 8)
                 }
+            }
+            .sheet(isPresented: $showCreate, onDismiss: { vm.load() }) {
+                CreateActivitySheet(vm: vm)
+            }
+    }
+
+    @ViewBuilder
+    private var activitiesContent: some View {
+        if vm.loading && vm.activities.isEmpty {
+            ProgressView("Cargando…")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                List {
-                    ForEach(vm.activities) { a in
-                        NavigationLink {
-                            ActivityDetailLoader(activityId: a.id, title: a.title)
-                        } label: {
-                            activityRow(a)
-                        }
-                    }
-                }
-                .listStyle(.insetGrouped)
-                .refreshable { vm.load() }
-            }
-        }
-        .navigationTitle("Mis actividades")
-        .navigationBarTitleDisplayMode(.large)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    showCreate = true
+        } else if vm.activities.isEmpty {
+            emptyState
+        } else {
+            List(vm.activities) { a in
+                NavigationLink {
+                    ActivityDetailLoader(activityId: a.id, title: a.title)
                 } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 22))
-                        .foregroundColor(.fnPurple)
+                    activityRow(a)
                 }
             }
-        }
-        .sheet(isPresented: $showCreate) {
-            CreateActivitySheet(vm: vm)
+            .listStyle(.insetGrouped)
+            .refreshable { vm.load() }
         }
     }
 
+    private var emptyState: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "plus.circle")
+                .font(.system(size: 56))
+                .foregroundColor(.fnPurple.opacity(0.5))
+            Text("Sin actividades publicadas")
+                .font(.system(size: 17, weight: .semibold))
+            Text("Publicá tu primera actividad para que los usuarios puedan inscribirse.")
+                .font(.system(size: 14))
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+            Button { showCreate = true } label: {
+                Label("Crear primera actividad", systemImage: "plus")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 13)
+                    .background(.fnPurple, in: Capsule())
+            }
+            .buttonStyle(ScaleButtonStyle())
+            .padding(.top, 8)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
     private func activityRow(_ a: Activity) -> some View {
-        HStack(spacing: 12) {
-            let info = ActivityTypeInfo.from(kind: a.kind ?? "")
+        let info = ActivityTypeInfo.from(kind: a.kind ?? "")
+        return HStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(info.color.opacity(0.12))
@@ -367,14 +368,14 @@ struct ProviderActivitiesTab: View {
     }
 
     private func statusBadge(_ s: String) -> some View {
-        let (label, color): (String, Color) = {
-            switch s {
-            case "active":    return ("Activa", .fnGreen)
-            case "cancelled": return ("Cancelada", .fnSecondary)
-            case "draft":     return ("Borrador", .fnYellow)
-            default:          return (s, .secondary)
-            }
-        }()
+        let label: String
+        let color: Color
+        switch s {
+        case "active":    label = "Activa";    color = .fnGreen
+        case "cancelled": label = "Cancelada"; color = .fnSecondary
+        case "draft":     label = "Borrador";  color = .fnYellow
+        default:          label = s;           color = .secondary
+        }
         return Text(label)
             .font(.system(size: 10, weight: .bold))
             .foregroundColor(color)
@@ -388,7 +389,6 @@ struct ProviderActivitiesTab: View {
 private struct CreateActivitySheet: View {
     @ObservedObject var vm: ProviderDashboardViewModel
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var auth: AuthViewModel
 
     @State private var title = ""
     @State private var descriptionText = ""
@@ -401,7 +401,7 @@ private struct CreateActivitySheet: View {
     @State private var saving = false
     @State private var errorMsg: String?
 
-    private let kinds = [("membership","Membresía"), ("class","Clase"), ("event","Evento"), ("course","Curso")]
+    private let kinds      = [("membership","Membresía"), ("class","Clase"), ("event","Evento"), ("course","Curso")]
     private let modalities = [("gimnasio","Gimnasio"), ("clase","Clase"), ("outdoor","Outdoor"), ("torneo","Torneo")]
     private let difficulties = [("baja","Fácil"), ("media","Media"), ("alta","Difícil")]
 
@@ -414,37 +414,30 @@ private struct CreateActivitySheet: View {
                         .lineLimit(3...6)
                     TextField("Ubicación (opcional)", text: $location)
                 }
-
                 Section("Tipo y formato") {
                     Picker("Tipo", selection: $kind) {
-                        ForEach(kinds, id: \.0) { k in Text(k.1).tag(k.0) }
+                        ForEach(kinds, id: \.0) { Text($1).tag($0) }
                     }
                     Picker("Modalidad", selection: $modality) {
-                        ForEach(modalities, id: \.0) { m in Text(m.1).tag(m.0) }
+                        ForEach(modalities, id: \.0) { Text($1).tag($0) }
                     }
                     Picker("Dificultad", selection: $difficulty) {
-                        ForEach(difficulties, id: \.0) { d in Text(d.1).tag(d.0) }
+                        ForEach(difficulties, id: \.0) { Text($1).tag($0) }
                     }
                 }
-
                 Section("Precio y capacidad") {
                     HStack {
                         Text("$")
-                        TextField("Precio mensual", text: $price)
-                            .keyboardType(.decimalPad)
+                        TextField("Precio mensual", text: $price).keyboardType(.decimalPad)
                     }
                     HStack {
                         Image(systemName: "person.2.fill").foregroundColor(.secondary)
-                        TextField("Capacidad máxima (opcional)", text: $capacity)
-                            .keyboardType(.numberPad)
+                        TextField("Capacidad máxima (opcional)", text: $capacity).keyboardType(.numberPad)
                     }
                 }
-
                 if let err = errorMsg {
                     Section {
-                        Text(err)
-                            .font(.system(size: 13))
-                            .foregroundColor(.fnSecondary)
+                        Text(err).font(.system(size: 13)).foregroundColor(.fnSecondary)
                     }
                 }
             }
@@ -455,9 +448,7 @@ private struct CreateActivitySheet: View {
                     Button("Cancelar") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button {
-                        saveActivity()
-                    } label: {
+                    Button { saveActivity() } label: {
                         if saving { ProgressView().tint(.fnPurple) }
                         else { Text("Publicar").bold().foregroundColor(.fnPurple) }
                     }
@@ -471,14 +462,12 @@ private struct CreateActivitySheet: View {
         saving = true; errorMsg = nil
         var payload: [String: Any] = [
             "title": title.trimmingCharacters(in: .whitespaces),
-            "kind": kind,
-            "modality": modality,
-            "difficulty": difficulty
+            "kind": kind, "modality": modality, "difficulty": difficulty
         ]
         if !descriptionText.isEmpty { payload["description"] = descriptionText }
         if !location.isEmpty        { payload["location"] = location }
         if let p = Double(price.replacingOccurrences(of: ",", with: ".")) { payload["price"] = p }
-        if let c = Int(capacity)    { payload["capacity"] = c }
+        if let c = Int(capacity) { payload["capacity"] = c }
 
         vm.createActivity(payload) { success in
             saving = false
