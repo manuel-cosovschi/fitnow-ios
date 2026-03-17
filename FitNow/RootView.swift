@@ -9,6 +9,8 @@ struct RootView: View {
                 switch auth.user?.role {
                 case "provider":
                     ProviderDashboardView()
+                case "admin":
+                    NavigationStack { AdminView() }
                 default:
                     MainTabView()
                 }
