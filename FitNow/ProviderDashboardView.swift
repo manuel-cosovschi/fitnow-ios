@@ -4,33 +4,44 @@ import Combine
 // MARK: - ViewModel
 
 final class ProviderDashboardViewModel: ObservableObject {
+    let providerId: Int?
     @Published var activities: [Activity] = []
-    @Published var recentEnrollments: [EnrollmentItem] = []
     @Published var loading = false
     @Published var error: String?
 
     private var bag = Set<AnyCancellable>()
 
-    func load() {
-        loading = true
-        error = nil
+    init(providerId: Int?) {
+        self.providerId = providerId
+    }
 
-        // Load provider's activities
-        APIClient.shared.request("activities?provider=me&limit=20")
+    func load() {
+        loading = true; error = nil
+        let url: String
+        if let pid = providerId {
+            url = "activities?provider_id=\(pid)&limit=50"
+        } else {
+            url = "activities?limit=50"
+        }
+        APIClient.shared.request(url)
             .sink { [weak self] completion in
                 self?.loading = false
-                if case .failure(let e) = completion {
-                    self?.error = e.localizedDescription
-                }
+                if case .failure(let e) = completion { self?.error = e.localizedDescription }
             } receiveValue: { [weak self] (resp: ListResponse<Activity>) in
+                self?.loading = false
                 self?.activities = resp.items
             }
             .store(in: &bag)
+    }
 
-        // Load recent enrollments for provider's activities
-        APIClient.shared.request("enrollments?as_provider=true&limit=10")
-            .sink { _ in } receiveValue: { [weak self] (resp: ListResponse<EnrollmentItem>) in
-                self?.recentEnrollments = resp.items
+    func createActivity(_ payload: [String: Any], completion: @escaping (Bool) -> Void) {
+        guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
+        APIClient.shared.request("activities", method: "POST", body: data)
+            .sink { result in
+                if case .failure = result { completion(false) }
+            } receiveValue: { [weak self] (a: Activity) in
+                self?.activities.insert(a, at: 0)
+                completion(true)
             }
             .store(in: &bag)
     }
@@ -39,87 +50,69 @@ final class ProviderDashboardViewModel: ObservableObject {
 // MARK: - Main View
 
 struct ProviderDashboardView: View {
-    @EnvironmentObject private var auth: AuthViewModel
-    @StateObject private var vm = ProviderDashboardViewModel()
+    let providerId: Int?
+    @StateObject private var vm: ProviderDashboardViewModel
     @State private var selectedTab = 0
+
+    init(providerId: Int?) {
+        self.providerId = providerId
+        _vm = StateObject(wrappedValue: ProviderDashboardViewModel(providerId: providerId))
+    }
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            // Inicio proveedor
             NavigationStack {
                 ProviderHomeTab(vm: vm)
             }
-            .tabItem {
-                Label("Inicio", systemImage: selectedTab == 0 ? "house.fill" : "house")
-            }
+            .tabItem { Label("Inicio", systemImage: selectedTab == 0 ? "house.fill" : "house") }
             .tag(0)
 
-            // Mis actividades
             NavigationStack {
                 ProviderActivitiesTab(vm: vm)
             }
-            .tabItem {
-                Label("Mis actividades", systemImage: selectedTab == 1 ? "list.bullet.rectangle.fill" : "list.bullet.rectangle")
-            }
+            .tabItem { Label("Mis actividades", systemImage: selectedTab == 1 ? "list.bullet.rectangle.fill" : "list.bullet.rectangle") }
             .tag(1)
 
-            // Inscripciones recibidas
-            NavigationStack {
-                ProviderEnrollmentsTab(vm: vm)
-            }
-            .tabItem {
-                Label("Inscripciones", systemImage: selectedTab == 2 ? "person.2.fill" : "person.2")
-            }
-            .tag(2)
-
-            // Mis ofertas
             NavigationStack {
                 ProviderMyOffersView()
             }
-            .tabItem {
-                Label("Ofertas", systemImage: selectedTab == 3 ? "tag.fill" : "tag")
-            }
-            .tag(3)
+            .tabItem { Label("Ofertas", systemImage: selectedTab == 2 ? "tag.fill" : "tag") }
+            .tag(2)
 
-            // Perfil
             ProfileView()
-                .tabItem {
-                    Label("Perfil", systemImage: selectedTab == 4 ? "person.circle.fill" : "person.circle")
-                }
-                .tag(4)
+                .tabItem { Label("Perfil", systemImage: selectedTab == 3 ? "person.circle.fill" : "person.circle") }
+                .tag(3)
         }
         .tint(.fnPurple)
         .onAppear { vm.load() }
     }
 }
 
-// MARK: - Provider Home Tab
+// MARK: - Home Tab
 
 private struct ProviderHomeTab: View {
     @EnvironmentObject private var auth: AuthViewModel
     @ObservedObject var vm: ProviderDashboardViewModel
 
+    private var activeCount: Int { vm.activities.filter { $0.status == "active" }.count }
+    private var totalCapacity: Int { vm.activities.compactMap { $0.capacity }.reduce(0, +) }
+    private var totalSeatsLeft: Int { vm.activities.compactMap { $0.seats_left }.reduce(0, +) }
+    private var occupancyPercent: Int {
+        guard totalCapacity > 0 else { return 0 }
+        return Int(Double(totalCapacity - totalSeatsLeft) / Double(totalCapacity) * 100)
+    }
+
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: 24) {
-                // Header
-                providerHeader
-
-                // Stats row
-                statsRow
-
-                // Quick actions
+            VStack(spacing: 20) {
+                headerCard
+                statsGrid
+                if !vm.activities.isEmpty { activitySummarySection }
                 quickActionsSection
-
-                // Recent enrollments
-                if !vm.recentEnrollments.isEmpty {
-                    recentEnrollmentsSection
-                }
-
                 Spacer(minLength: 40)
             }
             .padding(.horizontal, 16)
-            .padding(.top, 16)
+            .padding(.top, 12)
         }
         .background(Color(.systemBackground))
         .navigationTitle("Panel")
@@ -127,305 +120,376 @@ private struct ProviderHomeTab: View {
         .refreshable { vm.load() }
     }
 
-    private var providerHeader: some View {
-        HStack(spacing: 14) {
-            ZStack {
-                Circle()
-                    .fill(FNGradient.club)
-                    .frame(width: 56, height: 56)
-                Image(systemName: "building.2.fill")
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(.white)
-            }
-            VStack(alignment: .leading, spacing: 3) {
+    private var headerCard: some View {
+        ZStack(alignment: .bottomLeading) {
+            RoundedRectangle(cornerRadius: 20)
+                .fill(FNGradient.club)
+                .frame(height: 120)
+                .overlay(
+                    Circle()
+                        .fill(Color.white.opacity(0.06))
+                        .frame(width: 180, height: 180)
+                        .offset(x: 100, y: -20),
+                    alignment: .topTrailing
+                )
+            VStack(alignment: .leading, spacing: 4) {
                 Text("Bienvenido,")
-                    .font(.system(size: 13))
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.white.opacity(0.8))
                 Text(auth.user?.name ?? "Proveedor")
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
-                Text("Panel de proveedor")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.fnPurple)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .background(Color.fnPurple.opacity(0.12), in: Capsule())
+                    .font(.system(size: 22, weight: .heavy, design: .rounded))
+                    .foregroundColor(.white)
+                Text("Panel de proveedor · \(vm.activities.count) actividades")
+                    .font(.system(size: 12))
+                    .foregroundColor(.white.opacity(0.75))
             }
-            Spacer()
+            .padding(18)
         }
-        .padding(16)
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
     }
 
-    private var statsRow: some View {
-        HStack(spacing: 12) {
-            statCard(
-                value: "\(vm.activities.count)",
-                label: "Actividades",
-                icon: "list.bullet.rectangle",
-                color: .fnPurple
-            )
-            statCard(
-                value: "\(vm.recentEnrollments.count)",
-                label: "Inscripciones",
-                icon: "person.2.fill",
-                color: .fnCyan
-            )
+    private var statsGrid: some View {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+            statCard(value: "\(vm.activities.count)", label: "Total", icon: "list.bullet.rectangle", color: .fnPurple)
+            statCard(value: "\(activeCount)", label: "Activas", icon: "checkmark.circle.fill", color: .fnGreen)
+            statCard(value: "\(occupancyPercent)%", label: "Ocupación", icon: "person.2.fill", color: .fnCyan)
         }
     }
 
     private func statCard(value: String, label: String, icon: String, color: Color) -> some View {
-        VStack(spacing: 8) {
-            HStack {
-                Image(systemName: icon)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(color)
-                Spacer()
-            }
-            HStack {
-                Text(value)
-                    .font(.system(size: 28, weight: .heavy, design: .rounded))
-                    .foregroundColor(.primary)
-                Spacer()
-            }
-            HStack {
-                Text(label)
-                    .font(.system(size: 13))
-                    .foregroundColor(.secondary)
-                Spacer()
-            }
+        VStack(alignment: .leading, spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(color)
+            Text(value)
+                .font(.system(size: 24, weight: .heavy, design: .rounded))
+            Text(label)
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
         }
-        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
         .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14))
-        .frame(maxWidth: .infinity)
+    }
+
+    private var activitySummarySection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Actividades recientes")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(.secondary)
+
+            VStack(spacing: 0) {
+                ForEach(Array(vm.activities.prefix(4).enumerated()), id: \.element.id) { i, a in
+                    if i > 0 { Divider().padding(.leading, 56) }
+                    activityRow(a)
+                }
+            }
+            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14))
+        }
+    }
+
+    private func activityRow(_ a: Activity) -> some View {
+        HStack(spacing: 12) {
+            let info = ActivityTypeInfo.from(kind: a.kind ?? "")
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(info.color.opacity(0.15))
+                    .frame(width: 40, height: 40)
+                Image(systemName: info.icon)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(info.color)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(a.title).font(.system(size: 14, weight: .medium))
+                HStack(spacing: 6) {
+                    if let price = a.price {
+                        Text("$\(Int(price))").font(.system(size: 12)).foregroundColor(.fnGreen)
+                    }
+                    if let sl = a.seats_left, let cap = a.capacity, cap > 0 {
+                        Text("·").foregroundColor(.secondary)
+                        Text("\(sl)/\(cap) lugares")
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            Spacer()
+            statusDot(a.status ?? "active")
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 11)
+    }
+
+    private func statusDot(_ status: String) -> some View {
+        let color: Color = status == "active" ? .fnGreen : status == "cancelled" ? .fnSecondary : .fnYellow
+        return Circle().fill(color).frame(width: 8, height: 8)
     }
 
     private var quickActionsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             Text("Acciones rápidas")
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(.secondary)
 
-            VStack(spacing: 0) {
-                NavigationLink {
-                    ProviderMyOffersView()
-                } label: {
-                    actionRow(icon: "tag.fill", color: .fnYellow, title: "Publicar oferta especial", subtitle: "Llegá a más usuarios con descuentos")
-                }
-                Divider().padding(.leading, 56)
-                NavigationLink {
-                    ProviderActivitiesTab(vm: vm)
-                } label: {
-                    actionRow(icon: "plus.circle.fill", color: .fnGreen, title: "Ver mis actividades", subtitle: "\(vm.activities.count) actividades publicadas")
-                }
+            HStack(spacing: 12) {
+                quickActionCard(
+                    icon: "plus.circle.fill",
+                    color: .fnGreen,
+                    title: "Nueva actividad",
+                    navigateTo: AnyView(ProviderActivitiesTab(vm: vm))
+                )
+                quickActionCard(
+                    icon: "tag.fill",
+                    color: .fnYellow,
+                    title: "Nueva oferta",
+                    navigateTo: AnyView(ProviderMyOffersView())
+                )
             }
-            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14))
         }
     }
 
-    private func actionRow(icon: String, color: Color, title: String, subtitle: String) -> some View {
-        HStack(spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(color.opacity(0.15))
-                    .frame(width: 40, height: 40)
-                Image(systemName: icon)
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(color)
-            }
-            VStack(alignment: .leading, spacing: 2) {
+    private func quickActionCard(icon: String, color: Color, title: String, navigateTo: AnyView) -> some View {
+        NavigationLink { navigateTo } label: {
+            VStack(spacing: 10) {
+                ZStack {
+                    Circle()
+                        .fill(color.opacity(0.15))
+                        .frame(width: 44, height: 44)
+                    Image(systemName: icon)
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(color)
+                }
                 Text(title)
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(.primary)
-                Text(subtitle)
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
             }
-            Spacer()
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(.tertiaryLabel))
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-    }
-
-    private var recentEnrollmentsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Inscripciones recientes")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(.secondary)
-
-            VStack(spacing: 0) {
-                ForEach(Array(vm.recentEnrollments.prefix(5).enumerated()), id: \.element.id) { i, enr in
-                    if i > 0 { Divider().padding(.leading, 56) }
-                    enrollmentRow(enr)
-                }
-            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 18)
             .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14))
         }
-    }
-
-    private func enrollmentRow(_ enr: EnrollmentItem) -> some View {
-        HStack(spacing: 14) {
-            ZStack {
-                Circle()
-                    .fill(Color.fnCyan.opacity(0.15))
-                    .frame(width: 40, height: 40)
-                Image(systemName: "person.fill")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.fnCyan)
-            }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(enr.title)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.primary)
-                if let plan = enr.plan_name {
-                    Text(plan)
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
-                }
-            }
-            Spacer()
-            statusBadge(enr.status ?? "active")
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-    }
-
-    private func statusBadge(_ status: String) -> some View {
-        let (label, color): (String, Color) = {
-            switch status {
-            case "active":    return ("Activo", .fnGreen)
-            case "cancelled": return ("Cancelado", .fnSecondary)
-            case "pending":   return ("Pendiente", .fnYellow)
-            default:          return (status.capitalized, .secondary)
-            }
-        }()
-        return Text(label)
-            .font(.system(size: 11, weight: .bold))
-            .foregroundColor(color)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(color.opacity(0.12), in: Capsule())
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
-// MARK: - Provider Activities Tab
+// MARK: - Activities Tab
 
 struct ProviderActivitiesTab: View {
     @ObservedObject var vm: ProviderDashboardViewModel
+    @State private var showCreate = false
 
     var body: some View {
         Group {
             if vm.loading && vm.activities.isEmpty {
-                ProgressView("Cargando actividades…")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ProgressView("Cargando…").frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if vm.activities.isEmpty {
                 VStack(spacing: 16) {
-                    Image(systemName: "list.bullet.rectangle")
-                        .font(.system(size: 52))
-                        .foregroundColor(Color(.tertiaryLabel))
+                    Image(systemName: "plus.circle")
+                        .font(.system(size: 56))
+                        .foregroundColor(.fnPurple.opacity(0.5))
                     Text("Sin actividades publicadas")
                         .font(.system(size: 17, weight: .semibold))
-                    Text("Las actividades que publiques en la plataforma aparecerán aquí.")
+                    Text("Publicá tu primera actividad para que los usuarios puedan inscribirse.")
                         .font(.system(size: 14))
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 32)
+                    Button {
+                        showCreate = true
+                    } label: {
+                        Label("Crear primera actividad", systemImage: "plus")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 13)
+                            .background(.fnPurple, in: Capsule())
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                    .padding(.top, 8)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                List(vm.activities) { activity in
-                    NavigationLink {
-                        ActivityDetailLoader(activityId: activity.id, title: activity.title)
-                    } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(activity.title)
-                                .font(.system(size: 15, weight: .semibold))
-                            HStack(spacing: 8) {
-                                if let kind = activity.kind {
-                                    let info = ActivityTypeInfo.from(kind: kind)
-                                    Label(info.label, systemImage: info.icon)
-                                        .font(.system(size: 11, weight: .semibold))
-                                        .foregroundColor(info.color)
-                                }
-                                if let price = activity.price {
-                                    Text("$\(Int(price))/mes")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.secondary)
-                                }
-                            }
+                List {
+                    ForEach(vm.activities) { a in
+                        NavigationLink {
+                            ActivityDetailLoader(activityId: a.id, title: a.title)
+                        } label: {
+                            activityRow(a)
                         }
-                        .padding(.vertical, 4)
                     }
                 }
+                .listStyle(.insetGrouped)
                 .refreshable { vm.load() }
             }
         }
         .navigationTitle("Mis actividades")
         .navigationBarTitleDisplayMode(.large)
-    }
-}
-
-// MARK: - Provider Enrollments Tab
-
-private struct ProviderEnrollmentsTab: View {
-    @ObservedObject var vm: ProviderDashboardViewModel
-
-    var body: some View {
-        Group {
-            if vm.recentEnrollments.isEmpty {
-                VStack(spacing: 16) {
-                    Image(systemName: "person.2")
-                        .font(.system(size: 52))
-                        .foregroundColor(Color(.tertiaryLabel))
-                    Text("Sin inscripciones recibidas")
-                        .font(.system(size: 17, weight: .semibold))
-                    Text("Cuando usuarios se inscriban a tus actividades, aparecerán aquí.")
-                        .font(.system(size: 14))
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showCreate = true
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 22))
+                        .foregroundColor(.fnPurple)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                List(vm.recentEnrollments) { enr in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(enr.title)
-                            .font(.system(size: 15, weight: .semibold))
-                        HStack(spacing: 8) {
-                            if let plan = enr.plan_name {
-                                Text(plan)
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(.fnCyan)
-                            }
-                            Spacer()
-                            statusLabel(enr.status ?? "active")
-                        }
-                    }
-                    .padding(.vertical, 4)
-                }
-                .refreshable { vm.load() }
             }
         }
-        .navigationTitle("Inscripciones recibidas")
-        .navigationBarTitleDisplayMode(.large)
+        .sheet(isPresented: $showCreate) {
+            CreateActivitySheet(vm: vm)
+        }
     }
 
-    private func statusLabel(_ status: String) -> some View {
+    private func activityRow(_ a: Activity) -> some View {
+        HStack(spacing: 12) {
+            let info = ActivityTypeInfo.from(kind: a.kind ?? "")
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(info.color.opacity(0.12))
+                    .frame(width: 40, height: 40)
+                Image(systemName: info.icon)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(info.color)
+            }
+            VStack(alignment: .leading, spacing: 3) {
+                Text(a.title).font(.system(size: 15, weight: .semibold))
+                HStack(spacing: 6) {
+                    if let price = a.price {
+                        Text("$\(Int(price))/mes")
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                    }
+                    if let diff = a.difficulty {
+                        Text("·").foregroundColor(Color(.tertiaryLabel))
+                        Text(diff.capitalized)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            Spacer()
+            statusBadge(a.status ?? "active")
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func statusBadge(_ s: String) -> some View {
         let (label, color): (String, Color) = {
-            switch status {
-            case "active":    return ("Activo", .fnGreen)
-            case "cancelled": return ("Cancelado", .fnSecondary)
-            case "pending":   return ("Pendiente", .fnYellow)
-            default:          return (status.capitalized, .secondary)
+            switch s {
+            case "active":    return ("Activa", .fnGreen)
+            case "cancelled": return ("Cancelada", .fnSecondary)
+            case "draft":     return ("Borrador", .fnYellow)
+            default:          return (s, .secondary)
             }
         }()
         return Text(label)
-            .font(.system(size: 11, weight: .bold))
+            .font(.system(size: 10, weight: .bold))
             .foregroundColor(color)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
+            .padding(.horizontal, 8).padding(.vertical, 3)
             .background(color.opacity(0.12), in: Capsule())
+    }
+}
+
+// MARK: - Create Activity Sheet
+
+private struct CreateActivitySheet: View {
+    @ObservedObject var vm: ProviderDashboardViewModel
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var auth: AuthViewModel
+
+    @State private var title = ""
+    @State private var descriptionText = ""
+    @State private var location = ""
+    @State private var price = ""
+    @State private var capacity = ""
+    @State private var kind = "membership"
+    @State private var modality = "gimnasio"
+    @State private var difficulty = "media"
+    @State private var saving = false
+    @State private var errorMsg: String?
+
+    private let kinds = [("membership","Membresía"), ("class","Clase"), ("event","Evento"), ("course","Curso")]
+    private let modalities = [("gimnasio","Gimnasio"), ("clase","Clase"), ("outdoor","Outdoor"), ("torneo","Torneo")]
+    private let difficulties = [("baja","Fácil"), ("media","Media"), ("alta","Difícil")]
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Información básica") {
+                    TextField("Título de la actividad *", text: $title)
+                    TextField("Descripción (opcional)", text: $descriptionText, axis: .vertical)
+                        .lineLimit(3...6)
+                    TextField("Ubicación (opcional)", text: $location)
+                }
+
+                Section("Tipo y formato") {
+                    Picker("Tipo", selection: $kind) {
+                        ForEach(kinds, id: \.0) { k in Text(k.1).tag(k.0) }
+                    }
+                    Picker("Modalidad", selection: $modality) {
+                        ForEach(modalities, id: \.0) { m in Text(m.1).tag(m.0) }
+                    }
+                    Picker("Dificultad", selection: $difficulty) {
+                        ForEach(difficulties, id: \.0) { d in Text(d.1).tag(d.0) }
+                    }
+                }
+
+                Section("Precio y capacidad") {
+                    HStack {
+                        Text("$")
+                        TextField("Precio mensual", text: $price)
+                            .keyboardType(.decimalPad)
+                    }
+                    HStack {
+                        Image(systemName: "person.2.fill").foregroundColor(.secondary)
+                        TextField("Capacidad máxima (opcional)", text: $capacity)
+                            .keyboardType(.numberPad)
+                    }
+                }
+
+                if let err = errorMsg {
+                    Section {
+                        Text(err)
+                            .font(.system(size: 13))
+                            .foregroundColor(.fnSecondary)
+                    }
+                }
+            }
+            .navigationTitle("Nueva actividad")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
+                        saveActivity()
+                    } label: {
+                        if saving { ProgressView().tint(.fnPurple) }
+                        else { Text("Publicar").bold().foregroundColor(.fnPurple) }
+                    }
+                    .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || saving)
+                }
+            }
+        }
+    }
+
+    private func saveActivity() {
+        saving = true; errorMsg = nil
+        var payload: [String: Any] = [
+            "title": title.trimmingCharacters(in: .whitespaces),
+            "kind": kind,
+            "modality": modality,
+            "difficulty": difficulty
+        ]
+        if !descriptionText.isEmpty { payload["description"] = descriptionText }
+        if !location.isEmpty        { payload["location"] = location }
+        if let p = Double(price.replacingOccurrences(of: ",", with: ".")) { payload["price"] = p }
+        if let c = Int(capacity)    { payload["capacity"] = c }
+
+        vm.createActivity(payload) { success in
+            saving = false
+            if success { dismiss() }
+            else { errorMsg = "No se pudo crear la actividad. Intentá de nuevo." }
+        }
     }
 }

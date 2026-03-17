@@ -113,7 +113,7 @@ struct LoginView: View {
                     set: { auth.selectedRole = $0 }
                 )) {
                     Text("Usuario").tag("user")
-                    Text("Proveedor").tag("provider")
+                    Text("Proveedor").tag("provider_admin")
                 }
                 .pickerStyle(.segmented)
                 .transition(.asymmetric(
@@ -128,6 +128,19 @@ struct LoginView: View {
                     placeholder: "Nombre completo",
                     icon: "person.fill",
                     text: $auth.name
+                )
+                .transition(.asymmetric(
+                    insertion: .push(from: .top).combined(with: .opacity),
+                    removal: .push(from: .bottom).combined(with: .opacity)
+                ))
+            }
+
+            // Provider name field (register as provider only)
+            if isRegister && auth.selectedRole == "provider_admin" {
+                FNTextField(
+                    placeholder: "Nombre del local / negocio",
+                    icon: "building.2.fill",
+                    text: $auth.providerName
                 )
                 .transition(.asymmetric(
                     insertion: .push(from: .top).combined(with: .opacity),
@@ -360,16 +373,7 @@ private struct AdminLoginSheet: View {
                         .multilineTextAlignment(.center)
                 }
 
-                VStack(spacing: 2) {
-                    Text("Credenciales por defecto")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(.secondary)
-                    Text("admin@fitnow.com  /  Admin1234!")
-                        .font(.system(size: 11, design: .monospaced))
-                        .foregroundColor(Color(.tertiaryLabel))
-                }
-                .padding(.horizontal, 16).padding(.vertical, 10)
-                .background(Color(.tertiarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+
 
                 Button {
                     adminLogin()
@@ -420,7 +424,7 @@ private struct AdminLoginSheet: View {
                     return
                 }
                 APIClient.shared.setToken(resp.token)
-                let u = User(id: resp.user.id, name: resp.user.name, email: resp.user.email, role: "admin")
+                let u = User(id: resp.user.id, name: resp.user.name, email: resp.user.email, role: "admin", provider_id: nil)
                 if let d = try? JSONEncoder().encode(u) { UserDefaults.standard.set(d, forKey: "saved_user") }
                 auth.user = u
                 auth.isAuthenticated = true
