@@ -241,18 +241,11 @@ struct MyEnrollmentsView: View {
     }
 
     // MARK: Router
+    // All enrollments go to EnrollmentDetailView which shows enrollment-specific info
+    // and provides contextual links (TrainerBookingsView, ClubSportsView, etc.)
 
     @ViewBuilder
     private func destination(for item: EnrollmentItem) -> some View {
-        let kind = item.activity_kind ?? ""
-        if kind == "trainer", let aid = item.activity_id {
-            TrainerBookingsView(activityId: aid, title: item.title)
-        } else if kind == "club", let pid = item.provider_id {
-            ClubSportsView(providerId: pid, clubTitle: item.title)
-        } else if let aid = item.activity_id {
-            ActivityDetailLoader(activityId: aid, title: item.title)
-        } else {
-            Text(item.title)
-        }
+        EnrollmentDetailView(enrollment: item)
     }
 }
