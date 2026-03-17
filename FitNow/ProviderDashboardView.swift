@@ -231,43 +231,37 @@ private struct ProviderHomeTab: View {
                 .foregroundColor(.secondary)
 
             HStack(spacing: 12) {
-                quickActionCard(
-                    icon: "plus.circle.fill",
-                    color: .fnGreen,
-                    title: "Nueva actividad",
-                    navigateTo: AnyView(ProviderActivitiesTab(vm: vm))
-                )
-                quickActionCard(
-                    icon: "tag.fill",
-                    color: .fnYellow,
-                    title: "Nueva oferta",
-                    navigateTo: AnyView(ProviderMyOffersView())
-                )
+                NavigationLink { ProviderActivitiesTab(vm: vm) } label: {
+                    quickCardLabel(icon: "plus.circle.fill", color: .fnGreen, title: "Nueva actividad")
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                NavigationLink { ProviderMyOffersView() } label: {
+                    quickCardLabel(icon: "tag.fill", color: .fnYellow, title: "Nueva oferta")
+                }
+                .buttonStyle(PlainButtonStyle())
             }
         }
     }
 
-    private func quickActionCard(icon: String, color: Color, title: String, navigateTo: AnyView) -> some View {
-        NavigationLink { navigateTo } label: {
-            VStack(spacing: 10) {
-                ZStack {
-                    Circle()
-                        .fill(color.opacity(0.15))
-                        .frame(width: 44, height: 44)
-                    Image(systemName: icon)
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(color)
-                }
-                Text(title)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.primary)
-                    .multilineTextAlignment(.center)
+    private func quickCardLabel(icon: String, color: Color, title: String) -> some View {
+        VStack(spacing: 10) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.15))
+                    .frame(width: 44, height: 44)
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(color)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 18)
-            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14))
+            Text(title)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(.primary)
+                .multilineTextAlignment(.center)
         }
-        .buttonStyle(PlainButtonStyle())
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 18)
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14))
     }
 }
 
