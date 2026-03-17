@@ -141,10 +141,9 @@ struct ProfileView: View {
                             showAdmin = true
                         }
                     }
-                    .background(
-                        NavigationLink(isActive: $showAdmin) { AdminView() } label: { EmptyView() }
-                            .hidden()
-                    )
+                    .navigationDestination(isPresented: $showAdmin) {
+                        AdminView()
+                    }
                     NavigationLink {
                         AboutView()
                     } label: {

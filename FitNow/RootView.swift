@@ -6,7 +6,12 @@ struct RootView: View {
     var body: some View {
         Group {
             if auth.isAuthenticated {
-                MainTabView()
+                switch auth.user?.role {
+                case "provider":
+                    ProviderDashboardView()
+                default:
+                    MainTabView()
+                }
             } else {
                 LoginView()
             }
