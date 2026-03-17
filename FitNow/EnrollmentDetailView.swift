@@ -28,10 +28,10 @@ fileprivate func prettyED(_ s: String?) -> String {
 }
 
 // Minimal provider info for detail view
-fileprivate struct EDProviderInfo: Decodable {
+struct EDProviderInfo: Decodable {
     let name: String?; let kind: String?; let address: String?; let city: String?
 }
-fileprivate struct EDActivityAndProvider: Decodable {
+struct EDActivityAndProvider: Decodable {
     let activity: Activity; let provider: EDProviderInfo?
 }
 
