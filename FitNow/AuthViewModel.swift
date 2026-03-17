@@ -73,7 +73,17 @@ final class AuthViewModel: ObservableObject {
         APIClient.shared.request("auth/login", method: "POST", body: data, authorized: false)
             .sink { [weak self] completion in
                 self?.loading = false
-                if case .failure(let e) = completion { self?.error = e.localizedDescription }
+                if case .failure(let e) = completion {
+                    if case APIError.http(let code, _) = e {
+                        switch code {
+                        case 401: self?.error = "Email o contraseña incorrectos."
+                        case 404: self?.error = "No existe una cuenta con ese email."
+                        default:  self?.error = "No se pudo iniciar sesión. Intentá de nuevo."
+                        }
+                    } else {
+                        self?.error = "Sin conexión. Verificá tu red."
+                    }
+                }
             } receiveValue: { [weak self] (resp: AuthResponse) in
                 self?.applyAuth(resp)
             }.store(in: &bag)
@@ -95,7 +105,11 @@ final class AuthViewModel: ObservableObject {
             APIClient.shared.request("auth/register-provider", method: "POST", body: data, authorized: false)
                 .sink { [weak self] completion in
                     self?.loading = false
-                    if case .failure(let e) = completion { self?.error = e.localizedDescription }
+                    if case .failure(let e) = completion {
+                    if case APIError.http(let code, _) = e {
+                        self?.error = code == 409 ? "Ya existe una cuenta con ese email." : "No se pudo crear la cuenta. Intentá de nuevo."
+                    } else { self?.error = "Sin conexión. Verificá tu red." }
+                }
                 } receiveValue: { [weak self] (resp: AuthResponse) in
                     self?.applyAuth(resp, intendedRole: "provider_admin")
                 }.store(in: &bag)
@@ -105,7 +119,11 @@ final class AuthViewModel: ObservableObject {
             APIClient.shared.request("auth/register", method: "POST", body: data, authorized: false)
                 .sink { [weak self] completion in
                     self?.loading = false
-                    if case .failure(let e) = completion { self?.error = e.localizedDescription }
+                    if case .failure(let e) = completion {
+                    if case APIError.http(let code, _) = e {
+                        self?.error = code == 409 ? "Ya existe una cuenta con ese email." : "No se pudo crear la cuenta. Intentá de nuevo."
+                    } else { self?.error = "Sin conexión. Verificá tu red." }
+                }
                 } receiveValue: { [weak self] (resp: AuthResponse) in
                     self?.applyAuth(resp, intendedRole: "user")
                 }.store(in: &bag)
