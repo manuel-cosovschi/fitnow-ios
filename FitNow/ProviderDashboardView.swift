@@ -298,7 +298,7 @@ struct ProviderActivitiesTab: View {
         } else {
             List(vm.activities) { a in
                 NavigationLink {
-                    ActivityDetailLoader(activityId: a.id, title: a.title)
+                    ActivityHubView(activity: a)
                 } label: {
                     activityRow(a)
                 }
@@ -398,6 +398,8 @@ private struct CreateActivitySheet: View {
     @State private var kind = "membership"
     @State private var modality = "gimnasio"
     @State private var difficulty = "media"
+    @State private var enableRunning = false
+    @State private var enableFiles = false
     @State private var saving = false
     @State private var errorMsg: String?
 
@@ -435,6 +437,32 @@ private struct CreateActivitySheet: View {
                         TextField("Capacidad máxima (opcional)", text: $capacity).keyboardType(.numberPad)
                     }
                 }
+                Section {
+                    Toggle(isOn: $enableRunning) {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Seguimiento de rutas").font(.system(size: 15))
+                                Text("Los alumnos pueden registrar sus recorridos").font(.system(size: 12)).foregroundColor(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "location.north.line.fill").foregroundColor(.fnCyan)
+                        }
+                    }
+                    .tint(.fnCyan)
+                    Toggle(isOn: $enableFiles) {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Rutinas y archivos").font(.system(size: 15))
+                                Text("Podés subir rutinas, planes y documentos para tus alumnos").font(.system(size: 12)).foregroundColor(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "doc.fill").foregroundColor(.fnPurple)
+                        }
+                    }
+                    .tint(.fnPurple)
+                } header: {
+                    Text("Funcionalidades adicionales")
+                }
                 if let err = errorMsg {
                     Section {
                         Text(err).font(.system(size: 13)).foregroundColor(.fnSecondary)
@@ -468,6 +496,8 @@ private struct CreateActivitySheet: View {
         if !location.isEmpty        { payload["location"] = location }
         if let p = Double(price.replacingOccurrences(of: ",", with: ".")) { payload["price"] = p }
         if let c = Int(capacity) { payload["capacity"] = c }
+        if enableRunning { payload["enable_running"] = true }
+        if enableFiles   { payload["enable_files"] = true }
 
         vm.createActivity(payload) { success in
             saving = false
