@@ -34,6 +34,12 @@
 		36820F352E82146300B51DAF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 36820F342E82146300B51DAF /* Assets.xcassets */; };
 		AABB0022CCDD0022EEFF0022 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABB0011CCDD0011EEFF0011 /* DesignSystem.swift */; };
 		BBCC0022DDEE0022FFAA0022 /* RunSessionTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBCC0011DDEE0011FFAA0011 /* RunSessionTracker.swift */; };
+		CC220011DD330011EE440011 /* FavoritesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110011DD220011EE330011 /* FavoritesService.swift */; };
+		CC220012DD330012EE440012 /* FavoritesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110012DD220012EE330012 /* FavoritesView.swift */; };
+		CC220013DD330013EE440013 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110013DD220013EE330013 /* CalendarView.swift */; };
+		CC220014DD330014EE440014 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110014DD220014EE330014 /* MainTabView.swift */; };
+		CC220015DD330015EE440015 /* NotificationsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110015DD220015EE330015 /* NotificationsService.swift */; };
+		CC220016DD330016EE440016 /* RunHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110016DD220016EE330016 /* RunHubView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -86,6 +92,12 @@
 		36820F342E82146300B51DAF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AABB0011CCDD0011EEFF0011 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		BBCC0011DDEE0011FFAA0011 /* RunSessionTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunSessionTracker.swift; sourceTree = "<group>"; };
+		CC110011DD220011EE330011 /* FavoritesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesService.swift; sourceTree = "<group>"; };
+		CC110012DD220012EE330012 /* FavoritesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesView.swift; sourceTree = "<group>"; };
+		CC110013DD220013EE330013 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
+		CC110014DD220014EE330014 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		CC110015DD220015EE330015 /* NotificationsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsService.swift; sourceTree = "<group>"; };
+		CC110016DD220016EE330016 /* RunHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunHubView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -186,6 +198,12 @@
 				36820F342E82146300B51DAF /* Assets.xcassets */,
 				AABB0011CCDD0011EEFF0011 /* DesignSystem.swift */,
 				BBCC0011DDEE0011FFAA0011 /* RunSessionTracker.swift */,
+				CC110011DD220011EE330011 /* FavoritesService.swift */,
+				CC110012DD220012EE330012 /* FavoritesView.swift */,
+				CC110013DD220013EE330013 /* CalendarView.swift */,
+				CC110014DD220014EE330014 /* MainTabView.swift */,
+				CC110015DD220015EE330015 /* NotificationsService.swift */,
+				CC110016DD220016EE330016 /* RunHubView.swift */,
 			);
 			path = FitNow;
 			sourceTree = "<group>";
@@ -362,6 +380,12 @@
 				36820F312E82144200B51DAF /* RunModels.swift in Sources */,
 				AABB0022CCDD0022EEFF0022 /* DesignSystem.swift in Sources */,
 				BBCC0022DDEE0022FFAA0022 /* RunSessionTracker.swift in Sources */,
+				CC220011DD330011EE440011 /* FavoritesService.swift in Sources */,
+				CC220012DD330012EE440012 /* FavoritesView.swift in Sources */,
+				CC220013DD330013EE440013 /* CalendarView.swift in Sources */,
+				CC220014DD330014EE440014 /* MainTabView.swift in Sources */,
+				CC220015DD330015EE440015 /* NotificationsService.swift in Sources */,
+				CC220016DD330016EE440016 /* RunHubView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
