@@ -35,7 +35,6 @@ final class HomeViewModel: ObservableObject {
         APIClient.shared.request("run/sessions/mine", authorized: true)
             .sink { _ in }
             receiveValue: { [weak self] (resp: RunSessionsResponse) in
-                let cal = Calendar.current
                 let weekAgo = Date().addingTimeInterval(-7 * 86_400)
                 let recentSessions = resp.items.filter { s in
                     guard let ds = s.started_at else { return false }
