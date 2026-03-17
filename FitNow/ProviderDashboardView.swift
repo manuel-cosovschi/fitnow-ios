@@ -29,7 +29,7 @@ final class ProviderDashboardViewModel: ObservableObject {
 
         // Load recent enrollments for provider's activities
         APIClient.shared.request("enrollments?as_provider=true&limit=10")
-            .sink { [weak self] _ in } receiveValue: { [weak self] (resp: ListResponse<EnrollmentItem>) in
+            .sink { _ in } receiveValue: { [weak self] (resp: ListResponse<EnrollmentItem>) in
                 self?.recentEnrollments = resp.items
             }
             .store(in: &bag)
@@ -131,7 +131,7 @@ private struct ProviderHomeTab: View {
         HStack(spacing: 14) {
             ZStack {
                 Circle()
-                    .fill(FNGradient.purple)
+                    .fill(FNGradient.club)
                     .frame(width: 56, height: 56)
                 Image(systemName: "building.2.fill")
                     .font(.system(size: 22, weight: .bold))
@@ -344,7 +344,7 @@ struct ProviderActivitiesTab: View {
                                 .font(.system(size: 15, weight: .semibold))
                             HStack(spacing: 8) {
                                 if let kind = activity.kind {
-                                    let info = ActivityTypeInfo.info(for: kind)
+                                    let info = ActivityTypeInfo.from(kind: kind)
                                     Label(info.label, systemImage: info.icon)
                                         .font(.system(size: 11, weight: .semibold))
                                         .foregroundColor(info.color)
