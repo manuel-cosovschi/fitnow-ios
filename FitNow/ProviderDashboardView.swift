@@ -192,6 +192,7 @@ private struct ProviderHomeTab: View {
 
     private func activityRow(_ a: Activity) -> some View {
         let info = ActivityTypeInfo.from(kind: a.kind ?? "")
+        let statusColor: Color = (a.status == "active") ? .fnGreen : (a.status == "cancelled") ? .fnSecondary : .fnYellow
         return HStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
@@ -216,7 +217,6 @@ private struct ProviderHomeTab: View {
                 }
             }
             Spacer()
-            let statusColor: Color = (a.status == "active") ? .fnGreen : (a.status == "cancelled") ? .fnSecondary : .fnYellow
             Circle().fill(statusColor).frame(width: 8, height: 8)
         }
         .padding(.horizontal, 14)
