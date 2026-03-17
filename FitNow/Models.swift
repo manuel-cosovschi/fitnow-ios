@@ -139,10 +139,15 @@ struct JSONAny: Decodable {
 }
 
 // MARK: - Generic responses
+struct PagedPagination: Decodable {
+    let total: Int
+    let page: Int
+    let per_page: Int
+    let pages: Int
+}
 struct Paged<T: Decodable>: Decodable {
     let items: [T]
-    let limit: Int?
-    let offset: Int?
+    let pagination: PagedPagination?
 }
 struct SimpleOK: Codable { let status: String }
 struct ListResponse<T: Decodable>: Decodable { let items: [T] }

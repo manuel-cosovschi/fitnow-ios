@@ -61,8 +61,8 @@ final class HazardService {
                 if case .failure(let e) = completion {
                     print("Hazards fetch error:", e.localizedDescription)
                 }
-            } receiveValue: { (resp: [HazardArea]) in
-                self.hazards = resp
+            } receiveValue: { (resp: ListResponse<HazardArea>) in
+                self.hazards = resp.items
             }
             .store(in: &bag)
     }
