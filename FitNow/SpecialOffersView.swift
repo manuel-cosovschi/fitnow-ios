@@ -397,33 +397,36 @@ struct ProviderMyOffersView: View {
     @State private var showSubmit = false
 
     var body: some View {
-        Group {
-            if vm.loading && vm.offers.isEmpty {
-                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if vm.offers.isEmpty {
-                providerEmptyState
-            } else {
-                providerOffersList
-            }
-        }
-        .navigationTitle("Mis ofertas")
-        .navigationBarTitleDisplayMode(.large)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    showSubmit = true
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 20))
-                        .foregroundColor(.fnPrimary)
+        myOffersContent
+            .navigationTitle("Mis ofertas")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showSubmit = true
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(.fnPrimary)
+                    }
                 }
             }
+            .sheet(isPresented: $showSubmit) {
+                ProviderSubmitOfferView()
+                    .onDisappear { vm.loadMine() }
+            }
+            .onAppear { vm.loadMine() }
+    }
+
+    @ViewBuilder
+    private var myOffersContent: some View {
+        if vm.loading && vm.offers.isEmpty {
+            ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if vm.offers.isEmpty {
+            providerEmptyState
+        } else {
+            providerOffersList
         }
-        .sheet(isPresented: $showSubmit) {
-            ProviderSubmitOfferView()
-                .onDisappear { vm.loadMine() }
-        }
-        .onAppear { vm.loadMine() }
     }
 
     private var providerOffersList: some View {

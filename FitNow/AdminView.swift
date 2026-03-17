@@ -337,28 +337,31 @@ struct AdminUsersTab: View {
     @StateObject private var vm = AdminUsersViewModel()
 
     var body: some View {
-        Group {
-            if vm.loading && vm.users.isEmpty {
-                ProgressView("Cargando usuarios…").frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if vm.users.isEmpty {
-                Text("Sin usuarios registrados.")
-                    .foregroundColor(Color(.secondaryLabel))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                List(vm.users) { user in
-                    VStack(alignment: .leading, spacing: 3) {
-                        HStack {
-                            Text(user.name).font(.system(size: 14, weight: .semibold))
-                            Spacer()
-                            roleBadge(user.role ?? "user")
-                        }
-                        Text(user.email).font(.system(size: 12)).foregroundColor(Color(.secondaryLabel))
+        usersContent
+            .onAppear { vm.load() }
+    }
+
+    @ViewBuilder
+    private var usersContent: some View {
+        if vm.loading && vm.users.isEmpty {
+            ProgressView("Cargando usuarios…").frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if vm.users.isEmpty {
+            Text("Sin usuarios registrados.")
+                .foregroundColor(Color(.secondaryLabel))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            List(vm.users) { user in
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack {
+                        Text(user.name).font(.system(size: 14, weight: .semibold))
+                        Spacer()
+                        roleBadge(user.role ?? "user")
                     }
-                    .padding(.vertical, 4)
+                    Text(user.email).font(.system(size: 12)).foregroundColor(Color(.secondaryLabel))
                 }
+                .padding(.vertical, 4)
             }
         }
-        .onAppear { vm.load() }
     }
 
     private func roleBadge(_ role: String) -> some View {
@@ -403,37 +406,44 @@ struct AdminProvidersTab: View {
     @StateObject private var vm = AdminProvidersViewModel()
 
     var body: some View {
-        Group {
-            if vm.loading && vm.providers.isEmpty {
-                ProgressView("Cargando proveedores…").frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if vm.providers.isEmpty {
-                Text("Sin proveedores registrados.")
-                    .foregroundColor(Color(.secondaryLabel))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                List(vm.providers) { p in
-                    VStack(alignment: .leading, spacing: 3) {
-                        HStack {
-                            Text(p.name).font(.system(size: 14, weight: .semibold))
-                            Spacer()
-                            if let kind = p.kind {
-                                let info = ActivityTypeInfo.from(kind: kind)
-                                Text(info.label)
-                                    .font(.system(size: 9, weight: .bold))
-                                    .foregroundColor(info.color)
-                                    .padding(.horizontal, 7).padding(.vertical, 3)
-                                    .background(info.color.opacity(0.12), in: Capsule())
-                            }
-                        }
-                        if let email = p.email {
-                            Text(email).font(.system(size: 12)).foregroundColor(Color(.secondaryLabel))
-                        }
-                    }
-                    .padding(.vertical, 4)
-                }
+        providersContent
+            .onAppear { vm.load() }
+    }
+
+    @ViewBuilder
+    private var providersContent: some View {
+        if vm.loading && vm.providers.isEmpty {
+            ProgressView("Cargando proveedores…").frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if vm.providers.isEmpty {
+            Text("Sin proveedores registrados.")
+                .foregroundColor(Color(.secondaryLabel))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            List(vm.providers) { p in
+                providerRow(p)
             }
         }
-        .onAppear { vm.load() }
+    }
+
+    private func providerRow(_ p: AdminProviderItem) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack {
+                Text(p.name).font(.system(size: 14, weight: .semibold))
+                Spacer()
+                if let kind = p.kind {
+                    let info = ActivityTypeInfo.from(kind: kind)
+                    Text(info.label)
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundColor(info.color)
+                        .padding(.horizontal, 7).padding(.vertical, 3)
+                        .background(info.color.opacity(0.12), in: Capsule())
+                }
+            }
+            if let email = p.email {
+                Text(email).font(.system(size: 12)).foregroundColor(Color(.secondaryLabel))
+            }
+        }
+        .padding(.vertical, 4)
     }
 }
 
