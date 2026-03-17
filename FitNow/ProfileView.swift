@@ -11,7 +11,7 @@ struct ProfileView: View {
 
     private var roleLabel: String {
         switch auth.user?.role {
-        case "provider": return "Proveedor"
+        case "provider_admin": return "Proveedor"
         case "admin":    return "Admin"
         default:         return "Usuario"
         }
@@ -19,7 +19,7 @@ struct ProfileView: View {
 
     private var roleColor: Color {
         switch auth.user?.role {
-        case "provider": return .fnPurple
+        case "provider_admin": return .fnPurple
         case "admin":    return .fnSecondary
         default:         return .fnCyan
         }
@@ -64,28 +64,39 @@ struct ProfileView: View {
                     } label: {
                         Label("Información personal", systemImage: "person.circle")
                     }
-                    NavigationLink {
-                        MembershipView()
-                    } label: {
-                        Label("Membresía", systemImage: "star.circle")
-                    }
-                    NavigationLink {
-                        FavoritesView()
-                    } label: {
-                        Label("Favoritos", systemImage: "heart.fill")
-                    }
-                    NavigationLink {
-                        CalendarView()
-                    } label: {
-                        Label("Calendario", systemImage: "calendar")
-                    }
-                    // Provider-only: manage special offers
-                    if auth.user?.role == "provider" {
+                    // Provider-only items
+                    if auth.user?.role == "provider_admin" {
+                        if let pid = auth.user?.provider_id {
+                            NavigationLink {
+                                ProviderInfoView(providerId: pid)
+                            } label: {
+                                Label("Mi local", systemImage: "building.2.fill")
+                                    .foregroundColor(.fnPurple)
+                            }
+                        }
                         NavigationLink {
                             ProviderMyOffersView()
                         } label: {
                             Label("Mis ofertas especiales", systemImage: "tag.fill")
                                 .foregroundColor(.fnYellow)
+                        }
+                    }
+                    // User-only items
+                    if auth.user?.role != "provider_admin" && auth.user?.role != "admin" {
+                        NavigationLink {
+                            MembershipView()
+                        } label: {
+                            Label("Membresía", systemImage: "star.circle")
+                        }
+                        NavigationLink {
+                            FavoritesView()
+                        } label: {
+                            Label("Favoritos", systemImage: "heart.fill")
+                        }
+                        NavigationLink {
+                            CalendarView()
+                        } label: {
+                            Label("Calendario", systemImage: "calendar")
                         }
                     }
                     // Admin-only: dashboard
@@ -175,7 +186,7 @@ private struct PersonalInfoView: View {
             Section("Rol") {
                 Text({
                     switch auth.user?.role {
-                    case "provider": return "Proveedor"
+                    case "provider_admin": return "Proveedor"
                     case "admin":    return "Admin"
                     default:         return "Usuario"
                     }
@@ -436,12 +447,135 @@ private struct AboutView: View {
     }
 }
 
+// MARK: - Provider Info View
+
+struct ProviderInfoView: View {
+    let providerId: Int
+
+    @State private var providerName = ""
+    @State private var kind = "gym"
+    @State private var description = ""
+    @State private var address = ""
+    @State private var city = ""
+    @State private var phone = ""
+    @State private var website = ""
+    @State private var loading = true
+    @State private var saving = false
+    @State private var message: String?
+    @State private var bag = Set<AnyCancellable>()
+
+    private let kinds = ["gym", "studio", "trainer", "club", "other"]
+    private func kindLabel(_ k: String) -> String {
+        switch k {
+        case "gym": return "Gimnasio"
+        case "studio": return "Estudio"
+        case "trainer": return "Entrenador personal"
+        case "club": return "Club deportivo"
+        default: return "Otro"
+        }
+    }
+
+    var body: some View {
+        Form {
+            if loading {
+                Section { HStack { Spacer(); ProgressView(); Spacer() } }
+            } else {
+                Section("Nombre del local") {
+                    TextField("Nombre", text: $providerName)
+                }
+                Section("Tipo de proveedor") {
+                    Picker("Tipo", selection: $kind) {
+                        ForEach(kinds, id: \.self) { k in
+                            Text(kindLabel(k)).tag(k)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+                Section("Descripción") {
+                    TextEditor(text: $description)
+                        .frame(minHeight: 80)
+                }
+                Section("Dirección") {
+                    TextField("Dirección", text: $address)
+                    TextField("Ciudad", text: $city)
+                }
+                Section("Contacto") {
+                    TextField("Teléfono", text: $phone).keyboardType(.phonePad)
+                    TextField("Sitio web", text: $website).keyboardType(.URL).textInputAutocapitalization(.never)
+                }
+                if let msg = message {
+                    Section {
+                        Text(msg)
+                            .font(.system(size: 13))
+                            .foregroundColor(msg.hasPrefix("✓") ? .fnGreen : .fnSecondary)
+                    }
+                }
+                Section {
+                    Button {
+                        save()
+                    } label: {
+                        if saving {
+                            HStack { Spacer(); ProgressView(); Spacer() }
+                        } else {
+                            Text("Guardar cambios").frame(maxWidth: .infinity)
+                        }
+                    }
+                    .disabled(saving || providerName.isEmpty)
+                }
+            }
+        }
+        .navigationTitle("Mi local")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear { loadProvider() }
+    }
+
+    private func loadProvider() {
+        loading = true
+        APIClient.shared.request("providers/\(providerId)")
+            .sink { _ in loading = false }
+                   receiveValue: { (p: Provider) in
+                loading = false
+                providerName = p.name
+                kind         = p.kind ?? "gym"
+                description  = p.description ?? ""
+                address      = p.address ?? ""
+                city         = p.city ?? ""
+                phone        = p.phone ?? ""
+                website      = p.website_url ?? ""
+            }
+            .store(in: &bag)
+    }
+
+    private func save() {
+        saving = true; message = nil
+        var payload: [String: String] = [
+            "name": providerName,
+            "kind": kind,
+            "description": description,
+            "address": address,
+            "city": city,
+            "phone": phone,
+            "website_url": website
+        ]
+        guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
+        APIClient.shared.request("providers/\(providerId)", method: "PATCH", body: data)
+            .sink { completion in
+                saving = false
+                if case .failure = completion { message = "Error al guardar. Intentá de nuevo." }
+            } receiveValue: { (_: Provider) in
+                saving = false
+                message = "✓ Información actualizada"
+            }
+            .store(in: &bag)
+    }
+}
+
 #if DEBUG
 #Preview {
     ProfileView()
         .environmentObject({
             let vm = AuthViewModel()
-            vm.user = User(id: 1, name: "Juan Pérez", email: "juan@test.com", role: "user")
+            vm.user = User(id: 1, name: "Juan Pérez", email: "juan@test.com", role: "user", provider_id: nil)
             return vm
         }())
 }
