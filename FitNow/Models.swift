@@ -56,13 +56,14 @@ struct Activity: Identifiable, Codable {
     let enable_deposit: Bool?      // provider allows deposit (seña) payment
     let deposit_percent: Int?      // deposit percentage (default 50 if nil)
     let has_capacity_limit: Bool?  // provider enforces seat limit
+    let status: String?            // "draft" | "active" | "cancelled"
 
     enum CodingKeys: String, CodingKey {
         case id, title, description, modality, difficulty, location, price
         case date_start, date_end, capacity, seats_left
         case kind, provider_id, provider_name, rules
         case sport_id, sport_name
-        case enable_running, enable_deposit, deposit_percent, has_capacity_limit
+        case enable_running, enable_deposit, deposit_percent, has_capacity_limit, status
     }
 
     init(from decoder: Decoder) throws {
@@ -96,10 +97,11 @@ struct Activity: Identifiable, Codable {
             rules = any.jsonString
         } else { rules = nil }
 
-        enable_running      = try c.decodeIfPresent(Bool.self, forKey: .enable_running)
-        enable_deposit      = try c.decodeIfPresent(Bool.self, forKey: .enable_deposit)
-        deposit_percent     = try c.decodeIfPresent(Int.self,  forKey: .deposit_percent)
-        has_capacity_limit  = try c.decodeIfPresent(Bool.self, forKey: .has_capacity_limit)
+        enable_running      = try c.decodeIfPresent(Bool.self,   forKey: .enable_running)
+        enable_deposit      = try c.decodeIfPresent(Bool.self,   forKey: .enable_deposit)
+        deposit_percent     = try c.decodeIfPresent(Int.self,    forKey: .deposit_percent)
+        has_capacity_limit  = try c.decodeIfPresent(Bool.self,   forKey: .has_capacity_limit)
+        status              = try c.decodeIfPresent(String.self, forKey: .status)
     }
 }
 
