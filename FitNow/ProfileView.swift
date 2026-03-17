@@ -2,8 +2,6 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject private var auth: AuthViewModel
-    @State private var versionTapCount = 0
-    @State private var showAdmin = false
 
     private var initials: String {
         let parts = (auth.user?.name ?? "").split(separator: " ").prefix(2)
@@ -130,19 +128,8 @@ struct ProfileView: View {
                         Label("Versión", systemImage: "info.circle")
                         Spacer()
                         Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
-                            .foregroundColor(versionTapCount > 0 ? .fnPrimary.opacity(Double(versionTapCount) * 0.2) : .secondary)
+                            .foregroundColor(.secondary)
                             .font(.system(size: 14))
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        versionTapCount += 1
-                        if versionTapCount >= 5 {
-                            versionTapCount = 0
-                            showAdmin = true
-                        }
-                    }
-                    .navigationDestination(isPresented: $showAdmin) {
-                        AdminView()
                     }
                     NavigationLink {
                         AboutView()
