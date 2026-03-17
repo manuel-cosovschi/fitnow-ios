@@ -7,8 +7,8 @@ struct RootView: View {
         Group {
             if auth.isAuthenticated {
                 switch auth.user?.role {
-                case "provider":
-                    ProviderDashboardView()
+                case "provider_admin":
+                    ProviderDashboardView(providerId: auth.user?.provider_id)
                 case "admin":
                     NavigationStack { AdminView() }
                 default:
