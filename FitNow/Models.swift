@@ -6,10 +6,25 @@ struct User: Codable {
     let name: String
     let email: String
     let role: String?
+    let provider_id: Int?
 }
 struct AuthResponse: Codable {
     let user: User
     let token: String
+}
+
+// MARK: - Provider
+struct Provider: Identifiable, Codable {
+    let id: Int
+    let name: String
+    let kind: String?
+    let description: String?
+    let address: String?
+    let city: String?
+    let phone: String?
+    let website_url: String?
+    let logo_url: String?
+    let status: String?
 }
 
 // MARK: - Activity
