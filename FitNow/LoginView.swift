@@ -1,9 +1,11 @@
 import SwiftUI
+import Combine
 
 struct LoginView: View {
     @EnvironmentObject var auth: AuthViewModel
     @State private var isRegister = false
     @State private var appeared = false
+    @State private var showAdminLogin = false
 
     private let roles = ["Usuario", "Proveedor"]
 
@@ -35,7 +37,25 @@ struct LoginView: View {
                     // Toggle link
                     toggleButton
                         .padding(.top, 24)
-                        .padding(.bottom, 40)
+                        .padding(.bottom, 16)
+
+                    // Admin access
+                    Button {
+                        showAdminLogin = true
+                    } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "shield.fill")
+                                .font(.system(size: 10, weight: .semibold))
+                            Text("Acceso Admin")
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        .foregroundColor(Color(.tertiaryLabel))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color(.tertiarySystemBackground), in: Capsule())
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                    .padding(.bottom, 40)
                 }
             }
         }
@@ -43,6 +63,10 @@ struct LoginView: View {
             withAnimation(.spring(response: 0.65, dampingFraction: 0.78)) {
                 appeared = true
             }
+        }
+        .sheet(isPresented: $showAdminLogin) {
+            AdminLoginSheet()
+                .environmentObject(auth)
         }
     }
 
@@ -267,5 +291,140 @@ private struct FNSecureField: View {
                         .stroke(Color(.separator).opacity(0.5), lineWidth: 0.5)
                 )
         )
+    }
+}
+
+// MARK: - Admin Login Sheet
+
+private struct AdminLoginSheet: View {
+    @EnvironmentObject private var auth: AuthViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var adminEmail    = "admin@fitnow.com"
+    @State private var adminPassword = "Admin1234!"
+    @State private var localError: String?
+    @State private var loading = false
+    @State private var cancellable: AnyCancellable?
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                ZStack {
+                    Circle()
+                        .fill(Color.fnSecondary.opacity(0.12))
+                        .frame(width: 70, height: 70)
+                    Image(systemName: "shield.fill")
+                        .font(.system(size: 30, weight: .bold))
+                        .foregroundColor(.fnSecondary)
+                }
+                .padding(.top, 8)
+
+                VStack(spacing: 4) {
+                    Text("Panel de Administración")
+                        .font(.system(size: 18, weight: .bold))
+                    Text("Acceso restringido")
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                }
+
+                VStack(spacing: 12) {
+                    HStack(spacing: 10) {
+                        Image(systemName: "envelope.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(.fnSecondary)
+                            .frame(width: 20)
+                        TextField("Email", text: $adminEmail)
+                            .font(.system(size: 15))
+                            .keyboardType(.emailAddress)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                    }
+                    .padding(.horizontal, 16).padding(.vertical, 14)
+                    .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+
+                    HStack(spacing: 10) {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(.fnSecondary)
+                            .frame(width: 20)
+                        SecureField("Contraseña", text: $adminPassword)
+                            .font(.system(size: 15))
+                    }
+                    .padding(.horizontal, 16).padding(.vertical, 14)
+                    .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+                }
+
+                if let err = localError {
+                    Text(err)
+                        .font(.system(size: 13))
+                        .foregroundColor(.fnSecondary)
+                        .multilineTextAlignment(.center)
+                }
+
+                VStack(spacing: 2) {
+                    Text("Credenciales por defecto")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.secondary)
+                    Text("admin@fitnow.com  /  Admin1234!")
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundColor(Color(.tertiaryLabel))
+                }
+                .padding(.horizontal, 16).padding(.vertical, 10)
+                .background(Color(.tertiarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+
+                Button {
+                    adminLogin()
+                } label: {
+                    HStack {
+                        Spacer()
+                        if loading {
+                            ProgressView().tint(.white)
+                        } else {
+                            Label("Ingresar como Admin", systemImage: "arrow.right.circle.fill")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                        Spacer()
+                    }
+                    .padding(.vertical, 15)
+                    .background(Color.fnSecondary, in: RoundedRectangle(cornerRadius: 14))
+                }
+                .disabled(loading)
+
+                Spacer()
+            }
+            .padding(.horizontal, 24)
+            .navigationTitle("Admin")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func adminLogin() {
+        localError = nil
+        loading = true
+        guard let data = try? JSONSerialization.data(withJSONObject: ["email": adminEmail, "password": adminPassword]) else { return }
+        cancellable = APIClient.shared.request("auth/login", method: "POST", body: data, authorized: false)
+            .receive(on: DispatchQueue.main)
+            .sink { completion in
+                loading = false
+                if case .failure(let e) = completion { localError = e.localizedDescription }
+            } receiveValue: { (resp: AuthResponse) in
+                loading = false
+                let role = resp.user.role ?? ""
+                guard role == "admin" else {
+                    localError = "Esta cuenta no tiene permisos de administrador."
+                    return
+                }
+                APIClient.shared.setToken(resp.token)
+                let u = User(id: resp.user.id, name: resp.user.name, email: resp.user.email, role: "admin")
+                if let d = try? JSONEncoder().encode(u) { UserDefaults.standard.set(d, forKey: "saved_user") }
+                auth.user = u
+                auth.isAuthenticated = true
+                dismiss()
+            }
     }
 }
