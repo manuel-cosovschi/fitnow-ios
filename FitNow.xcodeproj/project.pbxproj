@@ -45,6 +45,7 @@
 		CC220019DD330019EE440019 /* EnrollmentDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110019DD220019EE330019 /* EnrollmentDetailView.swift */; };
 		CC220020DD330020EE440020 /* SpecialOffersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110020DD220020EE330020 /* SpecialOffersView.swift */; };
 		CC220021DD330021EE440021 /* AdminView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110021DD220021EE330021 /* AdminView.swift */; };
+		CC220022DD330022EE440022 /* ProviderDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110022DD220022EE330022 /* ProviderDashboardView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -108,6 +109,7 @@
 		CC110019DD220019EE330019 /* EnrollmentDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnrollmentDetailView.swift; sourceTree = "<group>"; };
 		CC110020DD220020EE330020 /* SpecialOffersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpecialOffersView.swift; sourceTree = "<group>"; };
 		CC110021DD220021EE330021 /* AdminView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminView.swift; sourceTree = "<group>"; };
+		CC110022DD220022EE330022 /* ProviderDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderDashboardView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -219,6 +221,7 @@
 				CC110019DD220019EE330019 /* EnrollmentDetailView.swift */,
 				CC110020DD220020EE330020 /* SpecialOffersView.swift */,
 				CC110021DD220021EE330021 /* AdminView.swift */,
+				CC110022DD220022EE330022 /* ProviderDashboardView.swift */,
 			);
 			path = FitNow;
 			sourceTree = "<group>";
@@ -406,6 +409,7 @@
 				CC220019DD330019EE440019 /* EnrollmentDetailView.swift in Sources */,
 				CC220020DD330020EE440020 /* SpecialOffersView.swift in Sources */,
 				CC220021DD330021EE440021 /* AdminView.swift in Sources */,
+				CC220022DD330022EE440022 /* ProviderDashboardView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
