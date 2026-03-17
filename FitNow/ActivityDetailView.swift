@@ -65,6 +65,7 @@ struct ActivityDetailView: View {
     @State private var message: String?
     @StateObject private var helper = EnrollHelper()
     @State private var appeared = false
+    @State private var showEnrollmentFlow = false
     @ObservedObject private var favorites = FavoritesService.shared
 
     init(activity: Activity, previousTitle: String? = nil) {
@@ -79,8 +80,10 @@ struct ActivityDetailView: View {
     private var kind: String { activity.kind ?? "" }
     private var isTrainer: Bool { kind == "trainer" }
     private var isClub: Bool    { kind == "club" }
-    private var showSeatsLeft: Bool { kind == "club_sport" }
-    private var supportsRunning: Bool { ["trainer", "gym", "club"].contains(kind) }
+    // Provider-configurable: show seats when has_capacity_limit is enabled (defaults to club_sport behaviour)
+    private var showSeatsLeft: Bool { activity.has_capacity_limit ?? (kind == "club_sport") }
+    // Running only available when provider explicitly enables it
+    private var supportsRunning: Bool { activity.enable_running ?? false }
 
     private var typeInfo: ActivityTypeInfo { ActivityTypeInfo.from(kind: kind) }
 
@@ -659,10 +662,9 @@ struct ActivityDetailView: View {
                         title: "Inscribirme",
                         icon: "plus.circle.fill",
                         gradient: typeInfo.gradient,
-                        isLoading: enrolling,
-                        isDisabled: enrolling
+                        isDisabled: false
                     ) {
-                        createEnrollment()
+                        showEnrollmentFlow = true
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 14)
@@ -675,23 +677,18 @@ struct ActivityDetailView: View {
                             .font(.system(size: 16, weight: .bold))
                             .foregroundColor(.fnGreen)
                         Spacer()
-                        if supportsRunning {
-                            NavigationLink { RunPlannerView() } label: {
-                                Label("Correr", systemImage: "figure.run")
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.fnCyan)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 10)
-                                    .background(Capsule().fill(Color.fnCyan.opacity(0.12)))
-                            }
-                            .buttonStyle(ScaleButtonStyle())
-                        }
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 14)
                 }
             }
             .background(Color(.systemBackground))
+        }
+        .sheet(isPresented: $showEnrollmentFlow) {
+            EnrollmentFlowView(activity: activity) {
+                fetchActivity()
+                checkEnrollment()
+            }
         }
     }
 
