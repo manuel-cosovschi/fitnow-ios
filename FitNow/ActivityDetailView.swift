@@ -118,8 +118,17 @@ struct ActivityDetailView: View {
         }
         .background(Color(.systemBackground))
         .navigationBarTitleDisplayMode(.inline)
-        .modifier(CustomBackToolbar(previousTitle: previousTitle, dismiss: dismiss))
+        .navigationBarBackButtonHidden(previousTitle != nil)
         .toolbar {
+            // Leading: custom back button
+            if let prev = previousTitle {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button { dismiss() } label: {
+                        Label(prev, systemImage: "chevron.left").labelStyle(.titleAndIcon)
+                    }
+                }
+            }
+            // Trailing: favorites
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     withAnimation(.spring(response: 0.3)) {
@@ -132,6 +141,7 @@ struct ActivityDetailView: View {
                 }
                 .accessibilityLabel(favorites.isFavorite(activity.id) ? "Quitar de favoritos" : "Guardar en favoritos")
             }
+            // Trailing: share
             ToolbarItem(placement: .navigationBarTrailing) {
                 ShareLink(
                     item: activity.title,
@@ -143,14 +153,17 @@ struct ActivityDetailView: View {
                         .foregroundColor(.white)
                 }
             }
+            // Trailing: run (only when enrolled)
             ToolbarItem(placement: .navigationBarTrailing) {
-                if supportsRunning && enrolled {
-                    NavigationLink { RunPlannerView() } label: {
-                        Image(systemName: "figure.run.circle.fill")
-                            .font(.system(size: 18))
-                            .foregroundColor(.fnCyan)
+                Group {
+                    if supportsRunning && enrolled {
+                        NavigationLink { RunPlannerView() } label: {
+                            Image(systemName: "figure.run.circle.fill")
+                                .font(.system(size: 18))
+                                .foregroundColor(.fnCyan)
+                        }
+                        .accessibilityLabel("Rutas de running")
                     }
-                    .accessibilityLabel("Rutas de running")
                 }
             }
         }
