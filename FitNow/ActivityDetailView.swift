@@ -265,6 +265,9 @@ struct ActivityDetailView: View {
                 descriptionCard(desc)
             }
 
+            // Posts / novedades del proveedor
+            ActivityPostsSection(activityId: activity.id)
+
             // Provider card
             if providerName != nil || providerAddress != nil || providerCity != nil {
                 providerCard

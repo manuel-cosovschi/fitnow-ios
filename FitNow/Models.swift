@@ -257,4 +257,14 @@ struct AdminUserItem: Identifiable, Decodable {
     let created_at: String?
 }
 
+// MARK: - Activity Posts
+struct ActivityPost: Identifiable, Decodable {
+    let id: Int
+    let activity_id: Int
+    let title: String?
+    let body: String
+    let created_at: String?
+}
+struct ActivityPostsResponse: Decodable { let items: [ActivityPost] }
+
 
