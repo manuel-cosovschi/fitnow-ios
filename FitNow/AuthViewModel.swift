@@ -42,8 +42,10 @@ final class AuthViewModel: ObservableObject {
     private func resolvedRole(from backendUser: User, fallbackRole: String? = nil) -> String {
         // Prefer any non-"user" role returned by the backend
         if let r = backendUser.role, r != "user", !r.isEmpty { return r }
+        // Heuristic: provider_id set → this is a provider account
+        if backendUser.provider_id != nil { return "provider_admin" }
         // Fall back to local cache (handles backends that always echo "user")
-        if let cached = cachedRole(forEmail: backendUser.email) { return cached }
+        if let cached = cachedRole(forEmail: backendUser.email), cached != "user" { return cached }
         return fallbackRole ?? backendUser.role ?? "user"
     }
 
@@ -73,7 +75,17 @@ final class AuthViewModel: ObservableObject {
         APIClient.shared.request("auth/login", method: "POST", body: data, authorized: false)
             .sink { [weak self] completion in
                 self?.loading = false
-                if case .failure(let e) = completion { self?.error = e.localizedDescription }
+                if case .failure(let e) = completion {
+                    if case APIError.http(let code, _) = e {
+                        switch code {
+                        case 401: self?.error = "Email o contraseña incorrectos."
+                        case 404: self?.error = "No existe una cuenta con ese email."
+                        default:  self?.error = "No se pudo iniciar sesión. Intentá de nuevo."
+                        }
+                    } else {
+                        self?.error = "Sin conexión. Verificá tu red."
+                    }
+                }
             } receiveValue: { [weak self] (resp: AuthResponse) in
                 self?.applyAuth(resp)
             }.store(in: &bag)
@@ -95,7 +107,11 @@ final class AuthViewModel: ObservableObject {
             APIClient.shared.request("auth/register-provider", method: "POST", body: data, authorized: false)
                 .sink { [weak self] completion in
                     self?.loading = false
-                    if case .failure(let e) = completion { self?.error = e.localizedDescription }
+                    if case .failure(let e) = completion {
+                    if case APIError.http(let code, _) = e {
+                        self?.error = code == 409 ? "Ya existe una cuenta con ese email." : "No se pudo crear la cuenta. Intentá de nuevo."
+                    } else { self?.error = "Sin conexión. Verificá tu red." }
+                }
                 } receiveValue: { [weak self] (resp: AuthResponse) in
                     self?.applyAuth(resp, intendedRole: "provider_admin")
                 }.store(in: &bag)
@@ -105,7 +121,11 @@ final class AuthViewModel: ObservableObject {
             APIClient.shared.request("auth/register", method: "POST", body: data, authorized: false)
                 .sink { [weak self] completion in
                     self?.loading = false
-                    if case .failure(let e) = completion { self?.error = e.localizedDescription }
+                    if case .failure(let e) = completion {
+                    if case APIError.http(let code, _) = e {
+                        self?.error = code == 409 ? "Ya existe una cuenta con ese email." : "No se pudo crear la cuenta. Intentá de nuevo."
+                    } else { self?.error = "Sin conexión. Verificá tu red." }
+                }
                 } receiveValue: { [weak self] (resp: AuthResponse) in
                     self?.applyAuth(resp, intendedRole: "user")
                 }.store(in: &bag)
