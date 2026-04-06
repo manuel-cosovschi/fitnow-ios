@@ -67,15 +67,28 @@ struct AdminDashboardView: View {
             adminHeader
 
             // Tab picker
-            Picker("Sección", selection: $selectedTab) {
-                Text("Ofertas").tag(0)
-                Text("Estadísticas").tag(1)
-                Text("Usuarios").tag(2)
-                Text("Proveedores").tag(3)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 0) {
+                    ForEach([
+                        (0, "Ofertas"),
+                        (1, "Estadísticas"),
+                        (2, "Usuarios"),
+                        (3, "Proveedores"),
+                        (4, "IA")
+                    ], id: \.0) { tag, label in
+                        Button {
+                            selectedTab = tag
+                        } label: {
+                            Text(label)
+                                .font(.system(size: 14, weight: selectedTab == tag ? .bold : .regular))
+                                .foregroundColor(selectedTab == tag ? .fnPrimary : Color(.secondaryLabel))
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 10)
+                        }
+                    }
+                }
             }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .background(Color(.secondarySystemBackground))
 
             Divider()
 
@@ -85,6 +98,7 @@ struct AdminDashboardView: View {
             case 1: AdminStatsTab()
             case 2: AdminUsersTab()
             case 3: AdminProvidersTab()
+            case 4: AdminAIWeightsTab()
             default: EmptyView()
             }
         }
@@ -335,10 +349,16 @@ final class AdminStatsViewModel: ObservableObject {
 
 struct AdminUsersTab: View {
     @StateObject private var vm = AdminUsersViewModel()
+    @State private var editingUser: AdminUserItem? = nil
 
     var body: some View {
         usersContent
             .onAppear { vm.load() }
+            .sheet(item: $editingUser) { user in
+                ChangeRoleSheet(user: user) { newRole in
+                    vm.changeRole(userId: user.id, role: newRole)
+                }
+            }
     }
 
     @ViewBuilder
@@ -356,6 +376,14 @@ struct AdminUsersTab: View {
                         Text(user.name).font(.system(size: 14, weight: .semibold))
                         Spacer()
                         roleBadge(user.role ?? "user")
+                        Button {
+                            editingUser = user
+                        } label: {
+                            Image(systemName: "pencil.circle")
+                                .font(.system(size: 16))
+                                .foregroundColor(.fnPrimary)
+                        }
+                        .buttonStyle(.borderless)
                     }
                     Text(user.email).font(.system(size: 12)).foregroundColor(Color(.secondaryLabel))
                 }
@@ -367,7 +395,7 @@ struct AdminUsersTab: View {
     private func roleBadge(_ role: String) -> some View {
         let (label, color): (String, Color) = {
             switch role {
-            case "provider": return ("Proveedor", .fnPurple)
+            case "provider", "provider_admin": return ("Proveedor", .fnPurple)
             case "admin":    return ("Admin", .fnSecondary)
             default:         return ("Usuario", .fnCyan)
             }
@@ -377,6 +405,68 @@ struct AdminUsersTab: View {
             .foregroundColor(color)
             .padding(.horizontal, 7).padding(.vertical, 3)
             .background(color.opacity(0.12), in: Capsule())
+    }
+}
+
+private struct ChangeRoleSheet: View {
+    let user: AdminUserItem
+    let onSave: (String) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var selectedRole: String
+
+    private let roles: [(id: String, label: String)] = [
+        ("user", "Usuario"),
+        ("provider", "Proveedor"),
+        ("admin", "Administrador")
+    ]
+
+    init(user: AdminUserItem, onSave: @escaping (String) -> Void) {
+        self.user = user
+        self.onSave = onSave
+        _selectedRole = State(initialValue: user.role ?? "user")
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Usuario") {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(user.name).font(.system(size: 15, weight: .semibold))
+                        Text(user.email).font(.system(size: 13)).foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 4)
+                }
+                Section("Nuevo rol") {
+                    ForEach(roles, id: \.id) { r in
+                        Button {
+                            selectedRole = r.id
+                        } label: {
+                            HStack {
+                                Text(r.label).foregroundColor(Color(.label))
+                                Spacer()
+                                if selectedRole == r.id {
+                                    Image(systemName: "checkmark").foregroundColor(.fnPrimary)
+                                        .font(.system(size: 13, weight: .bold))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Cambiar rol")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancelar") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Guardar") {
+                        onSave(selectedRole)
+                        dismiss()
+                    }
+                    .font(.system(size: 15, weight: .semibold))
+                }
+            }
+        }
     }
 }
 
@@ -393,6 +483,23 @@ final class AdminUsersViewModel: ObservableObject {
             .sink { [weak self] _ in self?.loading = false }
             receiveValue: { [weak self] (resp: UsersResponse) in
                 self?.users = resp.items; self?.loading = false
+            }
+            .store(in: &bag)
+    }
+
+    func changeRole(userId: Int, role: String) {
+        guard let data = try? JSONSerialization.data(withJSONObject: ["role": role]) else { return }
+        APIClient.shared.request("admin/users/\(userId)/role", method: "PATCH", body: data, authorized: true)
+            .sink { _ in } receiveValue: { [weak self] (_: SimpleOK) in
+                if let idx = self?.users.firstIndex(where: { $0.id == userId }) {
+                    self?.users[idx] = AdminUserItem(
+                        id: userId,
+                        name: self?.users[idx].name ?? "",
+                        email: self?.users[idx].email ?? "",
+                        role: role,
+                        created_at: self?.users[idx].created_at
+                    )
+                }
             }
             .store(in: &bag)
     }
@@ -460,6 +567,175 @@ final class AdminProvidersViewModel: ObservableObject {
             .sink { [weak self] _ in self?.loading = false }
             receiveValue: { [weak self] (resp: ProvidersResponse) in
                 self?.providers = resp.items; self?.loading = false
+            }
+            .store(in: &bag)
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MARK: - Admin AI Weights Tab
+// ─────────────────────────────────────────────────────────────────────────────
+
+struct AdminAIWeightsTab: View {
+    @StateObject private var vm = AdminAIWeightsViewModel()
+
+    var body: some View {
+        Group {
+            if vm.loading && vm.weights.isEmpty {
+                ProgressView("Cargando pesos…").frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if vm.weights.isEmpty {
+                emptyState
+            } else {
+                weightsList
+            }
+        }
+        .onAppear { vm.load() }
+    }
+
+    private var weightsList: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "brain.head.profile")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.fnYellow)
+                        Text("Pesos del motor de recomendaciones IA")
+                            .font(.system(size: 14, weight: .semibold))
+                        Spacer()
+                    }
+                    Text("Estos parámetros controlan cómo el sistema pondera cada factor al generar recomendaciones de rutas.")
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                }
+                .padding(16)
+                .background(Color(.secondarySystemBackground))
+
+                Divider()
+
+                ForEach($vm.weights) { $w in
+                    VStack(spacing: 6) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(w.key)
+                                    .font(.system(size: 14, weight: .semibold))
+                                if let desc = w.description {
+                                    Text(desc)
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            Spacer()
+                            Text(String(format: "%.2f", w.value))
+                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .foregroundColor(.fnPrimary)
+                                .frame(width: 44, alignment: .trailing)
+                        }
+                        Slider(value: $w.value, in: 0...2, step: 0.05)
+                            .tint(.fnPrimary)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    Divider().padding(.leading, 16)
+                }
+
+                if let msg = vm.message {
+                    Text(msg)
+                        .font(.system(size: 13))
+                        .foregroundColor(msg.hasPrefix("✓") ? .fnGreen : .fnSecondary)
+                        .padding(16)
+                }
+
+                Button {
+                    vm.save()
+                } label: {
+                    if vm.saving {
+                        ProgressView().frame(maxWidth: .infinity).padding(.vertical, 14)
+                    } else {
+                        Label("Guardar pesos", systemImage: "checkmark.circle.fill")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(FNGradient.primary, in: RoundedRectangle(cornerRadius: 14))
+                    }
+                }
+                .disabled(vm.saving)
+                .padding(16)
+            }
+        }
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 16) {
+            Spacer(minLength: 60)
+            Image(systemName: "brain.head.profile")
+                .font(.system(size: 52))
+                .foregroundColor(Color(.tertiaryLabel))
+            Text("Sin configuración de IA")
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+            if let err = vm.error {
+                Text(err).font(.system(size: 13)).foregroundColor(.fnSecondary)
+                    .multilineTextAlignment(.center).padding(.horizontal, 40)
+                Button("Reintentar") { vm.load() }
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.fnPrimary)
+            }
+            Spacer()
+        }
+    }
+}
+
+struct AIWeight: Identifiable {
+    let id = UUID()
+    let key: String
+    var value: Double
+    let description: String?
+}
+
+final class AdminAIWeightsViewModel: ObservableObject {
+    @Published var weights: [AIWeight] = []
+    @Published var loading = false
+    @Published var saving = false
+    @Published var error: String?
+    @Published var message: String?
+    private var bag = Set<AnyCancellable>()
+
+    struct WeightsResponse: Decodable {
+        let weights: [String: WeightDetail]
+        struct WeightDetail: Decodable {
+            let value: Double?
+            let description: String?
+        }
+    }
+
+    func load() {
+        loading = true; error = nil
+        APIClient.shared.request("admin/ai/weights", authorized: true)
+            .sink { [weak self] completion in
+                self?.loading = false
+                if case .failure(let e) = completion { self?.error = e.localizedDescription }
+            } receiveValue: { [weak self] (resp: WeightsResponse) in
+                self?.loading = false
+                self?.weights = resp.weights.map { key, detail in
+                    AIWeight(key: key, value: detail.value ?? 1.0, description: detail.description)
+                }.sorted { $0.key < $1.key }
+            }
+            .store(in: &bag)
+    }
+
+    func save() {
+        saving = true; message = nil
+        var payload: [String: Double] = [:]
+        for w in weights { payload[w.key] = w.value }
+        guard let data = try? JSONSerialization.data(withJSONObject: ["weights": payload]) else { return }
+        APIClient.shared.request("admin/ai/weights", method: "POST", body: data, authorized: true)
+            .sink { [weak self] completion in
+                self?.saving = false
+                if case .failure = completion { self?.message = "Error al guardar. Intentá de nuevo." }
+            } receiveValue: { [weak self] (_: SimpleOK) in
+                self?.saving = false
+                self?.message = "✓ Pesos actualizados correctamente"
             }
             .store(in: &bag)
     }

@@ -24,8 +24,17 @@ final class APIClient {
     private let tokenKey = "auth_token"
 
     var token: String? { KeychainService.readToken(for: tokenKey) }
+    var currentToken: String? { token }
     func setToken(_ t: String) { KeychainService.save(token: t, for: tokenKey) }
     func clearToken() { KeychainService.remove(key: tokenKey) }
+
+    func url(for path: String) -> URL {
+        var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false)!
+        let cleanPath = path.hasPrefix("/") ? String(path.dropFirst()) : path
+        if components.path.hasSuffix("/") { components.path += cleanPath }
+        else { components.path += "/\(cleanPath)" }
+        return components.url ?? baseURL
+    }
 
     func request<T: Decodable>(
         _ path: String,

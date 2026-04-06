@@ -1,20 +1,31 @@
 import SwiftUI
 import Combine
+import CoreLocation
 
-// ─── Run Session model ─────────────────────────────────────────────────────────
+// ─── AI Recommendations ViewModel ─────────────────────────────────────────────
 
-struct RunSession: Identifiable, Decodable {
-    let id: Int
-    let started_at: String?
-    let finished_at: String?
-    let distance_m: Double?
-    let duration_s: Double?
-    let avg_pace_s_per_km: Double?
-    let status: String?
-}
+final class RouteRecommendationsViewModel: ObservableObject {
+    @Published var routes: [RunRouteOption] = []
+    @Published var loading = false
 
-struct RunSessionsResponse: Decodable {
-    let items: [RunSession]
+    private var bag = Set<AnyCancellable>()
+
+    func fetch(lat: Double, lng: Double, distance: Int = 5000, preference: String = "scenic") {
+        loading = true
+        let q = [
+            URLQueryItem(name: "lat", value: "\(lat)"),
+            URLQueryItem(name: "lng", value: "\(lng)"),
+            URLQueryItem(name: "distance_m", value: "\(distance)"),
+            URLQueryItem(name: "preference", value: preference)
+        ]
+        APIClient.shared.request("run/routes/recommend", authorized: true, query: q)
+            .sink { [weak self] _ in self?.loading = false }
+            receiveValue: { [weak self] (resp: RunRoutesResponse) in
+                self?.loading = false
+                self?.routes = resp.items
+            }
+            .store(in: &bag)
+    }
 }
 
 // ─── ViewModel ─────────────────────────────────────────────────────────────────
@@ -43,7 +54,9 @@ final class RunHistoryViewModel: ObservableObject {
 
 struct RunHubView: View {
     @StateObject private var vm = RunHistoryViewModel()
+    @StateObject private var recVM = RouteRecommendationsViewModel()
     @State private var appeared = false
+    @State private var userLocation: CLLocationCoordinate2D?
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -52,6 +65,10 @@ struct RunHubView: View {
                 runCTA
                     .padding(.horizontal, 16)
                     .padding(.top, 8)
+
+                // AI Recommendations
+                recommendationsSection
+                    .padding(.horizontal, 16)
 
                 // Stats summary
                 if !vm.sessions.isEmpty {
@@ -71,6 +88,106 @@ struct RunHubView: View {
         .onAppear {
             vm.fetch()
             withAnimation(.spring(response: 0.55).delay(0.1)) { appeared = true }
+            // Fetch location then recommendations
+            LocationService.shared.start()
+            if let loc = LocationService.shared.lastLocation {
+                userLocation = loc.coordinate
+                recVM.fetch(lat: loc.coordinate.latitude, lng: loc.coordinate.longitude)
+            } else {
+                // Fallback: Buenos Aires center
+                recVM.fetch(lat: -34.6037, lng: -58.3816)
+            }
+        }
+    }
+
+    // MARK: - AI Recommendations Section
+
+    private var recommendationsSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 8) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.fnYellow)
+                Text("Rutas recomendadas para vos")
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                Spacer()
+            }
+
+            if recVM.loading {
+                HStack(spacing: 12) {
+                    ForEach(0..<2, id: \.self) { _ in
+                        SkeletonView(cornerRadius: 16).frame(height: 100).frame(maxWidth: .infinity)
+                    }
+                }
+            } else if recVM.routes.isEmpty {
+                HStack(spacing: 10) {
+                    Image(systemName: "wand.and.stars")
+                        .font(.system(size: 18))
+                        .foregroundColor(Color(.tertiaryLabel))
+                    Text("Las sugerencias de IA aparecerán acá según tu zona y historial.")
+                        .font(.system(size: 13))
+                        .foregroundColor(Color(.secondaryLabel))
+                }
+                .padding(16)
+                .background(RoundedRectangle(cornerRadius: 14).fill(Color(.secondarySystemBackground)))
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(recVM.routes) { route in
+                            NavigationLink(destination: RunRoutePreviewView(option: route)) {
+                                recommendationCard(route)
+                            }
+                            .buttonStyle(ScaleButtonStyle())
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func recommendationCard(_ route: RunRouteOption) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: preferenceIcon(route.preference))
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(preferenceColor(route.preference))
+                Text(route.label)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(Color(.label))
+                    .lineLimit(1)
+            }
+            Text(String(format: "%.1f km", Double(route.distance_m) / 1000))
+                .font(.system(size: 22, weight: .heavy, design: .rounded))
+                .foregroundColor(preferenceColor(route.preference))
+            Text(route.rationale)
+                .font(.system(size: 11))
+                .foregroundColor(Color(.secondaryLabel))
+                .lineLimit(2)
+        }
+        .frame(width: 180)
+        .padding(14)
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(preferenceColor(route.preference).opacity(0.2), lineWidth: 1))
+        .fnShadow(radius: 8, y: 3)
+    }
+
+    private func preferenceIcon(_ pref: String) -> String {
+        switch pref {
+        case "scenic": return "leaf.fill"
+        case "fast": return "bolt.fill"
+        case "flat": return "minus.circle.fill"
+        case "hilly": return "mountain.2.fill"
+        default: return "map.fill"
+        }
+    }
+
+    private func preferenceColor(_ pref: String) -> Color {
+        switch pref {
+        case "scenic": return .fnGreen
+        case "fast": return .fnYellow
+        case "flat": return .fnCyan
+        case "hilly": return .fnPrimary
+        default: return .fnPrimary
         }
     }
 

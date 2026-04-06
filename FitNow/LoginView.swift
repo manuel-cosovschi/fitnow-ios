@@ -6,6 +6,7 @@ struct LoginView: View {
     @State private var isRegister = false
     @State private var appeared = false
     @State private var showAdminLogin = false
+    @State private var showForgotPassword = false
 
     private let roles = ["Usuario", "Proveedor"]
 
@@ -67,6 +68,9 @@ struct LoginView: View {
         .sheet(isPresented: $showAdminLogin) {
             AdminLoginSheet()
                 .environmentObject(auth)
+        }
+        .sheet(isPresented: $showForgotPassword) {
+            ForgotPasswordSheet()
         }
     }
 
@@ -206,22 +210,35 @@ struct LoginView: View {
     // MARK: - Toggle Button
 
     private var toggleButton: some View {
-        Button {
-            withAnimation(.spring(response: 0.38, dampingFraction: 0.78)) {
-                isRegister.toggle()
-                auth.error = nil
+        VStack(spacing: 12) {
+            Button {
+                withAnimation(.spring(response: 0.38, dampingFraction: 0.78)) {
+                    isRegister.toggle()
+                    auth.error = nil
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text(isRegister ? "¿Ya tenés cuenta?" : "¿No tenés cuenta?")
+                        .font(.system(size: 14))
+                        .foregroundColor(Color(.secondaryLabel))
+                    Text(isRegister ? "Iniciá sesión" : "Registrate gratis")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.fnPrimary)
+                }
             }
-        } label: {
-            HStack(spacing: 4) {
-                Text(isRegister ? "¿Ya tenés cuenta?" : "¿No tenés cuenta?")
-                    .font(.system(size: 14))
-                    .foregroundColor(Color(.secondaryLabel))
-                Text(isRegister ? "Iniciá sesión" : "Registrate gratis")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(.fnPrimary)
+            .buttonStyle(ScaleButtonStyle())
+
+            if !isRegister {
+                Button {
+                    showForgotPassword = true
+                } label: {
+                    Text("¿Olvidaste tu contraseña?")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(Color(.tertiaryLabel))
+                }
+                .buttonStyle(ScaleButtonStyle())
             }
         }
-        .buttonStyle(ScaleButtonStyle())
         .opacity(appeared ? 1 : 0)
         .animation(.spring(response: 0.55).delay(0.28), value: appeared)
     }
@@ -304,6 +321,186 @@ private struct FNSecureField: View {
                         .stroke(Color(.separator).opacity(0.5), lineWidth: 0.5)
                 )
         )
+    }
+}
+
+// MARK: - Forgot Password Sheet
+
+struct ForgotPasswordSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var step: Int = 1   // 1 = enter email, 2 = enter code + new pass
+    @State private var email = ""
+    @State private var token = ""
+    @State private var newPassword = ""
+    @State private var confirmPassword = ""
+    @State private var loading = false
+    @State private var message: String?
+    @State private var isError = false
+    @State private var bag = Set<AnyCancellable>()
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 28) {
+                ZStack {
+                    Circle()
+                        .fill(Color.fnPrimary.opacity(0.12))
+                        .frame(width: 70, height: 70)
+                    Image(systemName: "key.fill")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(.fnPrimary)
+                }
+                .padding(.top, 8)
+
+                VStack(spacing: 4) {
+                    Text(step == 1 ? "Recuperar contraseña" : "Nueva contraseña")
+                        .font(.system(size: 18, weight: .bold))
+                    Text(step == 1
+                         ? "Ingresá tu email y te enviaremos un código de recuperación."
+                         : "Ingresá el código que recibiste por email y tu nueva contraseña.")
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 20)
+                }
+
+                VStack(spacing: 12) {
+                    if step == 1 {
+                        HStack(spacing: 10) {
+                            Image(systemName: "envelope.fill")
+                                .font(.system(size: 14)).foregroundColor(.fnPrimary).frame(width: 20)
+                            TextField("tu@email.com", text: $email)
+                                .font(.system(size: 15))
+                                .keyboardType(.emailAddress)
+                                .textInputAutocapitalization(.never)
+                                .autocorrectionDisabled()
+                        }
+                        .padding(.horizontal, 16).padding(.vertical, 14)
+                        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+                    } else {
+                        HStack(spacing: 10) {
+                            Image(systemName: "number.circle.fill")
+                                .font(.system(size: 14)).foregroundColor(.fnPrimary).frame(width: 20)
+                            TextField("Código de verificación", text: $token)
+                                .font(.system(size: 15))
+                                .keyboardType(.numberPad)
+                                .textInputAutocapitalization(.never)
+                        }
+                        .padding(.horizontal, 16).padding(.vertical, 14)
+                        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+
+                        HStack(spacing: 10) {
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: 14)).foregroundColor(.fnPrimary).frame(width: 20)
+                            SecureField("Nueva contraseña", text: $newPassword)
+                                .font(.system(size: 15))
+                        }
+                        .padding(.horizontal, 16).padding(.vertical, 14)
+                        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+
+                        HStack(spacing: 10) {
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: 14)).foregroundColor(.fnPrimary).frame(width: 20)
+                            SecureField("Confirmar contraseña", text: $confirmPassword)
+                                .font(.system(size: 15))
+                        }
+                        .padding(.horizontal, 16).padding(.vertical, 14)
+                        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+                    }
+                }
+
+                if let msg = message {
+                    Text(msg)
+                        .font(.system(size: 13))
+                        .foregroundColor(isError ? .fnSecondary : .fnGreen)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 20)
+                }
+
+                Button {
+                    step == 1 ? sendCode() : resetPassword()
+                } label: {
+                    HStack {
+                        Spacer()
+                        if loading {
+                            ProgressView().tint(.white)
+                        } else {
+                            Text(step == 1 ? "Enviar código" : "Cambiar contraseña")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                        Spacer()
+                    }
+                    .padding(.vertical, 15)
+                    .background(Color.fnPrimary, in: RoundedRectangle(cornerRadius: 14))
+                }
+                .disabled(loading)
+
+                Spacer()
+            }
+            .padding(.horizontal, 24)
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") { dismiss() }
+                }
+                if step == 2 {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            withAnimation { step = 1; message = nil }
+                        } label: {
+                            Image(systemName: "chevron.left")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func sendCode() {
+        guard !email.trimmingCharacters(in: .whitespaces).isEmpty else {
+            isError = true; message = "Ingresá tu email."; return
+        }
+        loading = true; message = nil
+        let payload = ["email": email.trimmingCharacters(in: .whitespaces)]
+        guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
+        APIClient.shared.request("auth/forgot-password", method: "POST", body: data, authorized: false)
+            .receive(on: DispatchQueue.main)
+            .sink { completion in
+                loading = false
+                if case .failure(let e) = completion {
+                    isError = true
+                    message = (e as? APIError).flatMap { if case .http(let c, _) = $0, c == 404 { return "No encontramos una cuenta con ese email." } else { return nil } }
+                        ?? "Error al enviar el código. Intentá de nuevo."
+                }
+            } receiveValue: { (_: SimpleOK) in
+                isError = false
+                message = "✓ Código enviado a \(email). Revisá tu casilla."
+                withAnimation { step = 2 }
+            }
+            .store(in: &bag)
+    }
+
+    private func resetPassword() {
+        guard !token.isEmpty else { isError = true; message = "Ingresá el código recibido."; return }
+        guard newPassword.count >= 8 else { isError = true; message = "La contraseña debe tener al menos 8 caracteres."; return }
+        guard newPassword == confirmPassword else { isError = true; message = "Las contraseñas no coinciden."; return }
+        loading = true; message = nil
+        let payload: [String: Any] = ["token": token, "password": newPassword]
+        guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
+        APIClient.shared.request("auth/reset-password", method: "POST", body: data, authorized: false)
+            .receive(on: DispatchQueue.main)
+            .sink { completion in
+                loading = false
+                if case .failure = completion {
+                    isError = true; message = "Código inválido o expirado. Solicitá uno nuevo."
+                }
+            } receiveValue: { (_: SimpleOK) in
+                isError = false
+                message = "✓ Contraseña actualizada. Ya podés iniciar sesión."
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { dismiss() }
+            }
+            .store(in: &bag)
     }
 }
 

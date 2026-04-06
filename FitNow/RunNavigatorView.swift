@@ -26,6 +26,7 @@ struct RunNavigatorView: View {
     @State private var remainingToStep: String = "—"
     @State private var followingUser = true
     @State private var showFinishAlert = false
+    @State private var showHazardReport = false
     @State private var elapsed: TimeInterval = 0
     @State private var timer: Timer?
 
@@ -72,6 +73,12 @@ struct RunNavigatorView: View {
         .onDisappear {
             timer?.invalidate()
             tracker.abandon()
+        }
+        .sheet(isPresented: $showHazardReport) {
+            ReportHazardSheet(
+                lat: LocationService.shared.lastLocation?.coordinate.latitude ?? origin.latitude,
+                lng: LocationService.shared.lastLocation?.coordinate.longitude ?? origin.longitude
+            )
         }
         .alert("¿Finalizar carrera?", isPresented: $showFinishAlert) {
             Button("Finalizar", role: .destructive) { tracker.finish() }
@@ -178,6 +185,21 @@ struct RunNavigatorView: View {
 
             // Buttons
             HStack(spacing: 12) {
+                // Report hazard
+                Button {
+                    showHazardReport = true
+                } label: {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(.fnYellow)
+                        .frame(width: 48, height: 48)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(Color.fnYellow.opacity(0.12))
+                        )
+                }
+                .buttonStyle(ScaleButtonStyle())
+
                 // Abandon
                 Button {
                     timer?.invalidate()
@@ -290,6 +312,120 @@ struct RunNavigatorView: View {
     private static func prettyDistance(_ m: CLLocationDistance) -> String {
         if m < 1000 { return "\(Int(m)) m" }
         return String(format: "%.1f km", m / 1000.0)
+    }
+}
+
+// MARK: - Report Hazard Sheet
+
+struct ReportHazardSheet: View {
+    let lat: Double
+    let lng: Double
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var selectedType = "obstacle"
+    @State private var description = ""
+    @State private var loading = false
+    @State private var sent = false
+    @State private var bag = Set<AnyCancellable>()
+
+    private let types: [(id: String, label: String, icon: String, color: Color)] = [
+        ("obstacle", "Obstáculo", "cone.fill", .fnYellow),
+        ("pothole", "Bache / piso roto", "road.lanes", .fnSecondary),
+        ("flooding", "Inundación", "drop.fill", .fnCyan),
+        ("low_visibility", "Poca visibilidad", "eye.slash.fill", Color(.systemGray)),
+        ("dangerous_area", "Zona peligrosa", "shield.slash.fill", .fnSecondary),
+        ("other", "Otro", "exclamationmark.circle.fill", .fnPrimary)
+    ]
+
+    var body: some View {
+        NavigationStack {
+            if sent {
+                VStack(spacing: 20) {
+                    Spacer()
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 60))
+                        .foregroundColor(.fnGreen)
+                    Text("¡Reporte enviado!")
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                    Text("Gracias por ayudar a mejorar las rutas para toda la comunidad.")
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                    Spacer()
+                    Button("Cerrar") { dismiss() }
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.fnPrimary)
+                    Spacer()
+                }
+            } else {
+                Form {
+                    Section("Tipo de peligro") {
+                        ForEach(types, id: \.id) { t in
+                            Button {
+                                selectedType = t.id
+                            } label: {
+                                HStack(spacing: 12) {
+                                    Image(systemName: t.icon)
+                                        .font(.system(size: 16))
+                                        .foregroundColor(t.color)
+                                        .frame(width: 24)
+                                    Text(t.label)
+                                        .foregroundColor(Color(.label))
+                                    Spacer()
+                                    if selectedType == t.id {
+                                        Image(systemName: "checkmark")
+                                            .foregroundColor(.fnPrimary)
+                                            .font(.system(size: 13, weight: .bold))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Section("Descripción (opcional)") {
+                        TextField("Ej: Gran bache en la esquina...", text: $description, axis: .vertical)
+                            .lineLimit(3...5)
+                    }
+                    Section {
+                        Button {
+                            sendReport()
+                        } label: {
+                            if loading {
+                                HStack { Spacer(); ProgressView(); Spacer() }
+                            } else {
+                                Text("Enviar reporte").frame(maxWidth: .infinity)
+                            }
+                        }
+                        .disabled(loading)
+                    }
+                }
+                .navigationTitle("Reportar peligro")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancelar") { dismiss() }
+                    }
+                }
+            }
+        }
+    }
+
+    private func sendReport() {
+        loading = true
+        let payload: [String: Any] = [
+            "type": selectedType,
+            "description": description,
+            "lat": lat,
+            "lng": lng
+        ]
+        guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
+        APIClient.shared.request("hazards", method: "POST", body: data, authorized: true)
+            .sink { _ in loading = false }
+            receiveValue: { (_: SimpleOK) in
+                loading = false
+                withAnimation { sent = true }
+            }
+            .store(in: &bag)
     }
 }
 

@@ -24,6 +24,7 @@ struct RunRoutePreviewView: View {
     @State private var appeared = false
     @State private var showNavigator = false
     @State private var startOrigin = MDP_FALLBACK
+    @StateObject private var feedbackVM = RouteFeedbackViewModel()
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -48,6 +49,7 @@ struct RunRoutePreviewView: View {
             LocationService.shared.start()
             buildPolyline()
             withAnimation(.spring(response: 0.55).delay(0.1)) { appeared = true }
+            if option.id > 0 { feedbackVM.load(routeId: option.id) }
         }
     }
 
@@ -134,6 +136,13 @@ struct RunRoutePreviewView: View {
             feedbackCard
                 .opacity(appeared ? 1 : 0)
                 .animation(.spring(response: 0.5).delay(0.25), value: appeared)
+
+            // Community reviews
+            if !feedbackVM.feedback.isEmpty || feedbackVM.loading {
+                communityReviews
+                    .opacity(appeared ? 1 : 0)
+                    .animation(.spring(response: 0.5).delay(0.3), value: appeared)
+            }
         }
     }
 
@@ -220,6 +229,69 @@ struct RunRoutePreviewView: View {
         )
     }
 
+    // MARK: - Community Reviews
+
+    private var communityReviews: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label("Opiniones", systemImage: "person.2.fill")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(Color(.label))
+                Spacer()
+                if let avg = feedbackVM.averageRating {
+                    HStack(spacing: 4) {
+                        Image(systemName: "star.fill").font(.system(size: 12)).foregroundColor(.fnYellow)
+                        Text(String(format: "%.1f", avg))
+                            .font(.system(size: 13, weight: .bold)).foregroundColor(.fnYellow)
+                        Text("(\(feedbackVM.feedback.count))")
+                            .font(.system(size: 12)).foregroundColor(.secondary)
+                    }
+                }
+            }
+
+            if feedbackVM.loading {
+                SkeletonView(cornerRadius: 12).frame(height: 60)
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(feedbackVM.feedback.prefix(5)) { item in
+                        HStack(alignment: .top, spacing: 10) {
+                            ZStack {
+                                Circle().fill(Color.fnCyan.opacity(0.15)).frame(width: 32, height: 32)
+                                Text(item.initials)
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundColor(.fnCyan)
+                            }
+                            VStack(alignment: .leading, spacing: 3) {
+                                HStack(spacing: 6) {
+                                    HStack(spacing: 2) {
+                                        ForEach(1...5, id: \.self) { s in
+                                            Image(systemName: s <= item.rating ? "star.fill" : "star")
+                                                .font(.system(size: 9))
+                                                .foregroundColor(s <= item.rating ? .fnYellow : Color(.tertiaryLabel))
+                                        }
+                                    }
+                                    if let date = item.formattedDate {
+                                        Text(date)
+                                            .font(.system(size: 10))
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                if let comment = item.comment, !comment.isEmpty {
+                                    Text(comment)
+                                        .font(.system(size: 13))
+                                        .foregroundColor(Color(.secondaryLabel))
+                                        .lineLimit(2)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .padding(16)
+        .background(RoundedRectangle(cornerRadius: 16).fill(Color(.secondarySystemBackground)))
+    }
+
     // MARK: - Computed Helpers
 
     private var distanceText: String {
@@ -269,6 +341,57 @@ struct RunRoutePreviewView: View {
             } receiveValue: { (_: SimpleOK) in
                 withAnimation { self.feedbackSent = true }
                 self.message = "¡Gracias!"
+            }
+            .store(in: &bag)
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MARK: - Route Feedback ViewModel
+// ─────────────────────────────────────────────────────────────────────────────
+
+struct RouteFeedbackItem: Identifiable, Decodable {
+    let id: Int
+    let rating: Int
+    let comment: String?
+    let user_name: String?
+    let created_at: String?
+
+    var initials: String {
+        let name = user_name ?? "?"
+        let parts = name.split(separator: " ").prefix(2)
+        let init2 = parts.map { String($0.prefix(1)).uppercased() }.joined()
+        return init2.isEmpty ? "?" : init2
+    }
+
+    var formattedDate: String? {
+        guard let s = created_at else { return nil }
+        let iso = ISO8601DateFormatter(); iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let iso2 = ISO8601DateFormatter(); iso2.formatOptions = [.withInternetDateTime]
+        let f = DateFormatter(); f.locale = Locale(identifier: "es_AR"); f.dateStyle = .medium; f.timeStyle = .none
+        if let d = iso.date(from: s) ?? iso2.date(from: s) { return f.string(from: d) }
+        return nil
+    }
+}
+struct RouteFeedbackResponse: Decodable { let items: [RouteFeedbackItem] }
+
+final class RouteFeedbackViewModel: ObservableObject {
+    @Published var feedback: [RouteFeedbackItem] = []
+    @Published var loading = false
+    private var bag = Set<AnyCancellable>()
+
+    var averageRating: Double? {
+        guard !feedback.isEmpty else { return nil }
+        return Double(feedback.map { $0.rating }.reduce(0, +)) / Double(feedback.count)
+    }
+
+    func load(routeId: Int) {
+        loading = true
+        APIClient.shared.request("run/routes/\(routeId)/feedback", authorized: false)
+            .sink { [weak self] _ in self?.loading = false }
+            receiveValue: { [weak self] (resp: RouteFeedbackResponse) in
+                self?.loading = false
+                self?.feedback = resp.items
             }
             .store(in: &bag)
     }

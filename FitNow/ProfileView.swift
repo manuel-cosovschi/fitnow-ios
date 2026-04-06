@@ -1,8 +1,13 @@
 import SwiftUI
 import Combine
+import PhotosUI
 
 struct ProfileView: View {
     @EnvironmentObject private var auth: AuthViewModel
+    @State private var photoItem: PhotosPickerItem?
+    @State private var profileUIImage: UIImage?
+    @State private var uploadingPhoto = false
+    @AppStorage("profile_photo_url") private var savedPhotoURL: String = ""
 
     private var initials: String {
         let parts = (auth.user?.name ?? "").split(separator: " ").prefix(2)
@@ -32,14 +37,45 @@ struct ProfileView: View {
                 // ── Avatar Header ──
                 Section {
                     HStack(spacing: 16) {
-                        ZStack {
-                            Circle()
-                                .fill(FNGradient.primary)
-                                .frame(width: 64, height: 64)
-                            Text(initials)
-                                .font(.system(size: 24, weight: .bold, design: .rounded))
-                                .foregroundColor(.white)
+                        PhotosPicker(selection: $photoItem, matching: .images) {
+                            ZStack {
+                                if let img = profileUIImage {
+                                    Image(uiImage: img)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 64, height: 64)
+                                        .clipShape(Circle())
+                                } else if !savedPhotoURL.isEmpty, let url = URL(string: savedPhotoURL) {
+                                    AsyncImage(url: url) { phase in
+                                        switch phase {
+                                        case .success(let img):
+                                            img.resizable().scaledToFill()
+                                                .frame(width: 64, height: 64).clipShape(Circle())
+                                        default:
+                                            initialsCircle
+                                        }
+                                    }
+                                } else {
+                                    initialsCircle
+                                }
+                                if uploadingPhoto {
+                                    Circle().fill(Color.black.opacity(0.35)).frame(width: 64, height: 64)
+                                    ProgressView().tint(.white)
+                                } else {
+                                    Circle()
+                                        .fill(Color.black.opacity(0.25))
+                                        .frame(width: 64, height: 64)
+                                    Image(systemName: "camera.fill")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.white.opacity(0.9))
+                                }
+                            }
                         }
+                        .onChange(of: photoItem) { _, item in
+                            guard let item else { return }
+                            Task { await uploadPhoto(item) }
+                        }
+
                         VStack(alignment: .leading, spacing: 4) {
                             Text(auth.user?.name ?? "—")
                                 .font(.system(size: 17, weight: .semibold))
@@ -166,6 +202,45 @@ struct ProfileView: View {
             }
             .navigationTitle("Mi perfil")
             .navigationBarTitleDisplayMode(.large)
+        }
+    }
+
+    private var initialsCircle: some View {
+        ZStack {
+            Circle()
+                .fill(FNGradient.primary)
+                .frame(width: 64, height: 64)
+            Text(initials)
+                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+        }
+    }
+
+    @MainActor
+    private func uploadPhoto(_ item: PhotosPickerItem) async {
+        guard let data = try? await item.loadTransferable(type: Data.self),
+              let uiImage = UIImage(data: data),
+              let jpegData = uiImage.jpegData(compressionQuality: 0.8) else { return }
+        profileUIImage = uiImage
+        uploadingPhoto = true
+        defer { uploadingPhoto = false }
+        guard let token = APIClient.shared.currentToken else { return }
+        var req = URLRequest(url: APIClient.shared.url(for: "files/photo"))
+        req.httpMethod = "POST"
+        let boundary = UUID().uuidString
+        req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"photo\"; filename=\"profile.jpg\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(jpegData)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        req.httpBody = body
+        if let (respData, _) = try? await URLSession.shared.data(for: req),
+           let json = try? JSONDecoder().decode([String: String].self, from: respData),
+           let url = json["url"] ?? json["photo_url"] {
+            savedPhotoURL = url
         }
     }
 }
@@ -504,6 +579,20 @@ struct ProviderInfoView: View {
                     TextField("Teléfono", text: $phone).keyboardType(.phonePad)
                     TextField("Sitio web", text: $website).keyboardType(.URL).textInputAutocapitalization(.never)
                 }
+                Section("Gestión") {
+                    NavigationLink {
+                        ProviderHoursView(providerId: providerId)
+                    } label: {
+                        Label("Horarios de atención", systemImage: "clock.fill")
+                            .foregroundColor(.fnCyan)
+                    }
+                    NavigationLink {
+                        ProviderServicesView(providerId: providerId)
+                    } label: {
+                        Label("Deportes y servicios", systemImage: "figure.strengthtraining.traditional")
+                            .foregroundColor(.fnGreen)
+                    }
+                }
                 if let msg = message {
                     Section {
                         Text(msg)
@@ -566,6 +655,304 @@ struct ProviderInfoView: View {
             } receiveValue: { (_: Provider) in
                 saving = false
                 message = "✓ Información actualizada"
+            }
+            .store(in: &bag)
+    }
+}
+
+// MARK: - Provider Hours View
+
+struct ProviderHoursView: View {
+    let providerId: Int
+
+    private let days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+    private func dayLabel(_ d: String) -> String {
+        switch d {
+        case "monday": return "Lunes"
+        case "tuesday": return "Martes"
+        case "wednesday": return "Miércoles"
+        case "thursday": return "Jueves"
+        case "friday": return "Viernes"
+        case "saturday": return "Sábado"
+        case "sunday": return "Domingo"
+        default: return d
+        }
+    }
+
+    @State private var hours: [String: DayHours] = [:]
+    @State private var loading = true
+    @State private var saving = false
+    @State private var message: String?
+    @State private var bag = Set<AnyCancellable>()
+
+    struct DayHours {
+        var enabled: Bool
+        var open: String
+        var close: String
+    }
+
+    struct HoursResponse: Decodable {
+        let hours: [String: DayHoursAPI]?
+        struct DayHoursAPI: Decodable {
+            let open: String?
+            let close: String?
+        }
+    }
+
+    var body: some View {
+        Form {
+            if loading {
+                Section { HStack { Spacer(); ProgressView(); Spacer() } }
+            } else {
+                ForEach(days, id: \.self) { day in
+                    Section(dayLabel(day)) {
+                        Toggle("Abierto", isOn: Binding(
+                            get: { hours[day]?.enabled ?? false },
+                            set: { val in
+                                if hours[day] == nil { hours[day] = DayHours(enabled: val, open: "09:00", close: "18:00") }
+                                else { hours[day]?.enabled = val }
+                            }
+                        ))
+                        if hours[day]?.enabled == true {
+                            HStack {
+                                Text("Apertura")
+                                Spacer()
+                                TextField("09:00", text: Binding(
+                                    get: { hours[day]?.open ?? "09:00" },
+                                    set: { hours[day]?.open = $0 }
+                                ))
+                                .multilineTextAlignment(.trailing)
+                                .keyboardType(.numbersAndPunctuation)
+                                .frame(width: 60)
+                            }
+                            HStack {
+                                Text("Cierre")
+                                Spacer()
+                                TextField("18:00", text: Binding(
+                                    get: { hours[day]?.close ?? "18:00" },
+                                    set: { hours[day]?.close = $0 }
+                                ))
+                                .multilineTextAlignment(.trailing)
+                                .keyboardType(.numbersAndPunctuation)
+                                .frame(width: 60)
+                            }
+                        }
+                    }
+                }
+                if let msg = message {
+                    Section {
+                        Text(msg).font(.system(size: 13))
+                            .foregroundColor(msg.hasPrefix("✓") ? .fnGreen : .fnSecondary)
+                    }
+                }
+                Section {
+                    Button { save() } label: {
+                        if saving { HStack { Spacer(); ProgressView(); Spacer() } }
+                        else { Text("Guardar horarios").frame(maxWidth: .infinity) }
+                    }
+                    .disabled(saving)
+                }
+            }
+        }
+        .navigationTitle("Horarios")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear { loadHours() }
+    }
+
+    private func loadHours() {
+        loading = true
+        APIClient.shared.request("providers/\(providerId)/hours", authorized: true)
+            .sink { _ in loading = false }
+            receiveValue: { (resp: HoursResponse) in
+                loading = false
+                if let apiHours = resp.hours {
+                    for day in days {
+                        if let h = apiHours[day] {
+                            hours[day] = DayHours(enabled: true, open: h.open ?? "09:00", close: h.close ?? "18:00")
+                        } else {
+                            hours[day] = DayHours(enabled: false, open: "09:00", close: "18:00")
+                        }
+                    }
+                } else {
+                    for day in days { hours[day] = DayHours(enabled: false, open: "09:00", close: "18:00") }
+                }
+            }
+            .store(in: &bag)
+    }
+
+    private func save() {
+        saving = true; message = nil
+        var hoursPayload: [String: [String: String]] = [:]
+        for (day, h) in hours where h.enabled {
+            hoursPayload[day] = ["open": h.open, "close": h.close]
+        }
+        let payload: [String: Any] = ["hours": hoursPayload]
+        guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
+        APIClient.shared.request("providers/\(providerId)/hours", method: "PUT", body: data, authorized: true)
+            .sink { completion in
+                saving = false
+                if case .failure = completion { message = "Error al guardar. Intentá de nuevo." }
+            } receiveValue: { (_: HoursResponse) in
+                saving = false; message = "✓ Horarios actualizados"
+            }
+            .store(in: &bag)
+    }
+}
+
+// MARK: - Provider Services View
+
+struct ProviderServicesView: View {
+    let providerId: Int
+
+    @State private var services: [ProviderService] = []
+    @State private var allSports: [Sport] = []
+    @State private var loading = true
+    @State private var showAddSheet = false
+    @State private var bag = Set<AnyCancellable>()
+
+    struct ProviderService: Identifiable, Decodable {
+        let id: Int
+        let sport_id: Int?
+        let name: String
+        let description: String?
+    }
+    struct Sport: Identifiable, Decodable {
+        let id: Int
+        let name: String
+    }
+    struct ServicesResponse: Decodable { let items: [ProviderService] }
+    struct SportsResponse: Decodable { let items: [Sport] }
+
+    var body: some View {
+        List {
+            if loading {
+                HStack { Spacer(); ProgressView(); Spacer() }
+            } else if services.isEmpty {
+                Text("Sin servicios registrados. Agregá los deportes y servicios que ofrecés.")
+                    .font(.system(size: 14))
+                    .foregroundColor(.secondary)
+                    .padding(.vertical, 8)
+            } else {
+                ForEach(services) { svc in
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(svc.name).font(.system(size: 15, weight: .semibold))
+                        if let desc = svc.description, !desc.isEmpty {
+                            Text(desc).font(.system(size: 13)).foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+                .onDelete { idx in
+                    idx.forEach { i in deleteService(services[i]) }
+                }
+            }
+        }
+        .navigationTitle("Servicios y deportes")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { showAddSheet = true } label: {
+                    Image(systemName: "plus")
+                }
+            }
+            ToolbarItem(placement: .topBarLeading) {
+                if !services.isEmpty { EditButton() }
+            }
+        }
+        .sheet(isPresented: $showAddSheet) {
+            AddServiceSheet(providerId: providerId, sports: allSports) { newService in
+                services.insert(newService, at: 0)
+            }
+        }
+        .onAppear { loadData() }
+    }
+
+    private func loadData() {
+        loading = true
+        let p1: AnyPublisher<ServicesResponse, Error> = APIClient.shared.request("providers/\(providerId)/services", authorized: true)
+        let p2: AnyPublisher<SportsResponse, Error> = APIClient.shared.request("sports", authorized: false)
+        p1.zip(p2)
+            .sink { _ in loading = false }
+            receiveValue: { svcResp, sportsResp in
+                loading = false
+                services = svcResp.items
+                allSports = sportsResp.items
+            }
+            .store(in: &bag)
+    }
+
+    private func deleteService(_ svc: ProviderService) {
+        APIClient.shared.request("providers/\(providerId)/services/\(svc.id)", method: "DELETE", authorized: true)
+            .sink { _ in } receiveValue: { (_: SimpleOK) in
+                services.removeAll { $0.id == svc.id }
+            }
+            .store(in: &bag)
+    }
+}
+
+private struct AddServiceSheet: View {
+    let providerId: Int
+    let sports: [ProviderServicesView.Sport]
+    let onAdd: (ProviderServicesView.ProviderService) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var selectedSportId: Int? = nil
+    @State private var customName = ""
+    @State private var customDesc = ""
+    @State private var loading = false
+    @State private var bag = Set<AnyCancellable>()
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Deporte") {
+                    if sports.isEmpty {
+                        TextField("Nombre del servicio", text: $customName)
+                    } else {
+                        Picker("Seleccioná", selection: $selectedSportId) {
+                            Text("Personalizado").tag(nil as Int?)
+                            ForEach(sports) { s in
+                                Text(s.name).tag(s.id as Int?)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        if selectedSportId == nil {
+                            TextField("Nombre del servicio", text: $customName)
+                        }
+                    }
+                }
+                Section("Descripción (opcional)") {
+                    TextField("Ej: Clases para todos los niveles", text: $customDesc)
+                }
+            }
+            .navigationTitle("Agregar servicio")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancelar") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Agregar") { addService() }.disabled(loading || effectiveName.isEmpty)
+                }
+            }
+        }
+    }
+
+    private var effectiveName: String {
+        if let sid = selectedSportId, let sport = sports.first(where: { $0.id == sid }) { return sport.name }
+        return customName.trimmingCharacters(in: .whitespaces)
+    }
+
+    private func addService() {
+        loading = true
+        var payload: [String: Any] = ["description": customDesc]
+        if let sid = selectedSportId { payload["sport_id"] = sid }
+        else { payload["name"] = effectiveName }
+        guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
+        APIClient.shared.request("providers/\(providerId)/services", method: "POST", body: data, authorized: true)
+            .sink { _ in loading = false }
+            receiveValue: { (svc: ProviderServicesView.ProviderService) in
+                loading = false
+                onAdd(svc)
+                dismiss()
             }
             .store(in: &bag)
     }

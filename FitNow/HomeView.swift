@@ -3,11 +3,21 @@ import Combine
 
 // MARK: - HomeViewModel
 
+struct AppNews: Identifiable, Decodable {
+    let id: Int
+    let title: String
+    let body: String?
+    let icon_name: String?
+    let created_at: String?
+}
+struct AppNewsResponse: Decodable { let items: [AppNews] }
+
 final class HomeViewModel: ObservableObject {
     @Published var upcomingCount = 0
     @Published var weeklyRunKm: Double = 0
     @Published var streakDays = 0
     @Published var featuredOffer: SpecialOffer? = nil
+    @Published var news: [AppNews] = []
 
     private var bag = Set<AnyCancellable>()
 
@@ -28,6 +38,14 @@ final class HomeViewModel: ObservableObject {
             receiveValue: { [weak self] (resp: ListResponse<EnrollmentItem>) in
                 self?.upcomingCount = resp.items.count
                 self?.computeStreak(from: resp.items)
+            }
+            .store(in: &bag)
+
+        // App news
+        APIClient.shared.request("news", authorized: false)
+            .sink { _ in }
+            receiveValue: { [weak self] (resp: AppNewsResponse) in
+                self?.news = Array(resp.items.prefix(4))
             }
             .store(in: &bag)
 
@@ -452,27 +470,33 @@ struct HomeView: View {
             SectionHeader(title: "Novedades")
                 .padding(.horizontal, 20)
 
-            VStack(spacing: 10) {
-                FNInfoRow(
-                    icon: "checkmark.seal.fill",
-                    iconColor: .fnGreen,
-                    title: "Nuevos entrenadores verificados",
-                    subtitle: "Encontramos profesionales cerca tuyo"
-                )
-                FNInfoRow(
-                    icon: "creditcard.fill",
-                    iconColor: .fnCyan,
-                    title: "Pagá con tarjeta o transferencia",
-                    subtitle: "Todas las formas de pago disponibles"
-                )
-                FNInfoRow(
-                    icon: "bell.badge.fill",
-                    iconColor: .fnYellow,
-                    title: "Recordatorios automáticos",
-                    subtitle: "Te avisamos 24h y 1h antes de cada clase"
-                )
+            if vm.news.isEmpty {
+                // Fallback hardcoded content when API returns nothing
+                VStack(spacing: 10) {
+                    FNInfoRow(icon: "checkmark.seal.fill", iconColor: .fnGreen,
+                              title: "Nuevos entrenadores verificados",
+                              subtitle: "Encontramos profesionales cerca tuyo")
+                    FNInfoRow(icon: "creditcard.fill", iconColor: .fnCyan,
+                              title: "Pagá con tarjeta o transferencia",
+                              subtitle: "Todas las formas de pago disponibles")
+                    FNInfoRow(icon: "bell.badge.fill", iconColor: .fnYellow,
+                              title: "Recordatorios automáticos",
+                              subtitle: "Te avisamos 24h y 1h antes de cada clase")
+                }
+                .padding(.horizontal, 20)
+            } else {
+                VStack(spacing: 10) {
+                    ForEach(vm.news) { item in
+                        FNInfoRow(
+                            icon: item.icon_name ?? "megaphone.fill",
+                            iconColor: .fnPrimary,
+                            title: item.title,
+                            subtitle: item.body ?? ""
+                        )
+                    }
+                }
+                .padding(.horizontal, 20)
             }
-            .padding(.horizontal, 20)
         }
     }
 
