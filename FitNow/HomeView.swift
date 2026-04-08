@@ -250,6 +250,18 @@ struct HomeView: View {
                         quickActionCard(title: "Correr", subtitle: "Planificá tu ruta",
                                         icon: "figure.run", gradient: FNGradient.sport)
                     }
+                    NavigationLink { GymHubView() } label: {
+                        quickActionCard(title: "Gym", subtitle: "Entrená con IA",
+                                        icon: "dumbbell.fill", gradient: FNGradient.gym)
+                    }
+                    NavigationLink { AnalyticsView() } label: {
+                        quickActionCard(title: "Rendimiento", subtitle: "Estadísticas y más",
+                                        icon: "chart.bar.fill", gradient: FNGradient.run)
+                    }
+                    NavigationLink { TrainingPlanHubView() } label: {
+                        quickActionCard(title: "Plan", subtitle: "Tu plan personalizado",
+                                        icon: "brain.head.profile", gradient: FNGradient.club)
+                    }
                 }
                 .padding(.horizontal, 20)
             }
