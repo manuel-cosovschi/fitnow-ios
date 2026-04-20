@@ -368,7 +368,7 @@ private struct TermsView: View {
     }
 }
 
-// MARK: - Change Password (placeholder)
+// MARK: - Change Password
 private struct ChangePasswordView: View {
     @EnvironmentObject private var auth: AuthViewModel
     @State private var current = ""
@@ -376,6 +376,7 @@ private struct ChangePasswordView: View {
     @State private var confirm = ""
     @State private var message: String?
     @State private var isLoading = false
+    @State private var bag = Set<AnyCancellable>()
 
     var body: some View {
         Form {
@@ -395,10 +396,7 @@ private struct ChangePasswordView: View {
             }
             Section {
                 Button {
-                    guard newPass == confirm else { message = "Las contraseñas no coinciden."; return }
-                    guard newPass.count >= 8 else { message = "La contraseña debe tener al menos 8 caracteres."; return }
-                    // TODO: call PATCH /auth/change-password when backend supports it
-                    message = "✓ Contraseña actualizada (próximamente disponible)"
+                    submit()
                 } label: {
                     if isLoading {
                         ProgressView().frame(maxWidth: .infinity)
@@ -411,6 +409,41 @@ private struct ChangePasswordView: View {
         }
         .navigationTitle("Cambiar contraseña")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func submit() {
+        guard newPass == confirm else { message = "Las contraseñas no coinciden."; return }
+        guard newPass.count >= 8 else { message = "La contraseña debe tener al menos 8 caracteres."; return }
+
+        let payload: [String: String] = [
+            "current_password": current,
+            "new_password": newPass
+        ]
+        guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
+
+        isLoading = true
+        message = nil
+        APIClient.shared.request("auth/me/password", method: "POST", body: data, authorized: true)
+            .sink { completion in
+                isLoading = false
+                if case .failure(let e) = completion {
+                    if case APIError.http(let code, let body) = e {
+                        if code == 401 || (code == 400 && body.lowercased().contains("current")) {
+                            message = "La contraseña actual es incorrecta."
+                        } else {
+                            message = "No se pudo actualizar la contraseña."
+                        }
+                    } else {
+                        message = e.localizedDescription
+                    }
+                }
+            } receiveValue: { (_: SimpleOK) in
+                message = "✓ Contraseña actualizada."
+                current = ""
+                newPass = ""
+                confirm = ""
+            }
+            .store(in: &bag)
     }
 }
 
