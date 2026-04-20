@@ -37,7 +37,10 @@ struct RunRoutesResponse: Decodable {
 struct RunSession: Identifiable, Decodable {
     let id: Int
     let started_at: String?
+    let finished_at: String?
     let distance_m: Double?
+    let duration_s: Double?
+    let avg_pace_s_per_km: Double?
     let status: String?
 }
 
