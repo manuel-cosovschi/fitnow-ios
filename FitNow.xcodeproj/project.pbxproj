@@ -46,6 +46,12 @@
 		CC220020DD330020EE440020 /* SpecialOffersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110020DD220020EE330020 /* SpecialOffersView.swift */; };
 		CC220021DD330021EE440021 /* AdminView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110021DD220021EE330021 /* AdminView.swift */; };
 		CC220022DD330022EE440022 /* ProviderDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC110022DD220022EE330022 /* ProviderDashboardView.swift */; };
+		DD220001DD330001EE440001 /* ActivityHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD110001DD220001EE330001 /* ActivityHubView.swift */; };
+		DD220002DD330002EE440002 /* GamificationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD110002DD220002EE330002 /* GamificationModels.swift */; };
+		DD220003DD330003EE440003 /* GamificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD110003DD220003EE330003 /* GamificationView.swift */; };
+		DD220004DD330004EE440004 /* GymHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD110004DD220004EE330004 /* GymHubView.swift */; };
+		DD220005DD330005EE440005 /* AnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD110005DD220005EE330005 /* AnalyticsView.swift */; };
+		DD220006DD330006EE440006 /* TrainingPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD110006DD220006EE330006 /* TrainingPlanView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -110,6 +116,12 @@
 		CC110020DD220020EE330020 /* SpecialOffersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpecialOffersView.swift; sourceTree = "<group>"; };
 		CC110021DD220021EE330021 /* AdminView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminView.swift; sourceTree = "<group>"; };
 		CC110022DD220022EE330022 /* ProviderDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderDashboardView.swift; sourceTree = "<group>"; };
+		DD110001DD220001EE330001 /* ActivityHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityHubView.swift; sourceTree = "<group>"; };
+		DD110002DD220002EE330002 /* GamificationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamificationModels.swift; sourceTree = "<group>"; };
+		DD110003DD220003EE330003 /* GamificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamificationView.swift; sourceTree = "<group>"; };
+		DD110004DD220004EE330004 /* GymHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymHubView.swift; sourceTree = "<group>"; };
+		DD110005DD220005EE330005 /* AnalyticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsView.swift; sourceTree = "<group>"; };
+		DD110006DD220006EE330006 /* TrainingPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingPlanView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -222,6 +234,12 @@
 				CC110020DD220020EE330020 /* SpecialOffersView.swift */,
 				CC110021DD220021EE330021 /* AdminView.swift */,
 				CC110022DD220022EE330022 /* ProviderDashboardView.swift */,
+				DD110001DD220001EE330001 /* ActivityHubView.swift */,
+				DD110002DD220002EE330002 /* GamificationModels.swift */,
+				DD110003DD220003EE330003 /* GamificationView.swift */,
+				DD110004DD220004EE330004 /* GymHubView.swift */,
+				DD110005DD220005EE330005 /* AnalyticsView.swift */,
+				DD110006DD220006EE330006 /* TrainingPlanView.swift */,
 			);
 			path = FitNow;
 			sourceTree = "<group>";
@@ -410,6 +428,12 @@
 				CC220020DD330020EE440020 /* SpecialOffersView.swift in Sources */,
 				CC220021DD330021EE440021 /* AdminView.swift in Sources */,
 				CC220022DD330022EE440022 /* ProviderDashboardView.swift in Sources */,
+				DD220001DD330001EE440001 /* ActivityHubView.swift in Sources */,
+				DD220002DD330002EE440002 /* GamificationModels.swift in Sources */,
+				DD220003DD330003EE440003 /* GamificationView.swift in Sources */,
+				DD220004DD330004EE440004 /* GymHubView.swift in Sources */,
+				DD220005DD330005EE440005 /* AnalyticsView.swift in Sources */,
+				DD220006DD330006EE440006 /* TrainingPlanView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
