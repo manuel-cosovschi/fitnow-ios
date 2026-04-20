@@ -324,7 +324,7 @@ struct ActivityDetailView: View {
             if let p = activity.price, p > 0 {
                 VStack(alignment: .trailing, spacing: 1) {
                     Text(String(format: "$%.0f", p))
-                        .font(.system(size: 22, weight: .heavy, design: .rounded))
+                        .font(.system(size: 22, weight: .heavy, design: .monospaced))
                         .foregroundColor(typeInfo.color)
                     Text("por mes")
                         .font(.system(size: 11))
