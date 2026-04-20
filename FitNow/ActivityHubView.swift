@@ -334,7 +334,7 @@ struct ComposePostSheet: View {
 
     @State private var postType: HubPostType = .announcement
     @State private var title = ""
-    @State private var body = ""
+    @State private var postBody = ""
     @State private var fileName = ""
 
     var body: some View {
@@ -350,7 +350,7 @@ struct ComposePostSheet: View {
                 }
                 Section("Contenido") {
                     TextField("Título *", text: $title)
-                    TextField("Descripción (opcional)", text: $body, axis: .vertical)
+                    TextField("Descripción (opcional)", text: $postBody, axis: .vertical)
                         .lineLimit(3...8)
                 }
                 if postType == .file {
@@ -383,7 +383,7 @@ struct ComposePostSheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Publicar") {
                         onSave(postType, title.trimmingCharacters(in: .whitespaces),
-                               body.trimmingCharacters(in: .whitespaces),
+                               postBody.trimmingCharacters(in: .whitespaces),
                                fileName.isEmpty ? nil : fileName)
                         dismiss()
                     }
