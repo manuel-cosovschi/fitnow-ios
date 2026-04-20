@@ -22,12 +22,12 @@ struct MainTabView: View {
             }
             .tag(1)
 
-            // Mis clases
+            // Gym
             NavigationStack {
-                MyEnrollmentsView()
+                GymHubView()
             }
             .tabItem {
-                Label("Mis clases", systemImage: selectedTab == 2 ? "calendar.badge.checkmark" : "calendar")
+                Label("Gym", systemImage: "dumbbell.fill")
             }
             .tag(2)
 

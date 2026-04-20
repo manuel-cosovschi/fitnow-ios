@@ -99,6 +99,11 @@ struct ProfileView: View {
                         } label: {
                             Label("Calendario", systemImage: "calendar")
                         }
+                        NavigationLink {
+                            MyEnrollmentsView()
+                        } label: {
+                            Label("Mis clases", systemImage: "calendar.badge.checkmark")
+                        }
                     }
                     // Admin-only: dashboard
                     if auth.user?.role == "admin" {
@@ -107,6 +112,30 @@ struct ProfileView: View {
                         } label: {
                             Label("Panel de administración", systemImage: "shield.fill")
                                 .foregroundColor(.fnSecondary)
+                        }
+                    }
+                }
+
+                // ── Actividad ──
+                if auth.user?.role != "provider_admin" && auth.user?.role != "admin" {
+                    Section("Actividad") {
+                        NavigationLink {
+                            GamificationView()
+                        } label: {
+                            Label("Mi progreso", systemImage: "trophy.fill")
+                                .foregroundColor(.fnYellow)
+                        }
+                        NavigationLink {
+                            AnalyticsView()
+                        } label: {
+                            Label("Rendimiento", systemImage: "chart.bar.fill")
+                                .foregroundColor(.fnCyan)
+                        }
+                        NavigationLink {
+                            TrainingPlanHubView()
+                        } label: {
+                            Label("Planes de entrenamiento", systemImage: "brain.head.profile")
+                                .foregroundColor(.fnPurple)
                         }
                     }
                 }
