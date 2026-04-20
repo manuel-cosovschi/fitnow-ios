@@ -286,7 +286,7 @@ struct StatCard: View {
                     .foregroundColor(color)
             }
             Text(value)
-                .font(.system(size: 18, weight: .heavy, design: .rounded))
+                .font(.system(size: 18, weight: .heavy, design: .monospaced))
                 .foregroundColor(Color(.label))
                 .minimumScaleFactor(0.7)
                 .lineLimit(1)
@@ -299,11 +299,9 @@ struct StatCard: View {
         .padding(.vertical, 16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(color.opacity(0.18), lineWidth: 1)
-                )
+                .fill(.ultraThinMaterial)
+                .overlay(RoundedRectangle(cornerRadius: 16).fill(color.opacity(0.06)))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(color.opacity(0.25), lineWidth: 1))
         )
         .fnShadowColored(color, radius: 8, y: 3)
     }
@@ -328,7 +326,7 @@ struct MetricCard: View {
                 .tracking(0.8)
             HStack(alignment: .lastTextBaseline, spacing: 3) {
                 Text(value)
-                    .font(.system(size: 26, weight: .heavy, design: .rounded))
+                    .font(.system(size: 26, weight: .heavy, design: .monospaced))
                     .foregroundColor(Color(.label))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
@@ -505,14 +503,19 @@ struct ActivityListCard: View {
             .padding(.horizontal, 16)
             .padding(.bottom, 14)
         }
+        .overlay(alignment: .leading) {
+            typeInfo.color
+                .frame(width: 4)
+        }
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color(.secondarySystemBackground))
                 .overlay(
                     RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color(.separator).opacity(0.4), lineWidth: 0.5)
+                        .stroke(typeInfo.color.opacity(0.14), lineWidth: 0.5)
                 )
         )
+        .clipShape(RoundedRectangle(cornerRadius: 20))
         .fnShadow()
     }
 }
@@ -573,14 +576,19 @@ struct EnrollmentRowCard: View {
             }
         }
         .padding(14)
+        .overlay(alignment: .leading) {
+            typeInfo.color
+                .frame(width: 4)
+        }
         .background(
             RoundedRectangle(cornerRadius: 18)
                 .fill(Color(.secondarySystemBackground))
                 .overlay(
                     RoundedRectangle(cornerRadius: 18)
-                        .stroke(Color(.separator).opacity(0.4), lineWidth: 0.5)
+                        .stroke(typeInfo.color.opacity(0.14), lineWidth: 0.5)
                 )
         )
+        .clipShape(RoundedRectangle(cornerRadius: 18))
         .fnShadow(radius: 8, y: 3)
     }
 }
@@ -686,4 +694,36 @@ func fnPrettyDate(_ s: String) -> String {
         return _fnOut.string(from: d)
     }
     return s
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MARK: Grain / Noise Overlay
+// ─────────────────────────────────────────────────────────────────────────────
+
+struct GrainOverlay: View {
+    var opacity: Double = 0.045
+
+    var body: some View {
+        Canvas { context, size in
+            let step: CGFloat = 2
+            var x: CGFloat = 0
+            while x < size.width {
+                var y: CGFloat = 0
+                while y < size.height {
+                    let v = ((Int(x) &* 1619 &+ Int(y) &* 31337) >> 4) & 0xFF
+                    if v > 170 {
+                        let alpha = Double(v - 170) / 85.0 * opacity
+                        context.fill(
+                            Path(CGRect(x: x, y: y, width: 1, height: 1)),
+                            with: .color(.white.opacity(alpha))
+                        )
+                    }
+                    y += step
+                }
+                x += step
+            }
+        }
+        .allowsHitTesting(false)
+        .drawingGroup()
+    }
 }

@@ -247,7 +247,7 @@ struct AnalyticsView: View {
     private func miniStat(_ label: String, _ value: String, _ color: Color) -> some View {
         VStack(spacing: 4) {
             Text(value)
-                .font(.system(size: 15, weight: .heavy, design: .rounded))
+                .font(.system(size: 15, weight: .heavy, design: .monospaced))
                 .foregroundColor(color)
             Text(label)
                 .font(.system(size: 11))
