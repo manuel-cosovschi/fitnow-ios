@@ -211,9 +211,7 @@ struct StartGymSessionView: View {
     @State private var muscleGroups: [String] = []
     @State private var loading = false
     @State private var error: String?
-    @State private var createdSession: GymSession?
-
-    private var bag = Set<AnyCancellable>()
+    @State private var createdSessionId: Int?
 
     private let allMuscles = ["pecho", "espalda", "piernas", "hombros", "brazos", "core", "glúteos", "tríceps"]
     private let timeOptions = [15, 30, 45, 60, 90, 120]
@@ -281,8 +279,8 @@ struct StartGymSessionView: View {
                 Button("Cancelar") { dismiss() }
             }
         }
-        .navigationDestination(item: $createdSession) { session in
-            GymActiveSessionView(sessionId: session.id)
+        .navigationDestination(item: $createdSessionId) { sessionId in
+            GymActiveSessionView(sessionId: sessionId)
         }
     }
 
@@ -304,7 +302,7 @@ struct StartGymSessionView: View {
             } receiveValue: { [self] (session: GymSession) in
                 loading = false
                 onComplete()
-                createdSession = session
+                createdSessionId = session.id
             }
             .store(in: &bag)
         // Keep bag alive
@@ -322,10 +320,7 @@ struct GymActiveSessionView: View {
     @State private var loading = true
     @State private var showReroute = false
     @State private var showFinishConfirm = false
-    @State private var logError: String?
     @Environment(\.dismiss) private var dismiss
-
-    private var bag = Set<AnyCancellable>()
 
     var body: some View {
         ScrollView(showsIndicators: false) {
