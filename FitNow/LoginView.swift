@@ -23,6 +23,14 @@ struct LoginView: View {
             )
             .ignoresSafeArea()
 
+            // Grain texture on the hero portion
+            VStack {
+                GrainOverlay(opacity: 0.05)
+                    .frame(height: 260)
+                Spacer()
+            }
+            .ignoresSafeArea()
+
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
                     // Logo / branding

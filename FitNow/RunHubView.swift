@@ -244,7 +244,7 @@ struct RunSessionCard: View {
             if let pace = session.avg_pace_s_per_km, pace > 0 {
                 VStack(alignment: .trailing, spacing: 1) {
                     Text(formatPace(pace))
-                        .font(.system(size: 14, weight: .heavy, design: .rounded))
+                        .font(.system(size: 14, weight: .heavy, design: .monospaced))
                         .foregroundColor(.fnCyan)
                     Text("min/km")
                         .font(.system(size: 10))
