@@ -12,6 +12,7 @@
 		FF000003FF000003FF000003 /* JetBrainsMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FF000013FF000013FF000013 /* JetBrainsMono-Medium.ttf */; };
 		FF000004FF000004FF000004 /* JetBrainsMono-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FF000014FF000014FF000014 /* JetBrainsMono-SemiBold.ttf */; };
 		FF000005FF000005FF000005 /* JetBrainsMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FF000015FF000015FF000015 /* JetBrainsMono-Bold.ttf */; };
+		FF000006FF000006FF000006 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF000016FF000016FF000016 /* SplashView.swift */; };
 		36820F192E82144200B51DAF /* HazardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F092E82144200B51DAF /* HazardService.swift */; };
 		36820F1A2E82144200B51DAF /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F052E82144200B51DAF /* ContentView.swift */; };
 		36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F082E82144200B51DAF /* FitNowApp.swift */; };
@@ -81,6 +82,7 @@
 		FF000013FF000013FF000013 /* JetBrainsMono-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Medium.ttf"; sourceTree = "<group>"; };
 		FF000014FF000014FF000014 /* JetBrainsMono-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-SemiBold.ttf"; sourceTree = "<group>"; };
 		FF000015FF000015FF000015 /* JetBrainsMono-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Bold.ttf"; sourceTree = "<group>"; };
+		FF000016FF000016FF000016 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		36820D562E5E169D00B51DAF /* FitNow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FitNow.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		36820D642E5E169F00B51DAF /* FitNowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitNowTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		36820D6E2E5E169F00B51DAF /* FitNowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitNowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -221,6 +223,7 @@
 				36820F0F2E82144200B51DAF /* Models.swift */,
 				36820F102E82144200B51DAF /* MyEnrollmentsView.swift */,
 				36820F112E82144200B51DAF /* RootView.swift */,
+				FF000016FF000016FF000016 /* SplashView.swift */,
 				36820F122E82144200B51DAF /* RunModels.swift */,
 				36820F142E82144200B51DAF /* RunNavigatorView.swift */,
 				36820F152E82144200B51DAF /* RunPlannerView.swift */,
@@ -430,6 +433,7 @@
 				36820F262E82144200B51DAF /* ActivitiesViewModel.swift in Sources */,
 				36820F282E82144200B51DAF /* Models.swift in Sources */,
 				36820F292E82144200B51DAF /* RootView.swift in Sources */,
+				FF000006FF000006FF000006 /* SplashView.swift in Sources */,
 				36820F2A2E82144200B51DAF /* ActivitiesListView.swift in Sources */,
 				36820F2B2E82144200B51DAF /* RunPlannerView.swift in Sources */,
 				36820F2C2E82144200B51DAF /* TrainerBookingsView.swift in Sources */,
