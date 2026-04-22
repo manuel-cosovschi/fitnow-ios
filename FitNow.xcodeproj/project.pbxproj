@@ -25,7 +25,6 @@
 		36820F242E82144200B51DAF /* ClubSportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F042E82144200B51DAF /* ClubSportsView.swift */; };
 		36820F252E82144200B51DAF /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F032E82144200B51DAF /* AuthViewModel.swift */; };
 		36820F262E82144200B51DAF /* ActivitiesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820EFD2E82144200B51DAF /* ActivitiesViewModel.swift */; };
-		36820F272E82144200B51DAF /* Untitled.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F182E82144200B51DAF /* Untitled.swift */; };
 		36820F282E82144200B51DAF /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0F2E82144200B51DAF /* Models.swift */; };
 		36820F292E82144200B51DAF /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F112E82144200B51DAF /* RootView.swift */; };
 		36820F2A2E82144200B51DAF /* ActivitiesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820EFC2E82144200B51DAF /* ActivitiesListView.swift */; };
@@ -110,7 +109,6 @@
 		36820F152E82144200B51DAF /* RunPlannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunPlannerView.swift; sourceTree = "<group>"; };
 		36820F162E82144200B51DAF /* RunRoutePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunRoutePreviewView.swift; sourceTree = "<group>"; };
 		36820F172E82144200B51DAF /* TrainerBookingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainerBookingsView.swift; sourceTree = "<group>"; };
-		36820F182E82144200B51DAF /* Untitled.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Untitled.swift; sourceTree = "<group>"; };
 		36820F342E82146300B51DAF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AABB0011CCDD0011EEFF0011 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		BBCC0011DDEE0011FFAA0011 /* RunSessionTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunSessionTracker.swift; sourceTree = "<group>"; };
@@ -228,7 +226,6 @@
 				36820F152E82144200B51DAF /* RunPlannerView.swift */,
 				36820F162E82144200B51DAF /* RunRoutePreviewView.swift */,
 				36820F172E82144200B51DAF /* TrainerBookingsView.swift */,
-				36820F182E82144200B51DAF /* Untitled.swift */,
 				36820F342E82146300B51DAF /* Assets.xcassets */,
 				FF000021FF000021FF000021 /* Fonts */,
 				AABB0011CCDD0011EEFF0011 /* DesignSystem.swift */,
@@ -431,7 +428,6 @@
 				36820F242E82144200B51DAF /* ClubSportsView.swift in Sources */,
 				36820F252E82144200B51DAF /* AuthViewModel.swift in Sources */,
 				36820F262E82144200B51DAF /* ActivitiesViewModel.swift in Sources */,
-				36820F272E82144200B51DAF /* Untitled.swift in Sources */,
 				36820F282E82144200B51DAF /* Models.swift in Sources */,
 				36820F292E82144200B51DAF /* RootView.swift in Sources */,
 				36820F2A2E82144200B51DAF /* ActivitiesListView.swift in Sources */,
