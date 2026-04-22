@@ -89,7 +89,7 @@ struct CalendarView: View {
             Divider().opacity(0.5)
             dayContent
         }
-        .background(Color(.systemBackground))
+        .background(Color.fnBg)
         .navigationTitle("Calendario")
         .navigationBarTitleDisplayMode(.large)
         .onAppear { vm.fetch() }
@@ -119,7 +119,7 @@ struct CalendarView: View {
                 proxy.scrollTo(selectedDay, anchor: .center)
             }
         }
-        .background(Color(.secondarySystemBackground))
+        .background(Color.fnSurface)
     }
 
     // MARK: - Day Content
@@ -135,7 +135,7 @@ struct CalendarView: View {
                 Spacer()
                 Image(systemName: "exclamationmark.circle")
                     .font(.system(size: 44))
-                    .foregroundColor(Color(.tertiaryLabel))
+                    .foregroundColor(.fnSlate.opacity(0.7))
                 Text("Error al cargar")
                     .font(.system(size: 16, weight: .bold))
                 Text(err)
@@ -171,7 +171,7 @@ struct CalendarView: View {
             Spacer()
             Image(systemName: "calendar")
                 .font(.system(size: 48))
-                .foregroundColor(Color(.tertiaryLabel))
+                .foregroundColor(.fnSlate.opacity(0.7))
             let cal = Calendar.current
             if cal.isDateInToday(selectedDay) {
                 Text("Nada para hoy")
@@ -231,10 +231,10 @@ private struct DayCell: View {
             VStack(spacing: 4) {
                 Text(Self.dayNameDF.string(from: day).prefix(3).uppercased())
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(isSelected ? .white : Color(.secondaryLabel))
+                    .foregroundColor(isSelected ? .white : .fnSlate)
                 Text(Self.dayNumDF.string(from: day))
                     .font(.system(size: 17, weight: .bold, design: .rounded))
-                    .foregroundColor(isSelected ? .white : Color(.label))
+                    .foregroundColor(isSelected ? .white : .white)
                 Circle()
                     .fill(hasEvent ? (isSelected ? Color.white.opacity(0.8) : Color.fnPrimary) : Color.clear)
                     .frame(width: 5, height: 5)
@@ -299,12 +299,12 @@ private struct CalendarEventRow: View {
             Spacer()
             Image(systemName: "chevron.right")
                 .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(Color(.tertiaryLabel))
+                .foregroundColor(.fnSlate.opacity(0.7))
         }
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(Color(.secondarySystemBackground))
+                .fill(Color.fnSurface)
                 .overlay(
                     RoundedRectangle(cornerRadius: 18)
                         .stroke(typeInfo.color.opacity(0.15), lineWidth: 1)

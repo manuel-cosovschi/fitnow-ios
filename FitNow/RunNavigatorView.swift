@@ -97,7 +97,7 @@ struct RunNavigatorView: View {
                 }
                 Text(statusText)
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(Color(.label))
+                    .foregroundColor(.white)
                     .lineLimit(1)
                 Spacer()
                 Button {
@@ -106,9 +106,9 @@ struct RunNavigatorView: View {
                 } label: {
                     Image(systemName: followingUser ? "location.north.line.fill" : "location")
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(followingUser ? .fnCyan : Color(.tertiaryLabel))
+                        .foregroundColor(followingUser ? .fnCyan : .fnSlate.opacity(0.7))
                         .padding(8)
-                        .background(Circle().fill(Color(.secondarySystemBackground)))
+                        .background(Circle().fill(Color.fnSurface))
                 }
             }
             .padding(.horizontal, 14)
@@ -128,11 +128,11 @@ struct RunNavigatorView: View {
                 }
                 Text(nextInstruction)
                     .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(Color(.label))
+                    .foregroundColor(.white)
                     .lineLimit(2)
                 Spacer()
                 Text(remainingToStep)
-                    .font(.system(size: 14, weight: .heavy, design: .monospaced))
+                    .font(.custom(\"JetBrains Mono\", size: 14).weight(.heavy))
                     .foregroundColor(.fnCyan)
             }
             .padding(.horizontal, 14)
@@ -225,19 +225,19 @@ struct RunNavigatorView: View {
         VStack(spacing: 3) {
             HStack(alignment: .lastTextBaseline, spacing: 2) {
                 Text(value)
-                    .font(.system(size: 22, weight: .heavy, design: .monospaced))
-                    .foregroundColor(Color(.label))
+                    .font(.custom(\"JetBrains Mono\", size: 22).weight(.heavy))
+                    .foregroundColor(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 if !unit.isEmpty {
                     Text(unit)
                         .font(.system(size: 11))
-                        .foregroundColor(Color(.secondaryLabel))
+                        .foregroundColor(.fnSlate)
                 }
             }
             Text(label)
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .textCase(.uppercase)
                 .tracking(0.5)
         }
@@ -488,7 +488,7 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
         if let pl = overlay as? MKPolyline {
             if let sug = suggestedPolyline, pl === sug {
                 let r = MKPolylineRenderer(polyline: pl)
-                r.strokeColor = UIColor(Color(.tertiaryLabel))
+                r.strokeColor = UIColor(.fnSlate.opacity(0.7))
                 r.lineDashPattern = [6, 4]; r.lineWidth = 3; return r
             }
             let r = MKPolylineRenderer(polyline: pl)

@@ -304,7 +304,7 @@ struct StatCard: View {
                     .foregroundColor(color)
             }
             Text(value)
-                .font(.system(size: 18, weight: .heavy, design: .monospaced))
+                .font(.custom(\"JetBrains Mono\", size: 18).weight(.heavy))
                 .foregroundColor(.fnWhite)
                 .minimumScaleFactor(0.7)
                 .lineLimit(1)
@@ -344,7 +344,7 @@ struct MetricCard: View {
                 .tracking(0.8)
             HStack(alignment: .lastTextBaseline, spacing: 3) {
                 Text(value)
-                    .font(.system(size: 26, weight: .heavy, design: .monospaced))
+                    .font(.custom(\"JetBrains Mono\", size: 26).weight(.heavy))
                     .foregroundColor(.fnWhite)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
@@ -478,7 +478,7 @@ struct ActivityListCard: View {
                 if let price = activity.price, price > 0 {
                     VStack(alignment: .trailing, spacing: 1) {
                         Text(String(format: "$%.0f", price))
-                            .font(.system(size: 16, weight: .heavy, design: .monospaced))
+                            .font(.custom(\"JetBrains Mono\", size: 16).weight(.heavy))
                             .foregroundColor(.fnWhite)
                         Text("/ mes")
                             .font(.system(size: 10))
@@ -560,7 +560,7 @@ struct EnrollmentRowCard: View {
                 }
                 if let dateStr = item.date_start {
                     Text(fnPrettyDate(dateStr))
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .font(.custom(\"JetBrains Mono\", size: 11).weight(.medium))
                         .foregroundColor(typeInfo.color)
                 }
             }
@@ -570,7 +570,7 @@ struct EnrollmentRowCard: View {
             VStack(alignment: .trailing, spacing: 6) {
                 if let price = item.price, price > 0 {
                     Text(String(format: "$%.0f", price))
-                        .font(.system(size: 14, weight: .heavy, design: .monospaced))
+                        .font(.custom(\"JetBrains Mono\", size: 14).weight(.heavy))
                         .foregroundColor(.fnWhite)
                 }
                 Image(systemName: "chevron.right")

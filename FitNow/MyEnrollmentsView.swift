@@ -106,7 +106,7 @@ struct MyEnrollmentsView: View {
                 }
             }
         }
-        .background(Color(.systemBackground))
+        .background(Color.fnBg)
         .navigationTitle("Mis inscripciones")
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
@@ -186,12 +186,12 @@ struct MyEnrollmentsView: View {
             Spacer()
             Image(systemName: "exclamationmark.circle")
                 .font(.system(size: 52))
-                .foregroundColor(Color(.tertiaryLabel))
+                .foregroundColor(.fnSlate.opacity(0.7))
             Text("Error al cargar")
                 .font(.system(size: 18, weight: .bold))
             Text(error)
                 .font(.system(size: 14))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
             FitNowButton(title: "Reintentar", icon: "arrow.clockwise") { vm.fetchMine() }
@@ -214,10 +214,10 @@ struct MyEnrollmentsView: View {
             }
             Text(emptyTitle)
                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundColor(Color(.label))
+                .foregroundColor(.white)
             Text(emptySubtitle)
                 .font(.system(size: 15))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 50)
             Spacer()

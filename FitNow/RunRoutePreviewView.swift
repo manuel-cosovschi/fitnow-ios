@@ -37,7 +37,7 @@ struct RunRoutePreviewView: View {
                     .padding(.bottom, 20)
             }
         }
-        .background(Color(.systemBackground))
+        .background(Color.fnBg)
         .ignoresSafeArea(edges: .top)
         .navigationTitle("Vista previa")
         .navigationBarTitleDisplayMode(.inline)
@@ -61,7 +61,7 @@ struct RunRoutePreviewView: View {
 
             // Gradient fade at bottom
             LinearGradient(
-                colors: [.clear, Color(.systemBackground)],
+                colors: [.clear, Color.fnBg],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -101,11 +101,11 @@ struct RunRoutePreviewView: View {
             // Title + rationale
             VStack(alignment: .leading, spacing: 10) {
                 Text(option.label)
-                    .font(.system(size: 24, weight: .heavy, design: .rounded))
-                    .foregroundColor(Color(.label))
+                    .font(.custom(\"DM Serif Display\", size: 24))
+                    .foregroundColor(.white)
                 Text(option.rationale)
                     .font(.system(size: 15))
-                    .foregroundColor(Color(.secondaryLabel))
+                    .foregroundColor(.fnSlate)
                     .lineSpacing(3)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -150,7 +150,7 @@ struct RunRoutePreviewView: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
+                .fill(Color.fnSurface)
         )
     }
 
@@ -160,11 +160,11 @@ struct RunRoutePreviewView: View {
                 .font(.system(size: 14))
                 .foregroundColor(color)
             Text(value)
-                .font(.system(size: 16, weight: .heavy, design: .rounded))
-                .foregroundColor(Color(.label))
+                .font(.custom(\"DM Serif Display\", size: 16))
+                .foregroundColor(.white)
             Text(label)
                 .font(.system(size: 10, weight: .medium))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
         }
         .frame(maxWidth: .infinity)
     }
@@ -176,7 +176,7 @@ struct RunRoutePreviewView: View {
             HStack {
                 Label("Calificar ruta", systemImage: "star.fill")
                     .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(Color(.label))
+                    .foregroundColor(.white)
                 Spacer()
                 if let msg = message {
                     Text(msg)
@@ -193,7 +193,7 @@ struct RunRoutePreviewView: View {
                     } label: {
                         Image(systemName: star <= rating ? "star.fill" : "star")
                             .font(.system(size: 28))
-                            .foregroundColor(star <= rating ? .fnYellow : Color(.tertiarySystemFill))
+                            .foregroundColor(star <= rating ? .fnYellow : Color.white.opacity(0.1))
                             .scaleEffect(star <= rating ? 1.05 : 0.95)
                     }
                     .buttonStyle(ScaleButtonStyle())
@@ -216,7 +216,7 @@ struct RunRoutePreviewView: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
+                .fill(Color.fnSurface)
         )
     }
 

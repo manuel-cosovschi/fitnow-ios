@@ -268,7 +268,7 @@ struct FiltersSheet: View {
                                 in: 0...50000, step: 500
                             ) {
                                 Text(vm.minPrice == nil ? "—" : "$\(vm.minPrice!)")
-                                    .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                                    .font(.custom(\"JetBrains Mono\", size: 14).weight(.semibold))
                                     .foregroundColor(.fnBlue)
                             }
                         }
@@ -283,7 +283,7 @@ struct FiltersSheet: View {
                                 in: 0...50000, step: 500
                             ) {
                                 Text(vm.maxPrice == nil ? "—" : "$\(vm.maxPrice!)")
-                                    .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                                    .font(.custom(\"JetBrains Mono\", size: 14).weight(.semibold))
                                     .foregroundColor(.fnBlue)
                             }
                         }

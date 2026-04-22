@@ -85,7 +85,7 @@ struct TrainingPlanHubView: View {
             }
             .padding(.bottom, 30)
         }
-        .background(Color(.systemBackground))
+        .background(Color.fnBg)
         .navigationTitle("Planes de entrenamiento")
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showGenerate) {
@@ -149,7 +149,7 @@ struct TrainingPlanHubView: View {
             }
             .padding(14)
             .background(
-                RoundedRectangle(cornerRadius: 18).fill(Color(.secondarySystemBackground))
+                RoundedRectangle(cornerRadius: 18).fill(Color.fnSurface)
                     .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.fnGreen.opacity(0.3), lineWidth: 1))
             )
         }
@@ -166,13 +166,13 @@ struct TrainingPlanHubView: View {
                 VStack(spacing: 10) { ForEach(0..<3, id: \.self) { _ in SkeletonView(cornerRadius: 16).frame(height: 70) } }
             } else if vm.plans.isEmpty {
                 VStack(spacing: 12) {
-                    Image(systemName: "doc.text").font(.system(size: 36)).foregroundColor(Color(.tertiaryLabel))
+                    Image(systemName: "doc.text").font(.system(size: 36)).foregroundColor(.fnSlate.opacity(0.7))
                     Text("Sin planes aún").font(.system(size: 15, weight: .semibold)).foregroundColor(.secondary)
                     Text("Generá tu primer plan de entrenamiento personalizado con IA.")
-                        .font(.system(size: 13)).foregroundColor(Color(.tertiaryLabel)).multilineTextAlignment(.center)
+                        .font(.system(size: 13)).foregroundColor(.fnSlate.opacity(0.7)).multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity).padding(30)
-                .background(RoundedRectangle(cornerRadius: 16).fill(Color(.secondarySystemBackground)))
+                .background(RoundedRectangle(cornerRadius: 16).fill(Color.fnSurface))
             } else {
                 LazyVStack(spacing: 10) {
                     ForEach(Array(vm.plans.prefix(20).enumerated()), id: \.element.id) { index, plan in
@@ -206,7 +206,7 @@ struct TrainingPlanHubView: View {
             statusBadge(plan.status ?? "active")
         }
         .padding(14)
-        .background(RoundedRectangle(cornerRadius: 18).fill(Color(.secondarySystemBackground)))
+        .background(RoundedRectangle(cornerRadius: 18).fill(Color.fnSurface))
         .fnShadow(radius: 6, y: 2)
     }
 
@@ -356,7 +356,7 @@ struct TrainingPlanDetailView: View {
                 Image(systemName: "doc.text.fill").font(.system(size: 26, weight: .bold)).foregroundColor(.white)
             }
             .fnShadowBrand()
-            Text(plan.title).font(.system(size: 22, weight: .heavy, design: .rounded)).multilineTextAlignment(.center)
+            Text(plan.title).font(.custom(\"DM Serif Display\", size: 22)).multilineTextAlignment(.center)
             HStack(spacing: 12) {
                 Label("\(plan.duration_weeks) semanas", systemImage: "calendar").font(.system(size: 13)).foregroundColor(.secondary)
                 Label(plan.difficulty?.capitalized ?? "Media", systemImage: "speedometer").font(.system(size: 13)).foregroundColor(.secondary)
@@ -407,7 +407,7 @@ struct TrainingPlanDetailView: View {
             Spacer()
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 14).fill(Color(.secondarySystemBackground)))
+        .background(RoundedRectangle(cornerRadius: 14).fill(Color.fnSurface))
         .padding(.horizontal, 16)
     }
 
