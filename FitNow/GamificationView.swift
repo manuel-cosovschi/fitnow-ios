@@ -164,7 +164,7 @@ struct GamificationView: View {
                 StatCard(value: "\(stats.total_gym_sessions)", label: "Gym", icon: "dumbbell.fill", color: .fnPurple)
                 StatCard(value: "\(stats.total_gym_sets)", label: "Sets", icon: "bolt.fill", color: .fnYellow)
                 StatCard(value: "\(stats.total_enrollments)", label: "Clases", icon: "calendar", color: .fnPrimary)
-                StatCard(value: "\(stats.total_feedbacks)", label: "Reviews", icon: "star.fill", color: .fnPink)
+                StatCard(value: "\(stats.total_feedbacks)", label: "Reviews", icon: "star.fill", color: .fnCrimson)
             }
             .padding(.horizontal, 20)
         }
@@ -375,7 +375,7 @@ struct GamificationView: View {
         case "enrollment":    return .fnPrimary
         case "hazard_report": return .fnYellow
         case "route_feedback":return .fnGreen
-        default:              return .fnPink
+        default:              return .fnCrimson
         }
     }
 
