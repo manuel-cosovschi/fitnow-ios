@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>APIBaseURL</key>
-	<string>http://127.0.0.1:3000/api/</string>
+	<string>http://192.168.0.85:3000/api/</string>
 	<key>MBXAccessToken</key>
 	<string>$(MAPBOX_ACCESS_TOKEN)</string>
 	<key>NSLocalNetworkUsageDescription</key>
@@ -29,11 +29,11 @@
 	</dict>
 	<key>UIAppFonts</key>
 	<array>
-		<string>Fonts/DMSerifDisplay-Regular.ttf</string>
-		<string>Fonts/JetBrainsMono-Regular.ttf</string>
-		<string>Fonts/JetBrainsMono-Medium.ttf</string>
-		<string>Fonts/JetBrainsMono-SemiBold.ttf</string>
-		<string>Fonts/JetBrainsMono-Bold.ttf</string>
+		<string>DMSerifDisplay-Regular.ttf</string>
+		<string>JetBrainsMono-Regular.ttf</string>
+		<string>JetBrainsMono-Medium.ttf</string>
+		<string>JetBrainsMono-SemiBold.ttf</string>
+		<string>JetBrainsMono-Bold.ttf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>
