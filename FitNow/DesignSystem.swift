@@ -93,11 +93,11 @@ struct FNGradient {
 
     static func forKind(_ kind: String) -> LinearGradient {
         switch kind {
-        case "trainer":    return .trainer
-        case "gym":        return .primary
-        case "club":       return .provider
-        case "club_sport": return .success
-        default:           return .primary
+        case "trainer":    return FNGradient.trainer
+        case "gym":        return FNGradient.primary
+        case "club":       return FNGradient.provider
+        case "club_sport": return FNGradient.success
+        default:           return FNGradient.primary
         }
     }
 }
