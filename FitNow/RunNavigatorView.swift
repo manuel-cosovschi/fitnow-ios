@@ -132,7 +132,7 @@ struct RunNavigatorView: View {
                     .lineLimit(2)
                 Spacer()
                 Text(remainingToStep)
-                    .font(.custom(\"JetBrains Mono\", size: 14).weight(.heavy))
+                    .font(.custom("JetBrains Mono", size: 14).weight(.heavy))
                     .foregroundColor(.fnCyan)
             }
             .padding(.horizontal, 14)
@@ -225,7 +225,7 @@ struct RunNavigatorView: View {
         VStack(spacing: 3) {
             HStack(alignment: .lastTextBaseline, spacing: 2) {
                 Text(value)
-                    .font(.custom(\"JetBrains Mono\", size: 22).weight(.heavy))
+                    .font(.custom("JetBrains Mono", size: 22).weight(.heavy))
                     .foregroundColor(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)

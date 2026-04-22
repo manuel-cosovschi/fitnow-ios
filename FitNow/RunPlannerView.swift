@@ -88,7 +88,7 @@ struct RunPlannerView: View {
                         .tracking(0.5)
                     HStack(alignment: .lastTextBaseline, spacing: 4) {
                         Text("\(Int(distanceKm))")
-                            .font(.custom(\"DM Serif Display\", size: 52))
+                            .font(.custom("DM Serif Display", size: 52))
                             .foregroundStyle(FNGradient.run)
                         Text("km")
                             .font(.system(size: 22, weight: .bold))
@@ -190,7 +190,7 @@ struct RunPlannerView: View {
                     .fill(FNGradient.run)
                     .frame(width: 46, height: 46)
                 Text("\(index + 1)")
-                    .font(.custom(\"DM Serif Display\", size: 20))
+                    .font(.custom("DM Serif Display", size: 20))
                     .foregroundColor(.white)
             }
             .fnShadowColored(.fnCyan)

@@ -174,7 +174,7 @@ struct AdminOffersTab: View {
                 }
                 Spacer()
                 Text(offer.discount_label)
-                    .font(.custom(\"DM Serif Display\", size: 14))
+                    .font(.custom("DM Serif Display", size: 14))
                     .foregroundColor(.fnPrimary)
                     .padding(.horizontal, 10).padding(.vertical, 5)
                     .background(Color.fnPrimary.opacity(0.10), in: Capsule())
@@ -297,7 +297,7 @@ struct AdminStatsTab: View {
                     .foregroundColor(color)
             }
             Text(value)
-                .font(.custom(\"DM Serif Display\", size: 28))
+                .font(.custom("DM Serif Display", size: 28))
                 .foregroundColor(.white)
             Text(label)
                 .font(.system(size: 12, weight: .medium))

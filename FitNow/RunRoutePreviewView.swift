@@ -101,7 +101,7 @@ struct RunRoutePreviewView: View {
             // Title + rationale
             VStack(alignment: .leading, spacing: 10) {
                 Text(option.label)
-                    .font(.custom(\"DM Serif Display\", size: 24))
+                    .font(.custom("DM Serif Display", size: 24))
                     .foregroundColor(.white)
                 Text(option.rationale)
                     .font(.system(size: 15))
@@ -160,7 +160,7 @@ struct RunRoutePreviewView: View {
                 .font(.system(size: 14))
                 .foregroundColor(color)
             Text(value)
-                .font(.custom(\"DM Serif Display\", size: 16))
+                .font(.custom("DM Serif Display", size: 16))
                 .foregroundColor(.white)
             Text(label)
                 .font(.system(size: 10, weight: .medium))

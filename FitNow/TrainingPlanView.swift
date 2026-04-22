@@ -356,7 +356,7 @@ struct TrainingPlanDetailView: View {
                 Image(systemName: "doc.text.fill").font(.system(size: 26, weight: .bold)).foregroundColor(.white)
             }
             .fnShadowBrand()
-            Text(plan.title).font(.custom(\"DM Serif Display\", size: 22)).multilineTextAlignment(.center)
+            Text(plan.title).font(.custom("DM Serif Display", size: 22)).multilineTextAlignment(.center)
             HStack(spacing: 12) {
                 Label("\(plan.duration_weeks) semanas", systemImage: "calendar").font(.system(size: 13)).foregroundColor(.secondary)
                 Label(plan.difficulty?.capitalized ?? "Media", systemImage: "speedometer").font(.system(size: 13)).foregroundColor(.secondary)

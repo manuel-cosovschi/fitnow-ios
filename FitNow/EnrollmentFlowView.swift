@@ -329,7 +329,7 @@ struct EnrollmentFlowView: View {
                 }
                 Spacer()
                 Text("$\(Int(plan.price))")
-                    .font(.custom(\"DM Serif Display\", size: 16))
+                    .font(.custom("DM Serif Display", size: 16))
                     .foregroundColor(isSelected ? typeInfo.color : .white)
             }
             .padding(16)
@@ -372,7 +372,7 @@ struct EnrollmentFlowView: View {
                         .font(.system(size: 14, weight: .semibold))
                     Spacer()
                     Text("$\(Int(selectedPlan?.price ?? activity.price ?? 0))")
-                        .font(.custom(\"DM Serif Display\", size: 17))
+                        .font(.custom("DM Serif Display", size: 17))
                         .foregroundColor(typeInfo.color)
                 }
             }
@@ -425,7 +425,7 @@ struct EnrollmentFlowView: View {
                             .font(.system(size: 12))
                             .foregroundColor(.fnSlate)
                         Text("$\(Int(finalPrice))")
-                            .font(.custom(\"DM Serif Display\", size: 30))
+                            .font(.custom("DM Serif Display", size: 30))
                             .foregroundStyle(typeInfo.gradient)
                     }
                     Spacer()
@@ -484,7 +484,7 @@ struct EnrollmentFlowView: View {
                 }
                 Spacer()
                 Text("$\(Int(amount))")
-                    .font(.custom(\"DM Serif Display\", size: 15))
+                    .font(.custom("DM Serif Display", size: 15))
                     .foregroundColor(isSelected ? typeInfo.color : .white)
             }
             .padding(14)
