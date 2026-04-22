@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FF000001FF000001FF000001 /* DMSerifDisplay-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FF000011FF000011FF000011 /* DMSerifDisplay-Regular.ttf */; };
+		FF000002FF000002FF000002 /* JetBrainsMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FF000012FF000012FF000012 /* JetBrainsMono-Regular.ttf */; };
+		FF000003FF000003FF000003 /* JetBrainsMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FF000013FF000013FF000013 /* JetBrainsMono-Medium.ttf */; };
+		FF000004FF000004FF000004 /* JetBrainsMono-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FF000014FF000014FF000014 /* JetBrainsMono-SemiBold.ttf */; };
+		FF000005FF000005FF000005 /* JetBrainsMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FF000015FF000015FF000015 /* JetBrainsMono-Bold.ttf */; };
 		36820F192E82144200B51DAF /* HazardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F092E82144200B51DAF /* HazardService.swift */; };
 		36820F1A2E82144200B51DAF /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F052E82144200B51DAF /* ContentView.swift */; };
 		36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F082E82144200B51DAF /* FitNowApp.swift */; };
@@ -72,6 +77,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		FF000011FF000011FF000011 /* DMSerifDisplay-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DMSerifDisplay-Regular.ttf"; sourceTree = "<group>"; };
+		FF000012FF000012FF000012 /* JetBrainsMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Regular.ttf"; sourceTree = "<group>"; };
+		FF000013FF000013FF000013 /* JetBrainsMono-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Medium.ttf"; sourceTree = "<group>"; };
+		FF000014FF000014FF000014 /* JetBrainsMono-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-SemiBold.ttf"; sourceTree = "<group>"; };
+		FF000015FF000015FF000015 /* JetBrainsMono-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Bold.ttf"; sourceTree = "<group>"; };
 		36820D562E5E169D00B51DAF /* FitNow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FitNow.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		36820D642E5E169F00B51DAF /* FitNowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitNowTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		36820D6E2E5E169F00B51DAF /* FitNowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitNowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -220,6 +230,7 @@
 				36820F172E82144200B51DAF /* TrainerBookingsView.swift */,
 				36820F182E82144200B51DAF /* Untitled.swift */,
 				36820F342E82146300B51DAF /* Assets.xcassets */,
+				FF000021FF000021FF000021 /* Fonts */,
 				AABB0011CCDD0011EEFF0011 /* DesignSystem.swift */,
 				BBCC0011DDEE0011FFAA0011 /* RunSessionTracker.swift */,
 				CC110011DD220011EE330011 /* FavoritesService.swift */,
@@ -242,6 +253,18 @@
 				DD110006DD220006EE330006 /* TrainingPlanView.swift */,
 			);
 			path = FitNow;
+			sourceTree = "<group>";
+		};
+		FF000021FF000021FF000021 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				FF000011FF000011FF000011 /* DMSerifDisplay-Regular.ttf */,
+				FF000012FF000012FF000012 /* JetBrainsMono-Regular.ttf */,
+				FF000013FF000013FF000013 /* JetBrainsMono-Medium.ttf */,
+				FF000014FF000014FF000014 /* JetBrainsMono-SemiBold.ttf */,
+				FF000015FF000015FF000015 /* JetBrainsMono-Bold.ttf */,
+			);
+			path = Fonts;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -366,6 +389,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				36820F352E82146300B51DAF /* Assets.xcassets in Resources */,
+				FF000001FF000001FF000001 /* DMSerifDisplay-Regular.ttf in Resources */,
+				FF000002FF000002FF000002 /* JetBrainsMono-Regular.ttf in Resources */,
+				FF000003FF000003FF000003 /* JetBrainsMono-Medium.ttf in Resources */,
+				FF000004FF000004FF000004 /* JetBrainsMono-SemiBold.ttf in Resources */,
+				FF000005FF000005FF000005 /* JetBrainsMono-Bold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
