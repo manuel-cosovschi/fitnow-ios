@@ -121,7 +121,7 @@ struct GamificationView: View {
                             .frame(width: 80, height: 80)
                             .rotationEffect(.degrees(-90))
                         Text("\(p.level)")
-                            .font(.custom(\"JetBrains Mono\", size: 32).weight(.heavy))
+                            .font(.custom("JetBrains Mono", size: 32).weight(.heavy))
                             .foregroundColor(.white)
                     }
 
@@ -296,7 +296,7 @@ struct GamificationView: View {
     private func rankingRow(position: Int, user: RankingUser) -> some View {
         HStack(spacing: 12) {
             Text("#\(position)")
-                .font(.custom(\"JetBrains Mono\", size: 14).weight(.heavy))
+                .font(.custom("JetBrains Mono", size: 14).weight(.heavy))
                 .foregroundColor(position <= 3 ? .fnPrimary : .secondary)
                 .frame(width: 36)
 

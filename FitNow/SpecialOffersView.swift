@@ -125,7 +125,7 @@ struct SpecialOffersView: View {
                 }
                 Spacer()
                 Text(offer.discount_label)
-                    .font(.custom(\"DM Serif Display\", size: 18))
+                    .font(.custom("DM Serif Display", size: 18))
                     .foregroundColor(.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
@@ -336,7 +336,7 @@ struct ProviderSubmitOfferView: View {
             }
             VStack(spacing: 10) {
                 Text("¡Oferta enviada!")
-                    .font(.custom(\"DM Serif Display\", size: 26))
+                    .font(.custom("DM Serif Display", size: 26))
                 Text("Tu oferta fue enviada para revisión. Te notificaremos cuando sea aprobada.")
                     .font(.system(size: 14))
                     .foregroundColor(.fnSlate)

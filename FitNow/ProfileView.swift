@@ -247,7 +247,7 @@ private struct MembershipView: View {
 
                 VStack(spacing: 8) {
                     Text("Plan Gratuito")
-                        .font(.custom(\"DM Serif Display\", size: 26))
+                        .font(.custom("DM Serif Display", size: 26))
                     Text("Accedé a actividades básicas sin costo")
                         .font(.system(size: 15))
                         .foregroundColor(.secondary)
@@ -465,7 +465,7 @@ private struct AboutView: View {
 
                 VStack(spacing: 8) {
                     Text("FitNow")
-                        .font(.custom(\"DM Serif Display\", size: 32))
+                        .font(.custom("DM Serif Display", size: 32))
                         .foregroundStyle(FNGradient.primary)
                     Text("Tu fitness, sin límites")
                         .font(.system(size: 15))
