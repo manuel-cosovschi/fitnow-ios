@@ -2,10 +2,13 @@ import SwiftUI
 
 struct RootView: View {
     @EnvironmentObject var auth: AuthViewModel
+    @State private var showSplash = true
 
     var body: some View {
         Group {
-            if auth.isAuthenticated {
+            if showSplash {
+                SplashView()
+            } else if auth.isAuthenticated {
                 switch auth.user?.role ?? "user" {
                 case "provider_admin":
                     ProviderDashboardView(providerId: auth.user?.provider_id)
@@ -18,10 +21,13 @@ struct RootView: View {
                 LoginView()
             }
         }
+        .animation(.easeInOut(duration: 0.16), value: showSplash)
+        .animation(.easeInOut(duration: 0.16), value: auth.isAuthenticated)
+        .preferredColorScheme(.dark)
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.6) {
+                withAnimation { showSplash = false }
+            }
+        }
     }
 }
-
-
-
-
-
