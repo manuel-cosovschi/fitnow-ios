@@ -105,7 +105,7 @@ struct EnrollmentDetailView: View {
                 content
             }
         }
-        .background(Color(.systemBackground))
+        .background(Color.fnBg)
         .navigationTitle(navTitle)
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
@@ -212,7 +212,7 @@ struct EnrollmentDetailView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Tu inscripción")
                 .font(.system(size: 13, weight: .bold))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .textCase(.uppercase)
                 .tracking(0.5)
 
@@ -239,7 +239,7 @@ struct EnrollmentDetailView: View {
                               icon: "calendar.badge.checkmark", color: .fnSecondary)
                 }
             }
-            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14))
+            .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 14))
         }
     }
 
@@ -255,11 +255,11 @@ struct EnrollmentDetailView: View {
             }
             Text(label)
                 .font(.system(size: 14))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
             Spacer()
             Text(value)
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(Color(.label))
+                .foregroundColor(.white)
                 .multilineTextAlignment(.trailing)
         }
         .padding(.horizontal, 14)
@@ -272,7 +272,7 @@ struct EnrollmentDetailView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(kind == "trainer" ? "Entrenador" : kind == "gym" ? "Gimnasio" : kind == "club" ? "Club" : "Proveedor")
                 .font(.system(size: 13, weight: .bold))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .textCase(.uppercase)
                 .tracking(0.5)
 
@@ -286,7 +286,7 @@ struct EnrollmentDetailView: View {
                 }
                 if let city = vm.provider?.city, !city.isEmpty {
                     Divider().padding(.leading, 44)
-                    providerRow(icon: "building.2.fill", color: Color(.tertiaryLabel), text: city)
+                    providerRow(icon: "building.2.fill", color: .fnSlate.opacity(0.7), text: city)
                 }
                 if let loc = enrollment.location ?? vm.activity?.location, !loc.isEmpty,
                    vm.provider?.address == nil {
@@ -294,7 +294,7 @@ struct EnrollmentDetailView: View {
                     providerRow(icon: "mappin.circle.fill", color: .fnSecondary, text: loc)
                 }
             }
-            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14))
+            .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 14))
         }
     }
 
@@ -306,7 +306,7 @@ struct EnrollmentDetailView: View {
                 .frame(width: 32)
             Text(text)
                 .font(.system(size: 14))
-                .foregroundColor(Color(.label))
+                .foregroundColor(.white)
             Spacer()
         }
         .padding(.horizontal, 14)
@@ -340,7 +340,7 @@ struct EnrollmentDetailView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Clases")
                 .font(.system(size: 13, weight: .bold))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .textCase(.uppercase)
                 .tracking(0.5)
             NavigationLink {
@@ -358,18 +358,18 @@ struct EnrollmentDetailView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Ver y reservar clases")
                             .font(.system(size: 15, weight: .bold))
-                            .foregroundColor(Color(.label))
+                            .foregroundColor(.white)
                         Text("Gestioná tus sesiones con el entrenador")
                             .font(.system(size: 12))
-                            .foregroundColor(Color(.secondaryLabel))
+                            .foregroundColor(.fnSlate)
                     }
                     Spacer()
                     Image(systemName: "chevron.right")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(.tertiaryLabel))
+                        .foregroundColor(.fnSlate.opacity(0.7))
                 }
                 .padding(16)
-                .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
+                .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 16))
                 .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.fnPrimary.opacity(0.2), lineWidth: 1))
             }
             .buttonStyle(ScaleButtonStyle())
@@ -380,7 +380,7 @@ struct EnrollmentDetailView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Deportes del club")
                 .font(.system(size: 13, weight: .bold))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .textCase(.uppercase)
                 .tracking(0.5)
             NavigationLink {
@@ -398,18 +398,18 @@ struct EnrollmentDetailView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Ver deportes disponibles")
                             .font(.system(size: 15, weight: .bold))
-                            .foregroundColor(Color(.label))
+                            .foregroundColor(.white)
                         Text("Inscribite a los deportes de tu club")
                             .font(.system(size: 12))
-                            .foregroundColor(Color(.secondaryLabel))
+                            .foregroundColor(.fnSlate)
                     }
                     Spacer()
                     Image(systemName: "chevron.right")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(.tertiaryLabel))
+                        .foregroundColor(.fnSlate.opacity(0.7))
                 }
                 .padding(16)
-                .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
+                .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 16))
                 .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.fnPurple.opacity(0.2), lineWidth: 1))
             }
             .buttonStyle(ScaleButtonStyle())
@@ -420,7 +420,7 @@ struct EnrollmentDetailView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Tu membresía")
                 .font(.system(size: 13, weight: .bold))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .textCase(.uppercase)
                 .tracking(0.5)
             HStack(spacing: 14) {
@@ -435,10 +435,10 @@ struct EnrollmentDetailView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(enrollment.plan_name ?? "Membresía activa")
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundColor(Color(.label))
+                        .foregroundColor(.white)
                     Text("Accedés a todas las instalaciones del gimnasio")
                         .font(.system(size: 12))
-                        .foregroundColor(Color(.secondaryLabel))
+                        .foregroundColor(.fnSlate)
                 }
                 Spacer()
                 Image(systemName: "checkmark.circle.fill")
@@ -446,7 +446,7 @@ struct EnrollmentDetailView: View {
                     .foregroundColor(.fnGreen)
             }
             .padding(16)
-            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
+            .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 16))
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.fnCyan.opacity(0.2), lineWidth: 1))
         }
     }
@@ -468,18 +468,18 @@ struct EnrollmentDetailView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Rutas de running")
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundColor(Color(.label))
+                        .foregroundColor(.white)
                     Text("Generá rutas personalizadas cerca tuyo")
                         .font(.system(size: 12))
-                        .foregroundColor(Color(.secondaryLabel))
+                        .foregroundColor(.fnSlate)
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(.tertiaryLabel))
+                    .foregroundColor(.fnSlate.opacity(0.7))
             }
             .padding(16)
-            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
+            .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 16))
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.fnCyan.opacity(0.25), lineWidth: 1))
         }
         .buttonStyle(ScaleButtonStyle())
@@ -515,7 +515,7 @@ struct EnrollmentDetailView: View {
 
             Text("Las políticas de reembolso dependen de cada proveedor.")
                 .font(.system(size: 11))
-                .foregroundColor(Color(.tertiaryLabel))
+                .foregroundColor(.fnSlate.opacity(0.7))
                 .multilineTextAlignment(.center)
         }
     }
@@ -527,12 +527,12 @@ struct EnrollmentDetailView: View {
             Spacer(minLength: 60)
             Image(systemName: "xmark.circle.fill")
                 .font(.system(size: 64))
-                .foregroundColor(Color(.tertiaryLabel))
+                .foregroundColor(.fnSlate.opacity(0.7))
             Text("Inscripción cancelada")
                 .font(.system(size: 20, weight: .bold, design: .rounded))
             Text("Tu inscripción fue cancelada exitosamente.")
                 .font(.system(size: 14))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
             Spacer()

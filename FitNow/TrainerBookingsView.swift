@@ -84,7 +84,7 @@ struct TrainerBookingsView: View {
             .padding(16)
             .padding(.bottom, 24)
         }
-        .background(Color(.systemBackground))
+        .background(Color.fnBg)
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.large)
         .navigationBarBackButtonHidden(previousTitle != nil)
@@ -149,20 +149,20 @@ struct TrainerBookingsView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Rutas de running")
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundColor(Color(.label))
+                        .foregroundColor(.white)
                     Text("Generá rutas personalizadas cerca tuyo")
                         .font(.system(size: 12))
-                        .foregroundColor(Color(.secondaryLabel))
+                        .foregroundColor(.fnSlate)
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(.tertiaryLabel))
+                    .foregroundColor(.fnSlate.opacity(0.7))
             }
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 18)
-                    .fill(Color(.secondarySystemBackground))
+                    .fill(Color.fnSurface)
                     .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.fnCyan.opacity(0.2), lineWidth: 1))
             )
         }
@@ -199,10 +199,10 @@ struct TrainerBookingsView: View {
                 VStack(spacing: 12) {
                     Image(systemName: "calendar.badge.exclamationmark")
                         .font(.system(size: 40))
-                        .foregroundColor(Color(.tertiaryLabel))
+                        .foregroundColor(.fnSlate.opacity(0.7))
                     Text("Sin clases disponibles")
                         .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(Color(.secondaryLabel))
+                        .foregroundColor(.fnSlate)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(30)
@@ -232,14 +232,14 @@ struct TrainerBookingsView: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(pretty(s.start_at))
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(Color(.label))
+                    .foregroundColor(.white)
                 Text(pretty(s.end_at))
                     .font(.system(size: 12))
-                    .foregroundColor(Color(.secondaryLabel))
+                    .foregroundColor(.fnSlate)
                 if let lvl = s.level, !lvl.isEmpty {
                     Text("Nivel: \(lvl)")
                         .font(.system(size: 11))
-                        .foregroundColor(Color(.tertiaryLabel))
+                        .foregroundColor(.fnSlate.opacity(0.7))
                 }
             }
 
@@ -261,10 +261,10 @@ struct TrainerBookingsView: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(Color(.secondarySystemBackground))
+                .fill(Color.fnSurface)
                 .overlay(
                     RoundedRectangle(cornerRadius: 18)
-                        .stroke(booked ? Color.fnGreen.opacity(0.2) : Color(.separator).opacity(0.4), lineWidth: 1)
+                        .stroke(booked ? Color.fnGreen.opacity(0.2) : Color.fnBorder.opacity(0.4), lineWidth: 1)
                 )
         )
         .fnShadow(radius: 6, y: 2)

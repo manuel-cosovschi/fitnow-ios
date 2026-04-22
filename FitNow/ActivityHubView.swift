@@ -235,7 +235,7 @@ struct ActivityHubView: View {
                 } else {
                     Text("\(hubVM.posts.count) publicaciones")
                         .font(.system(size: 12))
-                        .foregroundColor(Color(.tertiaryLabel))
+                        .foregroundColor(.fnSlate.opacity(0.7))
                 }
             }
             .padding(.horizontal, 20)
@@ -299,7 +299,7 @@ struct ActivityHubView: View {
                     Spacer()
                     Text(post.createdDate, style: .relative)
                         .font(.system(size: 11))
-                        .foregroundColor(Color(.tertiaryLabel))
+                        .foregroundColor(.fnSlate.opacity(0.7))
                 }
                 Text(post.title)
                     .font(.system(size: 15, weight: .semibold))
@@ -322,7 +322,7 @@ struct ActivityHubView: View {
             }
         }
         .padding(14)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14))
+        .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 14))
     }
 }
 
@@ -449,7 +449,7 @@ struct PostDetailView: View {
                                 .foregroundColor(.fnCyan)
                         }
                         .padding(14)
-                        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
+                        .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 12))
                     }
                     Spacer()
                 }

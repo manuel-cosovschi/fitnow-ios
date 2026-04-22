@@ -54,7 +54,7 @@ struct GymHubView: View {
             }
             .padding(.bottom, 30)
         }
-        .background(Color(.systemBackground))
+        .background(Color.fnBg)
         .navigationTitle("Gimnasio")
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showNewSession) {
@@ -110,7 +110,7 @@ struct GymHubView: View {
             }
             .padding(14)
             .background(
-                RoundedRectangle(cornerRadius: 18).fill(Color(.secondarySystemBackground))
+                RoundedRectangle(cornerRadius: 18).fill(Color.fnSurface)
                     .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.fnGreen.opacity(0.3), lineWidth: 1))
             )
         }
@@ -146,13 +146,13 @@ struct GymHubView: View {
                 }
             } else if vm.sessions.filter({ $0.status == "completed" }).isEmpty {
                 VStack(spacing: 12) {
-                    Image(systemName: "dumbbell").font(.system(size: 36)).foregroundColor(Color(.tertiaryLabel))
+                    Image(systemName: "dumbbell").font(.system(size: 36)).foregroundColor(.fnSlate.opacity(0.7))
                     Text("Sin sesiones completadas").font(.system(size: 15, weight: .semibold)).foregroundColor(.secondary)
                     Text("Iniciá tu primera sesión de gym con IA.")
-                        .font(.system(size: 13)).foregroundColor(Color(.tertiaryLabel)).multilineTextAlignment(.center)
+                        .font(.system(size: 13)).foregroundColor(.fnSlate.opacity(0.7)).multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity).padding(30)
-                .background(RoundedRectangle(cornerRadius: 16).fill(Color(.secondarySystemBackground)))
+                .background(RoundedRectangle(cornerRadius: 16).fill(Color.fnSurface))
             } else {
                 LazyVStack(spacing: 10) {
                     ForEach(Array(vm.sessions.filter({ $0.status == "completed" }).prefix(20).enumerated()), id: \.element.id) { index, session in
@@ -192,7 +192,7 @@ struct GymHubView: View {
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 18).fill(Color(.secondarySystemBackground))
+            RoundedRectangle(cornerRadius: 18).fill(Color.fnSurface)
                 .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.fnPurple.opacity(0.12), lineWidth: 1))
         )
         .fnShadow(radius: 8, y: 3)
@@ -248,7 +248,7 @@ struct StartGymSessionView: View {
                                 .foregroundColor(muscleGroups.contains(muscle) ? .white : .primary)
                                 .padding(.horizontal, 14).padding(.vertical, 8)
                                 .background(
-                                    Capsule().fill(muscleGroups.contains(muscle) ? Color.fnPurple : Color(.tertiarySystemBackground))
+                                    Capsule().fill(muscleGroups.contains(muscle) ? Color.fnPurple : Color.fnElevated)
                                 )
                         }
                     }

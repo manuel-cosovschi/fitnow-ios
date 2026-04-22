@@ -87,7 +87,7 @@ struct GamificationView: View {
             }
             .padding(.bottom, 30)
         }
-        .background(Color(.systemBackground))
+        .background(Color.fnBg)
         .navigationTitle("Mi progreso")
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
@@ -105,7 +105,7 @@ struct GamificationView: View {
         VStack(spacing: 0) {
             ZStack {
                 LinearGradient(
-                    colors: [.fnPrimary, .fnSecondary.opacity(0.85), Color(.systemBackground)],
+                    colors: [.fnPrimary, .fnSecondary.opacity(0.85), Color.fnBg],
                     startPoint: .top, endPoint: .bottom
                 )
                 .frame(height: 200)
@@ -121,7 +121,7 @@ struct GamificationView: View {
                             .frame(width: 80, height: 80)
                             .rotationEffect(.degrees(-90))
                         Text("\(p.level)")
-                            .font(.system(size: 32, weight: .heavy, design: .monospaced))
+                            .font(.custom(\"JetBrains Mono\", size: 32).weight(.heavy))
                             .foregroundColor(.white)
                     }
 
@@ -225,7 +225,7 @@ struct GamificationView: View {
         }
         .frame(width: 90)
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 14).fill(Color(.secondarySystemBackground)))
+        .background(RoundedRectangle(cornerRadius: 14).fill(Color.fnSurface))
         .fnShadow(radius: 6, y: 2)
     }
 
@@ -271,7 +271,7 @@ struct GamificationView: View {
                             .foregroundColor(vm.rankingType == type ? .white : .primary)
                             .padding(.horizontal, 14).padding(.vertical, 6)
                             .background(
-                                Capsule().fill(vm.rankingType == type ? Color.fnPrimary : Color(.tertiarySystemBackground))
+                                Capsule().fill(vm.rankingType == type ? Color.fnPrimary : Color.fnElevated)
                             )
                     }
                 }
@@ -296,7 +296,7 @@ struct GamificationView: View {
     private func rankingRow(position: Int, user: RankingUser) -> some View {
         HStack(spacing: 12) {
             Text("#\(position)")
-                .font(.system(size: 14, weight: .heavy, design: .monospaced))
+                .font(.custom(\"JetBrains Mono\", size: 14).weight(.heavy))
                 .foregroundColor(position <= 3 ? .fnPrimary : .secondary)
                 .frame(width: 36)
 
@@ -320,7 +320,7 @@ struct GamificationView: View {
                 .foregroundColor(.fnPrimary)
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 14).fill(Color(.secondarySystemBackground)))
+        .background(RoundedRectangle(cornerRadius: 14).fill(Color.fnSurface))
     }
 
     private var xpHistorySection: some View {
@@ -349,7 +349,7 @@ struct GamificationView: View {
                                 .font(.system(size: 13, weight: .bold)).foregroundColor(.fnGreen)
                         }
                         .padding(10)
-                        .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
+                        .background(RoundedRectangle(cornerRadius: 12).fill(Color.fnSurface))
                     }
                 }
                 .padding(.horizontal, 20)

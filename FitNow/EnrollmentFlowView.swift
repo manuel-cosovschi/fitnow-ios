@@ -139,7 +139,7 @@ struct EnrollmentFlowView: View {
                     bottomAction
                 }
             }
-            .background(Color(.systemBackground))
+            .background(Color.fnBg)
             .navigationTitle(step.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -160,7 +160,7 @@ struct EnrollmentFlowView: View {
             HStack(spacing: 6) {
                 ForEach(1...totalSteps, id: \.self) { i in
                     Capsule()
-                        .fill(i <= currentStepNumber ? typeInfo.color : Color(.tertiarySystemFill))
+                        .fill(i <= currentStepNumber ? typeInfo.color : Color.white.opacity(0.1))
                         .frame(height: 4)
                         .animation(.spring(response: 0.4), value: currentStepNumber)
                 }
@@ -169,7 +169,7 @@ struct EnrollmentFlowView: View {
             .padding(.top, 12)
             Text("Paso \(currentStepNumber) de \(totalSteps)")
                 .font(.system(size: 12, weight: .medium))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .padding(.bottom, 6)
         }
     }
@@ -264,11 +264,11 @@ struct EnrollmentFlowView: View {
                 .foregroundColor(color)
             Text(text)
                 .font(.system(size: 14))
-                .foregroundColor(Color(.label))
+                .foregroundColor(.white)
             Spacer()
         }
         .padding(12)
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+        .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 12))
     }
 
     // MARK: - Step 2: Select Plan
@@ -282,7 +282,7 @@ struct EnrollmentFlowView: View {
                     .font(.system(size: 22, weight: .bold, design: .rounded))
                 Text("Podés cambiar tu plan en cualquier momento.")
                     .font(.system(size: 13))
-                    .foregroundColor(Color(.secondaryLabel))
+                    .foregroundColor(.fnSlate)
             }
             .padding(.horizontal, 20)
             .padding(.top, 20)
@@ -304,7 +304,7 @@ struct EnrollmentFlowView: View {
             HStack(spacing: 14) {
                 ZStack {
                     Circle()
-                        .stroke(isSelected ? typeInfo.color : Color(.tertiaryLabel), lineWidth: 2)
+                        .stroke(isSelected ? typeInfo.color : .fnSlate.opacity(0.7), lineWidth: 2)
                         .frame(width: 22, height: 22)
                     if isSelected {
                         Circle().fill(typeInfo.color).frame(width: 13, height: 13)
@@ -314,7 +314,7 @@ struct EnrollmentFlowView: View {
                     HStack(spacing: 6) {
                         Text(plan.name)
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(Color(.label))
+                            .foregroundColor(.white)
                         if plan.isBestValue {
                             Text("MÁS ELEGIDO")
                                 .font(.system(size: 9, weight: .bold))
@@ -325,17 +325,17 @@ struct EnrollmentFlowView: View {
                     }
                     Text(plan.description)
                         .font(.system(size: 12))
-                        .foregroundColor(Color(.secondaryLabel))
+                        .foregroundColor(.fnSlate)
                 }
                 Spacer()
                 Text("$\(Int(plan.price))")
-                    .font(.system(size: 16, weight: .heavy, design: .rounded))
-                    .foregroundColor(isSelected ? typeInfo.color : Color(.label))
+                    .font(.custom(\"DM Serif Display\", size: 16))
+                    .foregroundColor(isSelected ? typeInfo.color : .white)
             }
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(isSelected ? typeInfo.color.opacity(0.08) : Color(.secondarySystemBackground))
+                    .fill(isSelected ? typeInfo.color.opacity(0.08) : Color.fnSurface)
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
                             .stroke(isSelected ? typeInfo.color : Color.clear, lineWidth: 1.5)
@@ -360,7 +360,7 @@ struct EnrollmentFlowView: View {
                     HStack {
                         Text("Plan seleccionado")
                             .font(.system(size: 13))
-                            .foregroundColor(Color(.secondaryLabel))
+                            .foregroundColor(.fnSlate)
                         Spacer()
                         Text(plan.name)
                             .font(.system(size: 13, weight: .semibold))
@@ -372,12 +372,12 @@ struct EnrollmentFlowView: View {
                         .font(.system(size: 14, weight: .semibold))
                     Spacer()
                     Text("$\(Int(selectedPlan?.price ?? activity.price ?? 0))")
-                        .font(.system(size: 17, weight: .heavy, design: .rounded))
+                        .font(.custom(\"DM Serif Display\", size: 17))
                         .foregroundColor(typeInfo.color)
                 }
             }
             .padding(16)
-            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
+            .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 16))
             .padding(.horizontal, 20)
 
             // Payment type (full vs deposit) — only if provider enables it
@@ -385,7 +385,7 @@ struct EnrollmentFlowView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Modalidad de pago")
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(Color(.secondaryLabel))
+                        .foregroundColor(.fnSlate)
                         .textCase(.uppercase)
                         .tracking(0.5)
                         .padding(.horizontal, 20)
@@ -407,7 +407,7 @@ struct EnrollmentFlowView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Medio de pago")
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(Color(.secondaryLabel))
+                    .foregroundColor(.fnSlate)
                     .textCase(.uppercase)
                     .tracking(0.5)
                     .padding(.horizontal, 20)
@@ -423,9 +423,9 @@ struct EnrollmentFlowView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("A pagar ahora")
                             .font(.system(size: 12))
-                            .foregroundColor(Color(.secondaryLabel))
+                            .foregroundColor(.fnSlate)
                         Text("$\(Int(finalPrice))")
-                            .font(.system(size: 30, weight: .heavy, design: .rounded))
+                            .font(.custom(\"DM Serif Display\", size: 30))
                             .foregroundStyle(typeInfo.gradient)
                     }
                     Spacer()
@@ -433,10 +433,10 @@ struct EnrollmentFlowView: View {
                         VStack(alignment: .trailing, spacing: 2) {
                             Text("Resto al concurrir")
                                 .font(.system(size: 11))
-                                .foregroundColor(Color(.secondaryLabel))
+                                .foregroundColor(.fnSlate)
                             Text("$\(Int(remainingPrice))")
                                 .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(Color(.secondaryLabel))
+                                .foregroundColor(.fnSlate)
                         }
                     }
                 }
@@ -461,7 +461,7 @@ struct EnrollmentFlowView: View {
             HStack(spacing: 14) {
                 ZStack {
                     Circle()
-                        .stroke(isSelected ? typeInfo.color : Color(.tertiaryLabel), lineWidth: 2)
+                        .stroke(isSelected ? typeInfo.color : .fnSlate.opacity(0.7), lineWidth: 2)
                         .frame(width: 22, height: 22)
                     if isSelected { Circle().fill(typeInfo.color).frame(width: 13, height: 13) }
                 }
@@ -469,7 +469,7 @@ struct EnrollmentFlowView: View {
                     HStack(spacing: 6) {
                         Text(title)
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(Color(.label))
+                            .foregroundColor(.white)
                         if let badge = badge {
                             Text(badge)
                                 .font(.system(size: 9, weight: .bold))
@@ -480,17 +480,17 @@ struct EnrollmentFlowView: View {
                     }
                     Text(subtitle)
                         .font(.system(size: 12))
-                        .foregroundColor(Color(.secondaryLabel))
+                        .foregroundColor(.fnSlate)
                 }
                 Spacer()
                 Text("$\(Int(amount))")
-                    .font(.system(size: 15, weight: .heavy, design: .rounded))
-                    .foregroundColor(isSelected ? typeInfo.color : Color(.label))
+                    .font(.custom(\"DM Serif Display\", size: 15))
+                    .foregroundColor(isSelected ? typeInfo.color : .white)
             }
             .padding(14)
             .background(
                 RoundedRectangle(cornerRadius: 14)
-                    .fill(isSelected ? typeInfo.color.opacity(0.08) : Color(.secondarySystemBackground))
+                    .fill(isSelected ? typeInfo.color.opacity(0.08) : Color.fnSurface)
                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(isSelected ? typeInfo.color : Color.clear, lineWidth: 1.5))
             )
         }
@@ -506,28 +506,28 @@ struct EnrollmentFlowView: View {
             HStack(spacing: 14) {
                 ZStack {
                     Circle()
-                        .stroke(isSelected ? typeInfo.color : Color(.tertiaryLabel), lineWidth: 2)
+                        .stroke(isSelected ? typeInfo.color : .fnSlate.opacity(0.7), lineWidth: 2)
                         .frame(width: 22, height: 22)
                     if isSelected { Circle().fill(typeInfo.color).frame(width: 13, height: 13) }
                 }
                 Image(systemName: icon)
                     .font(.system(size: 16))
-                    .foregroundColor(isSelected ? typeInfo.color : Color(.secondaryLabel))
+                    .foregroundColor(isSelected ? typeInfo.color : .fnSlate)
                     .frame(width: 24)
                 VStack(alignment: .leading, spacing: 3) {
                     Text(title)
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(.label))
+                        .foregroundColor(.white)
                     Text(subtitle)
                         .font(.system(size: 12))
-                        .foregroundColor(Color(.secondaryLabel))
+                        .foregroundColor(.fnSlate)
                 }
                 Spacer()
             }
             .padding(14)
             .background(
                 RoundedRectangle(cornerRadius: 14)
-                    .fill(isSelected ? typeInfo.color.opacity(0.08) : Color(.secondarySystemBackground))
+                    .fill(isSelected ? typeInfo.color.opacity(0.08) : Color.fnSurface)
                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(isSelected ? typeInfo.color : Color.clear, lineWidth: 1.5))
             )
         }
@@ -555,7 +555,7 @@ struct EnrollmentFlowView: View {
 
             VStack(spacing: 12) {
                 Text("¡Inscripción confirmada!")
-                    .font(.system(size: 26, weight: .heavy, design: .rounded))
+                    .font(.custom("DM Serif Display", size: 30))
                     .multilineTextAlignment(.center)
 
                 if let plan = selectedPlan {
@@ -571,7 +571,7 @@ struct EnrollmentFlowView: View {
 
                 Text("Te avisaremos antes de cada clase o actividad.")
                     .font(.system(size: 14))
-                    .foregroundColor(Color(.secondaryLabel))
+                    .foregroundColor(.fnSlate)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
 
@@ -642,7 +642,7 @@ struct EnrollmentFlowView: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 14)
-            .background(Color(.systemBackground))
+            .background(Color.fnBg)
         }
     }
 

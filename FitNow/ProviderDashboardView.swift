@@ -117,7 +117,7 @@ private struct ProviderHomeTab: View {
             .padding(.horizontal, 16)
             .padding(.top, 12)
         }
-        .background(Color(.systemBackground))
+        .background(Color.fnBg)
         .navigationTitle("Panel")
         .navigationBarTitleDisplayMode(.large)
         .refreshable { vm.load() }
@@ -140,7 +140,7 @@ private struct ProviderHomeTab: View {
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.white.opacity(0.8))
                 Text(auth.user?.name ?? "Proveedor")
-                    .font(.system(size: 22, weight: .heavy, design: .rounded))
+                    .font(.custom(\"DM Serif Display\", size: 22))
                     .foregroundColor(.white)
                 Text("Panel de proveedor · \(vm.activities.count) actividades")
                     .font(.system(size: 12))
@@ -164,14 +164,14 @@ private struct ProviderHomeTab: View {
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(color)
             Text(value)
-                .font(.system(size: 24, weight: .heavy, design: .rounded))
+                .font(.custom(\"DM Serif Display\", size: 24))
             Text(label)
                 .font(.system(size: 11))
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14))
+        .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 14))
     }
 
     private var activitySummarySection: some View {
@@ -186,7 +186,7 @@ private struct ProviderHomeTab: View {
                     activityRow(a)
                 }
             }
-            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14))
+            .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 14))
         }
     }
 
@@ -260,7 +260,7 @@ private struct ProviderHomeTab: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 18)
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14))
+        .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 14))
     }
 }
 
@@ -354,7 +354,7 @@ struct ProviderActivitiesTab: View {
                             .foregroundColor(.secondary)
                     }
                     if let diff = a.difficulty {
-                        Text("·").foregroundColor(Color(.tertiaryLabel))
+                        Text("·").foregroundColor(.fnSlate.opacity(0.7))
                         Text(diff.capitalized)
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(.secondary)

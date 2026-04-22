@@ -49,7 +49,7 @@ struct RunHubView: View {
             }
             .padding(.bottom, 30)
         }
-        .background(Color(.systemBackground))
+        .background(Color.fnBg)
         .navigationTitle("Correr")
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
@@ -139,7 +139,7 @@ struct RunHubView: View {
                         .foregroundColor(.fnPrimary)
                 }
                 .padding(14)
-                .background(RoundedRectangle(cornerRadius: 14).fill(Color(.secondarySystemBackground)))
+                .background(RoundedRectangle(cornerRadius: 14).fill(Color.fnSurface))
             } else if vm.sessions.isEmpty {
                 emptyHistory
             } else {
@@ -163,18 +163,18 @@ struct RunHubView: View {
         VStack(spacing: 12) {
             Image(systemName: "map")
                 .font(.system(size: 36))
-                .foregroundColor(Color(.tertiaryLabel))
+                .foregroundColor(.fnSlate.opacity(0.7))
             Text("Sin corridas registradas")
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(.secondary)
             Text("Tu historial aparecerá acá después de tu primera salida.")
                 .font(.system(size: 13))
-                .foregroundColor(Color(.tertiaryLabel))
+                .foregroundColor(.fnSlate.opacity(0.7))
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
         .padding(30)
-        .background(RoundedRectangle(cornerRadius: 16).fill(Color(.secondarySystemBackground)))
+        .background(RoundedRectangle(cornerRadius: 16).fill(Color.fnSurface))
     }
 
     private func formatPace(_ secondsPerKm: Double) -> String {
@@ -244,7 +244,7 @@ struct RunSessionCard: View {
             if let pace = session.avg_pace_s_per_km, pace > 0 {
                 VStack(alignment: .trailing, spacing: 1) {
                     Text(formatPace(pace))
-                        .font(.system(size: 14, weight: .heavy, design: .monospaced))
+                        .font(.custom(\"JetBrains Mono\", size: 14).weight(.heavy))
                         .foregroundColor(.fnCyan)
                     Text("min/km")
                         .font(.system(size: 10))
@@ -255,7 +255,7 @@ struct RunSessionCard: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(Color(.secondarySystemBackground))
+                .fill(Color.fnSurface)
                 .overlay(
                     RoundedRectangle(cornerRadius: 18)
                         .stroke(Color.fnCyan.opacity(0.12), lineWidth: 1)

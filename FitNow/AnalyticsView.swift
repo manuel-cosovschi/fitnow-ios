@@ -93,7 +93,7 @@ struct AnalyticsView: View {
             }
             .padding(.bottom, 30)
         }
-        .background(Color(.systemBackground))
+        .background(Color.fnBg)
         .navigationTitle("Rendimiento")
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
@@ -126,7 +126,7 @@ struct AnalyticsView: View {
         }
         .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 18).fill(Color(.secondarySystemBackground))
+            RoundedRectangle(cornerRadius: 18).fill(Color.fnSurface)
                 .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.fnPrimary.opacity(0.2), lineWidth: 1))
         )
     }
@@ -247,7 +247,7 @@ struct AnalyticsView: View {
     private func miniStat(_ label: String, _ value: String, _ color: Color) -> some View {
         VStack(spacing: 4) {
             Text(value)
-                .font(.system(size: 15, weight: .heavy, design: .monospaced))
+                .font(.custom(\"JetBrains Mono\", size: 15).weight(.heavy))
                 .foregroundColor(color)
             Text(label)
                 .font(.system(size: 11))
@@ -255,7 +255,7 @@ struct AnalyticsView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color.fnSurface))
     }
 
     private func formatDist(_ meters: Double) -> String {

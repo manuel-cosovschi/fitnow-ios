@@ -65,7 +65,7 @@ struct RunPlannerView: View {
             .padding(20)
             .padding(.bottom, 20)
         }
-        .background(Color(.systemBackground))
+        .background(Color.fnBg)
         .navigationTitle("Rutas de running")
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
@@ -83,16 +83,16 @@ struct RunPlannerView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Distancia objetivo")
                         .font(.system(size: 13, weight: .bold))
-                        .foregroundColor(Color(.secondaryLabel))
+                        .foregroundColor(.fnSlate)
                         .textCase(.uppercase)
                         .tracking(0.5)
                     HStack(alignment: .lastTextBaseline, spacing: 4) {
                         Text("\(Int(distanceKm))")
-                            .font(.system(size: 52, weight: .heavy, design: .rounded))
+                            .font(.custom(\"DM Serif Display\", size: 52))
                             .foregroundStyle(FNGradient.run)
                         Text("km")
                             .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(Color(.secondaryLabel))
+                            .foregroundColor(.fnSlate)
                             .padding(.bottom, 6)
                     }
                 }
@@ -101,10 +101,10 @@ struct RunPlannerView: View {
                 VStack(alignment: .trailing, spacing: 4) {
                     Text("~\(estimatedTime)")
                         .font(.system(size: 18, weight: .bold, design: .rounded))
-                        .foregroundColor(Color(.label))
+                        .foregroundColor(.white)
                     Text("estimado")
                         .font(.system(size: 11))
-                        .foregroundColor(Color(.tertiaryLabel))
+                        .foregroundColor(.fnSlate.opacity(0.7))
                     Text("~\(estimatedCalories) kcal")
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(.fnYellow)
@@ -120,11 +120,11 @@ struct RunPlannerView: View {
                 HStack {
                     Text("2 km")
                         .font(.system(size: 11))
-                        .foregroundColor(Color(.tertiaryLabel))
+                        .foregroundColor(.fnSlate.opacity(0.7))
                     Spacer()
                     Text("100 km")
                         .font(.system(size: 11))
-                        .foregroundColor(Color(.tertiaryLabel))
+                        .foregroundColor(.fnSlate.opacity(0.7))
                 }
             }
 
@@ -136,14 +136,14 @@ struct RunPlannerView: View {
                     } label: {
                         Text(km == 21 ? "21k" : km == 42 ? "42k" : "\(km)k")
                             .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(Int(distanceKm) == km ? .white : Color(.secondaryLabel))
+                            .foregroundColor(Int(distanceKm) == km ? .white : .fnSlate)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
                             .background(
                                 Capsule()
                                     .fill(Int(distanceKm) == km
                                           ? AnyShapeStyle(FNGradient.run)
-                                          : AnyShapeStyle(Color(.tertiarySystemFill)))
+                                          : AnyShapeStyle(Color.white.opacity(0.1)))
                             )
                     }
                     .buttonStyle(ScaleButtonStyle())
@@ -153,7 +153,7 @@ struct RunPlannerView: View {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 22)
-                .fill(Color(.secondarySystemBackground))
+                .fill(Color.fnSurface)
                 .overlay(
                     RoundedRectangle(cornerRadius: 22)
                         .stroke(Color.fnCyan.opacity(0.2), lineWidth: 1)
@@ -190,7 +190,7 @@ struct RunPlannerView: View {
                     .fill(FNGradient.run)
                     .frame(width: 46, height: 46)
                 Text("\(index + 1)")
-                    .font(.system(size: 20, weight: .heavy, design: .rounded))
+                    .font(.custom(\"DM Serif Display\", size: 20))
                     .foregroundColor(.white)
             }
             .fnShadowColored(.fnCyan)
@@ -198,10 +198,10 @@ struct RunPlannerView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(opt.label)
                     .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(Color(.label))
+                    .foregroundColor(.white)
                 Text(opt.rationale)
                     .font(.system(size: 12))
-                    .foregroundColor(Color(.secondaryLabel))
+                    .foregroundColor(.fnSlate)
                     .lineLimit(2)
                 HStack(spacing: 6) {
                     Image(systemName: "arrow.triangle.swap")
@@ -215,12 +215,12 @@ struct RunPlannerView: View {
             Spacer()
             Image(systemName: "chevron.right")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(.tertiaryLabel))
+                .foregroundColor(.fnSlate.opacity(0.7))
         }
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(Color(.secondarySystemBackground))
+                .fill(Color.fnSurface)
                 .overlay(
                     RoundedRectangle(cornerRadius: 18)
                         .stroke(Color.fnCyan.opacity(0.15), lineWidth: 1)
@@ -244,16 +244,16 @@ struct RunPlannerView: View {
             }
             Text("Generá tu ruta")
                 .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundColor(Color(.label))
+                .foregroundColor(.white)
             Text("Seleccioná la distancia que querés correr y generá rutas personalizadas desde tu ubicación actual.")
                 .font(.system(size: 14))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .multilineTextAlignment(.center)
         }
         .padding(28)
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(Color(.secondarySystemBackground))
+                .fill(Color.fnSurface)
         )
     }
 

@@ -70,7 +70,7 @@ struct ClubSportsView: View {
             .padding(16)
             .padding(.bottom, 24)
         }
-        .background(Color(.systemBackground))
+        .background(Color.fnBg)
         .navigationTitle(clubTitle)
         .navigationBarTitleDisplayMode(.large)
         .navigationBarBackButtonHidden(true)
@@ -117,13 +117,13 @@ struct ClubSportsView: View {
                             .foregroundColor(.fnGreen)
                         Text(name)
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(.label))
+                            .foregroundColor(.white)
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 7)
                     .background(
                         Capsule()
-                            .fill(Color(.secondarySystemBackground))
+                            .fill(Color.fnSurface)
                             .overlay(Capsule().stroke(Color.fnGreen.opacity(0.2), lineWidth: 1))
                     )
                 }
@@ -167,14 +167,14 @@ struct ClubSportsView: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(item.title)
                     .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(Color(.label))
+                    .foregroundColor(.white)
                 Text(item.sportName)
                     .font(.system(size: 12))
-                    .foregroundColor(Color(.secondaryLabel))
+                    .foregroundColor(.fnSlate)
                 if let loc = item.location, !loc.isEmpty {
                     Label(loc, systemImage: "mappin.circle.fill")
                         .font(.system(size: 11))
-                        .foregroundColor(Color(.tertiaryLabel))
+                        .foregroundColor(.fnSlate.opacity(0.7))
                         .lineLimit(1)
                 }
                 if item.activityId == nil {
@@ -212,10 +212,10 @@ struct ClubSportsView: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(Color(.secondarySystemBackground))
+                .fill(Color.fnSurface)
                 .overlay(
                     RoundedRectangle(cornerRadius: 20)
-                        .stroke(enrolled ? Color.fnGreen.opacity(0.2) : Color(.separator).opacity(0.4), lineWidth: 0.5)
+                        .stroke(enrolled ? Color.fnGreen.opacity(0.2) : Color.fnBorder.opacity(0.4), lineWidth: 0.5)
                 )
         )
         .fnShadow()

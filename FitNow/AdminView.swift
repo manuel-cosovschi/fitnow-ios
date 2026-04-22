@@ -30,19 +30,19 @@ struct AdminLockedView: View {
             Spacer(minLength: 60)
             ZStack {
                 Circle()
-                    .fill(LinearGradient(colors: [Color(.systemGray4), Color(.systemGray5)],
+                    .fill(LinearGradient(colors: [Color.fnSurface, Color.fnElevated],
                                         startPoint: .topLeading, endPoint: .bottomTrailing))
                     .frame(width: 90, height: 90)
                 Image(systemName: "lock.fill")
                     .font(.system(size: 38, weight: .bold))
-                    .foregroundColor(Color(.systemGray))
+                    .foregroundColor(Color.fnSlate)
             }
             VStack(spacing: 8) {
                 Text("Acceso restringido")
                     .font(.system(size: 22, weight: .bold, design: .rounded))
                 Text("Esta sección es exclusiva para administradores de FitNow.")
                     .font(.system(size: 14))
-                    .foregroundColor(Color(.secondaryLabel))
+                    .foregroundColor(.fnSlate)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 50)
             }
@@ -88,7 +88,7 @@ struct AdminDashboardView: View {
             default: EmptyView()
             }
         }
-        .background(Color(.systemBackground))
+        .background(Color.fnBg)
         .navigationTitle("Panel Admin")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -109,13 +109,13 @@ struct AdminDashboardView: View {
                     .font(.system(size: 15, weight: .bold))
                 Text("FitNow · Acceso interno")
                     .font(.system(size: 12))
-                    .foregroundColor(Color(.secondaryLabel))
+                    .foregroundColor(.fnSlate)
             }
             Spacer()
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(Color(.secondarySystemBackground))
+        .background(Color.fnSurface)
     }
 }
 
@@ -169,12 +169,12 @@ struct AdminOffersTab: View {
                     if let provider = offer.provider_name, !provider.isEmpty {
                         Text("Por: \(provider)")
                             .font(.system(size: 12))
-                            .foregroundColor(Color(.secondaryLabel))
+                            .foregroundColor(.fnSlate)
                     }
                 }
                 Spacer()
                 Text(offer.discount_label)
-                    .font(.system(size: 14, weight: .heavy, design: .rounded))
+                    .font(.custom(\"DM Serif Display\", size: 14))
                     .foregroundColor(.fnPrimary)
                     .padding(.horizontal, 10).padding(.vertical, 5)
                     .background(Color.fnPrimary.opacity(0.10), in: Capsule())
@@ -183,7 +183,7 @@ struct AdminOffersTab: View {
             if let desc = offer.description, !desc.isEmpty {
                 Text(desc)
                     .font(.system(size: 13))
-                    .foregroundColor(Color(.secondaryLabel))
+                    .foregroundColor(.fnSlate)
                     .lineLimit(2)
             }
 
@@ -230,8 +230,8 @@ struct AdminOffersTab: View {
             }
         }
         .padding(16)
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(.separator).opacity(0.3), lineWidth: 0.5))
+        .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.fnBorder.opacity(0.3), lineWidth: 0.5))
     }
 
     private var emptyOffersState: some View {
@@ -244,7 +244,7 @@ struct AdminOffersTab: View {
                 .font(.system(size: 18, weight: .bold, design: .rounded))
             Text("Todas las ofertas han sido revisadas.")
                 .font(.system(size: 14))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
             Spacer()
         }
     }
@@ -297,16 +297,16 @@ struct AdminStatsTab: View {
                     .foregroundColor(color)
             }
             Text(value)
-                .font(.system(size: 28, weight: .heavy, design: .rounded))
-                .foregroundColor(Color(.label))
+                .font(.custom(\"DM Serif Display\", size: 28))
+                .foregroundColor(.white)
             Text(label)
                 .font(.system(size: 12, weight: .medium))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
         .padding(18)
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
+        .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 16))
     }
 }
 
@@ -347,7 +347,7 @@ struct AdminUsersTab: View {
             ProgressView("Cargando usuarios…").frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if vm.users.isEmpty {
             Text("Sin usuarios registrados.")
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             List(vm.users) { user in
@@ -357,7 +357,7 @@ struct AdminUsersTab: View {
                         Spacer()
                         roleBadge(user.role ?? "user")
                     }
-                    Text(user.email).font(.system(size: 12)).foregroundColor(Color(.secondaryLabel))
+                    Text(user.email).font(.system(size: 12)).foregroundColor(.fnSlate)
                 }
                 .padding(.vertical, 4)
             }
@@ -416,7 +416,7 @@ struct AdminProvidersTab: View {
             ProgressView("Cargando proveedores…").frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if vm.providers.isEmpty {
             Text("Sin proveedores registrados.")
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             List(vm.providers) { p in
@@ -440,7 +440,7 @@ struct AdminProvidersTab: View {
                 }
             }
             if let email = p.email {
-                Text(email).font(.system(size: 12)).foregroundColor(Color(.secondaryLabel))
+                Text(email).font(.system(size: 12)).foregroundColor(.fnSlate)
             }
         }
         .padding(.vertical, 4)

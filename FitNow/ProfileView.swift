@@ -247,7 +247,7 @@ private struct MembershipView: View {
 
                 VStack(spacing: 8) {
                     Text("Plan Gratuito")
-                        .font(.system(size: 26, weight: .heavy, design: .rounded))
+                        .font(.custom(\"DM Serif Display\", size: 26))
                     Text("Accedé a actividades básicas sin costo")
                         .font(.system(size: 15))
                         .foregroundColor(.secondary)
@@ -261,11 +261,11 @@ private struct MembershipView: View {
                     Divider().padding(.leading, 44)
                     membershipRow(icon: "checkmark.circle.fill", color: .fnGreen, text: "Historial de actividades")
                     Divider().padding(.leading, 44)
-                    membershipRow(icon: "lock.fill", color: Color(.tertiaryLabel), text: "Descuentos exclusivos (Premium)")
+                    membershipRow(icon: "lock.fill", color: .fnSlate.opacity(0.7), text: "Descuentos exclusivos (Premium)")
                     Divider().padding(.leading, 44)
-                    membershipRow(icon: "lock.fill", color: Color(.tertiaryLabel), text: "Rutas ilimitadas (Premium)")
+                    membershipRow(icon: "lock.fill", color: .fnSlate.opacity(0.7), text: "Rutas ilimitadas (Premium)")
                 }
-                .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14))
+                .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 14))
                 .padding(.horizontal, 20)
 
                 Text("Próximamente podrás actualizar a Premium")
@@ -465,7 +465,7 @@ private struct AboutView: View {
 
                 VStack(spacing: 8) {
                     Text("FitNow")
-                        .font(.system(size: 32, weight: .heavy, design: .rounded))
+                        .font(.custom(\"DM Serif Display\", size: 32))
                         .foregroundStyle(FNGradient.primary)
                     Text("Tu fitness, sin límites")
                         .font(.system(size: 15))

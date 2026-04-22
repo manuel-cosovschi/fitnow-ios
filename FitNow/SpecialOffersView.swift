@@ -77,7 +77,7 @@ struct SpecialOffersView: View {
                 offersList
             }
         }
-        .background(Color(.systemBackground))
+        .background(Color.fnBg)
         .navigationTitle("Ofertas especiales")
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
@@ -125,7 +125,7 @@ struct SpecialOffersView: View {
                 }
                 Spacer()
                 Text(offer.discount_label)
-                    .font(.system(size: 18, weight: .heavy, design: .rounded))
+                    .font(.custom(\"DM Serif Display\", size: 18))
                     .foregroundColor(.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
@@ -139,7 +139,7 @@ struct SpecialOffersView: View {
                 if let desc = offer.description, !desc.isEmpty {
                     Text(desc)
                         .font(.system(size: 14))
-                        .foregroundColor(Color(.label))
+                        .foregroundColor(.white)
                         .lineLimit(3)
                 }
                 if let until = offer.valid_until {
@@ -154,7 +154,7 @@ struct SpecialOffersView: View {
                 }
             }
             .padding(16)
-            .background(Color(.secondarySystemBackground))
+            .background(Color.fnSurface)
         }
         .clipShape(RoundedRectangle(cornerRadius: 18))
         .fnShadow()
@@ -176,12 +176,12 @@ struct SpecialOffersView: View {
             Spacer()
             Image(systemName: "tag.slash")
                 .font(.system(size: 52))
-                .foregroundColor(Color(.tertiaryLabel))
+                .foregroundColor(.fnSlate.opacity(0.7))
             Text("Sin ofertas por ahora")
                 .font(.system(size: 20, weight: .bold, design: .rounded))
             Text("Las ofertas aprobadas por los proveedores aparecerán acá.")
                 .font(.system(size: 14))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 50)
             Spacer()
@@ -311,7 +311,7 @@ struct ProviderSubmitOfferView: View {
                 }
                 .listRowBackground(
                     RoundedRectangle(cornerRadius: 10)
-                        .fill(canSubmit ? FNGradient.primary : LinearGradient(colors: [Color(.systemGray4)], startPoint: .leading, endPoint: .trailing))
+                        .fill(canSubmit ? FNGradient.primary : LinearGradient(colors: [Color.fnSurface], startPoint: .leading, endPoint: .trailing))
                 )
                 .disabled(!canSubmit || submitting)
             } footer: {
@@ -336,10 +336,10 @@ struct ProviderSubmitOfferView: View {
             }
             VStack(spacing: 10) {
                 Text("¡Oferta enviada!")
-                    .font(.system(size: 26, weight: .heavy, design: .rounded))
+                    .font(.custom(\"DM Serif Display\", size: 26))
                 Text("Tu oferta fue enviada para revisión. Te notificaremos cuando sea aprobada.")
                     .font(.system(size: 14))
-                    .foregroundColor(Color(.secondaryLabel))
+                    .foregroundColor(.fnSlate)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
             }
@@ -441,7 +441,7 @@ struct ProviderMyOffersView: View {
                     }
                     Text(offer.discount_label)
                         .font(.system(size: 13))
-                        .foregroundColor(Color(.secondaryLabel))
+                        .foregroundColor(.fnSlate)
                 }
                 .padding(.vertical, 4)
             }
@@ -468,12 +468,12 @@ struct ProviderMyOffersView: View {
             Spacer()
             Image(systemName: "tag")
                 .font(.system(size: 52))
-                .foregroundColor(Color(.tertiaryLabel))
+                .foregroundColor(.fnSlate.opacity(0.7))
             Text("Sin ofertas publicadas")
                 .font(.system(size: 18, weight: .bold, design: .rounded))
             Text("Creá una oferta para atraer más clientes.")
                 .font(.system(size: 14))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .multilineTextAlignment(.center)
             FitNowButton(title: "Publicar oferta", icon: "plus.circle.fill") {
                 showSubmit = true

@@ -119,7 +119,7 @@ struct ActivityDetailView: View {
             // Floating bottom CTA
             bottomCTA
         }
-        .background(Color(.systemBackground))
+        .background(Color.fnBg)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(previousTitle != nil)
         .toolbar {
@@ -211,7 +211,7 @@ struct ActivityDetailView: View {
 
                 // Title
                 Text(activity.title)
-                    .font(.system(size: 26, weight: .heavy, design: .rounded))
+                    .font(.custom("DM Serif Display", size: 30))
                     .foregroundColor(.white)
                     .lineLimit(3)
 
@@ -317,25 +317,25 @@ struct ActivityDetailView: View {
             if let loc = activity.location, !loc.isEmpty {
                 Label(loc, systemImage: "mappin.circle.fill")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color(.secondaryLabel))
+                    .foregroundColor(.fnSlate)
                     .lineLimit(1)
             }
             Spacer()
             if let p = activity.price, p > 0 {
                 VStack(alignment: .trailing, spacing: 1) {
                     Text(String(format: "$%.0f", p))
-                        .font(.system(size: 22, weight: .heavy, design: .monospaced))
+                        .font(.custom(\"JetBrains Mono\", size: 22).weight(.heavy))
                         .foregroundColor(typeInfo.color)
                     Text("por mes")
                         .font(.system(size: 11))
-                        .foregroundColor(Color(.secondaryLabel))
+                        .foregroundColor(.fnSlate)
                 }
             }
         }
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
+                .fill(Color.fnSurface)
         )
     }
 
@@ -343,18 +343,18 @@ struct ActivityDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             Label("Descripción", systemImage: "text.alignleft")
                 .font(.system(size: 13, weight: .bold))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .textCase(.uppercase)
                 .tracking(0.5)
             Text(text)
                 .font(.system(size: 15))
-                .foregroundColor(Color(.label))
+                .foregroundColor(.white)
                 .lineSpacing(4)
         }
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
+                .fill(Color.fnSurface)
         )
     }
 
@@ -376,25 +376,25 @@ struct ActivityDetailView: View {
                             .foregroundColor(typeInfo.color)
                         Text(name)
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(Color(.label))
+                            .foregroundColor(.white)
                     }
                 }
                 if let addr = providerAddress, !addr.isEmpty {
                     HStack(spacing: 8) {
                         Image(systemName: "mappin.circle.fill")
-                            .foregroundColor(Color(.tertiaryLabel))
+                            .foregroundColor(.fnSlate.opacity(0.7))
                         Text(addr)
                             .font(.system(size: 14))
-                            .foregroundColor(Color(.secondaryLabel))
+                            .foregroundColor(.fnSlate)
                     }
                 }
                 if let city = providerCity, !city.isEmpty {
                     HStack(spacing: 8) {
                         Image(systemName: "building.2.fill")
-                            .foregroundColor(Color(.tertiaryLabel))
+                            .foregroundColor(.fnSlate.opacity(0.7))
                         Text(city)
                             .font(.system(size: 14))
-                            .foregroundColor(Color(.secondaryLabel))
+                            .foregroundColor(.fnSlate)
                     }
                 }
             }
@@ -402,10 +402,10 @@ struct ActivityDetailView: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
+                .fill(Color.fnSurface)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(typeInfo.color.opacity(0.2), lineWidth: 1)
+                        .stroke(typeInfo.color.opacity(0.3), lineWidth: 1)
                 )
         )
     }
@@ -436,13 +436,13 @@ struct ActivityDetailView: View {
             if sessions.isEmpty {
                 HStack(spacing: 10) {
                     Image(systemName: "calendar.badge.clock")
-                        .foregroundColor(Color(.tertiaryLabel))
+                        .foregroundColor(.fnSlate.opacity(0.7))
                     Text("No hay clases publicadas por ahora.")
                         .font(.system(size: 14))
-                        .foregroundColor(Color(.secondaryLabel))
+                        .foregroundColor(.fnSlate)
                 }
                 .padding(14)
-                .background(RoundedRectangle(cornerRadius: 14).fill(Color(.secondarySystemBackground)))
+                .background(RoundedRectangle(cornerRadius: 14).fill(Color.fnSurface))
             } else {
                 VStack(spacing: 8) {
                     ForEach(sessions) { s in
@@ -458,27 +458,27 @@ struct ActivityDetailView: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(pretty(s.start_at))
                                     .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(Color(.label))
+                                    .foregroundColor(.white)
                                 Text(pretty(s.end_at))
                                     .font(.system(size: 12))
-                                    .foregroundColor(Color(.secondaryLabel))
+                                    .foregroundColor(.fnSlate)
                                 if let lvl = s.level, !lvl.isEmpty {
                                     Text("Nivel: \(lvl)")
                                         .font(.system(size: 11))
-                                        .foregroundColor(Color(.tertiaryLabel))
+                                        .foregroundColor(.fnSlate.opacity(0.7))
                                 }
                             }
                             Spacer()
                         }
                         .padding(12)
-                        .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
+                        .background(RoundedRectangle(cornerRadius: 12).fill(Color.fnSurface))
                     }
                 }
             }
 
             Text("Una vez inscripto, podés reservar tus clases desde Mis inscripciones.")
                 .font(.system(size: 12))
-                .foregroundColor(Color(.tertiaryLabel))
+                .foregroundColor(.fnSlate.opacity(0.7))
         }
     }
 
@@ -493,7 +493,7 @@ struct ActivityDetailView: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
+                .fill(Color.fnSurface)
         )
     }
 
@@ -505,13 +505,13 @@ struct ActivityDetailView: View {
                     .foregroundColor(color)
                 Text(label)
                     .font(.system(size: 11, weight: .bold))
-                    .foregroundColor(Color(.secondaryLabel))
+                    .foregroundColor(.fnSlate)
                     .textCase(.uppercase)
                     .tracking(0.5)
             }
             Text(value)
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(Color(.label))
+                .foregroundColor(.white)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -529,7 +529,7 @@ struct ActivityDetailView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Cupos disponibles")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(.secondaryLabel))
+                    .foregroundColor(.fnSlate)
                     .textCase(.uppercase)
                     .tracking(0.5)
                 Text("\(count) lugares")
@@ -540,10 +540,10 @@ struct ActivityDetailView: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 14)
-                .fill(Color(.secondarySystemBackground))
+                .fill(Color.fnSurface)
                 .overlay(
                     RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color.fnYellow.opacity(0.2), lineWidth: 1)
+                        .stroke(Color.fnYellow.opacity(0.3), lineWidth: 1)
                 )
         )
     }
@@ -563,23 +563,23 @@ struct ActivityDetailView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Rutas de running")
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundColor(Color(.label))
+                        .foregroundColor(.white)
                     Text("Generá rutas personalizadas cerca tuyo")
                         .font(.system(size: 12))
-                        .foregroundColor(Color(.secondaryLabel))
+                        .foregroundColor(.fnSlate)
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(.tertiaryLabel))
+                    .foregroundColor(.fnSlate.opacity(0.7))
             }
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(.secondarySystemBackground))
+                    .fill(Color.fnSurface)
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.fnCyan.opacity(0.25), lineWidth: 1)
+                            .stroke(Color.fnCyan.opacity(0.3), lineWidth: 1)
                     )
             )
         }
@@ -597,16 +597,16 @@ struct ActivityDetailView: View {
                             .foregroundColor(.fnGreen)
                         Text(name)
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(Color(.label))
+                            .foregroundColor(.white)
                         Spacer()
                     }
                     .padding(10)
-                    .background(RoundedRectangle(cornerRadius: 10).fill(Color(.secondarySystemBackground)))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.fnSurface))
                 }
             }
             Text("Para inscribirte a un deporte, primero hacete socio. Luego, desde Mis inscripciones, elegís el deporte y te inscribís.")
                 .font(.system(size: 12))
-                .foregroundColor(Color(.tertiaryLabel))
+                .foregroundColor(.fnSlate.opacity(0.7))
         }
     }
 
@@ -621,11 +621,11 @@ struct ActivityDetailView: View {
                             .foregroundColor(.fnYellow)
                         Text(promo)
                             .font(.system(size: 14))
-                            .foregroundColor(Color(.label))
+                            .foregroundColor(.white)
                         Spacer()
                     }
                     .padding(10)
-                    .background(RoundedRectangle(cornerRadius: 10).fill(Color(.secondarySystemBackground)))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.fnSurface))
                 }
             }
         }
@@ -646,7 +646,7 @@ struct ActivityDetailView: View {
             Text(isTrainer ? "Ya estás inscripto a este entrenador."
                            : "Ya estás inscripto en esta actividad.")
                 .font(.system(size: 12))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .multilineTextAlignment(.center)
         }
     }
@@ -682,7 +682,7 @@ struct ActivityDetailView: View {
                     .padding(.vertical, 14)
                 }
             }
-            .background(Color(.systemBackground))
+            .background(Color.fnBg)
         }
         .sheet(isPresented: $showEnrollmentFlow) {
             EnrollmentFlowView(activity: activity) {
