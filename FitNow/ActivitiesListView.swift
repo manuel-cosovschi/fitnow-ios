@@ -6,74 +6,71 @@ struct ActivitiesListView: View {
     @State private var showingFilters = false
     @State private var appeared = false
 
-    // Quick filter chips
-    private let kindFilters: [(label: String, value: String, color: Color)] = [
-        ("Todos",          "",            .fnPrimary),
-        ("Entrenadores",   "trainer",     .fnPrimary),
-        ("Gimnasios",      "gym",         .fnCyan),
-        ("Clubes",         "club",        .fnPurple),
-        ("Deportes",       "club_sport",  .fnGreen),
+    private let kindFilters: [(label: String, value: String)] = [
+        ("Todos",        ""),
+        ("Entrenadores", "trainer"),
+        ("Gimnasios",    "gym"),
+        ("Clubes",       "club"),
+        ("Deportes",     "club_sport"),
     ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Search + filter bar
-            searchBar
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
-                .padding(.bottom, 8)
+        ZStack {
+            Color.fnBg.ignoresSafeArea()
 
-            // Kind filter chips
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(kindFilters, id: \.value) { f in
-                        FilterChip(
-                            title: f.label,
-                            isSelected: vm.selectedKind == f.value
-                        ) {
-                            withAnimation(.spring(response: 0.3)) {
-                                vm.selectedKind = f.value
+            VStack(spacing: 0) {
+                searchBar
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                    .padding(.bottom, 10)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(kindFilters, id: \.value) { f in
+                            FilterChip(title: f.label,
+                                       isSelected: vm.selectedKind == f.value) {
+                                withAnimation(.spring(response: 0.3)) {
+                                    vm.selectedKind = f.value
+                                }
+                                vm.fetch()
                             }
-                            vm.fetch()
                         }
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 4)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 4)
-            }
-            .padding(.bottom, 8)
+                .padding(.bottom, 8)
 
-            Divider()
-                .opacity(0.5)
+                Rectangle()
+                    .fill(Color.fnBorder.opacity(0.5))
+                    .frame(height: 0.5)
 
-            // List content
-            Group {
-                if vm.loading && vm.items.isEmpty {
-                    loadingState
-                } else if let error = vm.error {
-                    errorState(error)
-                } else if vm.items.isEmpty {
-                    emptyState
-                } else {
-                    activityList
+                Group {
+                    if vm.loading && vm.items.isEmpty {
+                        loadingState
+                    } else if let error = vm.error {
+                        errorState(error)
+                    } else if vm.items.isEmpty {
+                        emptyState
+                    } else {
+                        activityList
+                    }
                 }
             }
         }
-        .background(Color(.systemBackground))
         .navigationTitle("Explorar")
         .navigationBarTitleDisplayMode(.large)
+        .toolbarBackground(Color.fnBg, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    showingFilters = true
-                } label: {
+                Button { showingFilters = true } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "slider.horizontal.3")
                             .font(.system(size: 14, weight: .medium))
                         Text("Filtros")
                             .font(.system(size: 14, weight: .semibold))
                     }
-                    .foregroundColor(.fnPrimary)
+                    .foregroundColor(.fnBlue)
                 }
             }
         }
@@ -83,6 +80,7 @@ struct ActivitiesListView: View {
         }
         .sheet(isPresented: $showingFilters) {
             FiltersSheet(vm: vm, isPresented: $showingFilters)
+                .preferredColorScheme(.dark)
         }
     }
 
@@ -92,9 +90,11 @@ struct ActivitiesListView: View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 15, weight: .medium))
-                .foregroundColor(Color(.tertiaryLabel))
+                .foregroundColor(.fnBlue)
             TextField("Buscar actividades, entrenadores…", text: $vm.query)
                 .font(.system(size: 15))
+                .foregroundColor(.fnWhite)
+                .tint(.fnBlue)
                 .onSubmit { vm.fetch() }
                 .submitLabel(.search)
             if !vm.query.isEmpty {
@@ -104,30 +104,31 @@ struct ActivitiesListView: View {
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 15))
-                        .foregroundColor(Color(.tertiaryLabel))
+                        .foregroundColor(.fnAsh)
                 }
             }
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 12)
+        .padding(.vertical, 14)
         .background(
             RoundedRectangle(cornerRadius: 14)
-                .fill(Color(.secondarySystemBackground))
+                .fill(Color.fnElevated)
+                .overlay(RoundedRectangle(cornerRadius: 14)
+                            .stroke(Color.fnBorder, lineWidth: 1))
         )
     }
 
-    // MARK: - Activity List
+    // MARK: - List
 
     private var activityList: some View {
         ScrollView(showsIndicators: false) {
             LazyVStack(spacing: 12) {
                 if vm.loading {
                     HStack(spacing: 8) {
-                        ProgressView()
-                            .scaleEffect(0.85)
+                        ProgressView().scaleEffect(0.85).tint(.fnBlue)
                         Text("Actualizando…")
                             .font(.system(size: 13))
-                            .foregroundColor(Color(.secondaryLabel))
+                            .foregroundColor(.fnSlate)
                     }
                     .padding(.top, 4)
                 }
@@ -149,39 +150,36 @@ struct ActivitiesListView: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.vertical, 14)
         }
     }
 
-    // MARK: - Loading State
+    // MARK: - States
 
     private var loadingState: some View {
         ScrollView(showsIndicators: false) {
             LazyVStack(spacing: 12) {
                 ForEach(0..<5, id: \.self) { _ in
-                    SkeletonView(cornerRadius: 20)
-                        .frame(height: 100)
+                    SkeletonView(cornerRadius: 20).frame(height: 100)
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.vertical, 14)
         }
     }
-
-    // MARK: - Error State
 
     private func errorState(_ error: String) -> some View {
         VStack(spacing: 20) {
             Spacer()
             Image(systemName: "wifi.exclamationmark")
                 .font(.system(size: 48))
-                .foregroundColor(Color(.tertiaryLabel))
+                .foregroundColor(.fnAsh)
             Text("No se pudo cargar")
                 .font(.system(size: 18, weight: .bold))
-                .foregroundColor(Color(.label))
+                .foregroundColor(.fnWhite)
             Text(error)
                 .font(.system(size: 14))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
             FitNowButton(title: "Reintentar", icon: "arrow.clockwise") {
@@ -192,20 +190,21 @@ struct ActivitiesListView: View {
         }
     }
 
-    // MARK: - Empty State
-
     private var emptyState: some View {
         VStack(spacing: 20) {
             Spacer()
-            Image(systemName: "magnifyingglass.circle")
-                .font(.system(size: 60))
-                .foregroundStyle(FNGradient.primary)
+            ZStack {
+                Circle().fill(Color.fnBlue.opacity(0.18)).frame(width: 92, height: 92)
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 38, weight: .bold))
+                    .foregroundColor(.fnBlue)
+            }
             Text("Sin resultados")
                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundColor(Color(.label))
+                .foregroundColor(.fnWhite)
             Text("Probá buscar con otros términos\no ajustá los filtros.")
                 .font(.system(size: 15))
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(.fnSlate)
                 .multilineTextAlignment(.center)
             FitNowOutlineButton(title: "Limpiar filtros", icon: "xmark.circle") {
                 vm.clearFilters()
@@ -225,82 +224,84 @@ struct FiltersSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    Picker("Dificultad", selection: $vm.selectedDifficulty) {
-                        Text("Cualquiera").tag("")
-                        ForEach(vm.difficultyOptions.filter { !$0.isEmpty }, id: \.self) { opt in
-                            Text(opt.capitalized).tag(opt)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                } header: {
-                    Label("Dificultad", systemImage: "chart.bar.fill")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(.fnPrimary)
-                }
+            ZStack {
+                Color.fnBg.ignoresSafeArea()
 
-                Section {
-                    Picker("Modalidad", selection: $vm.selectedModality) {
-                        Text("Cualquiera").tag("")
-                        ForEach(vm.modalityOptions.filter { !$0.isEmpty }, id: \.self) { opt in
-                            Text(opt.capitalized).tag(opt)
+                Form {
+                    Section {
+                        Picker("Dificultad", selection: $vm.selectedDifficulty) {
+                            Text("Cualquiera").tag("")
+                            ForEach(vm.difficultyOptions.filter { !$0.isEmpty }, id: \.self) { opt in
+                                Text(opt.capitalized).tag(opt)
+                            }
                         }
+                        .pickerStyle(.menu)
+                    } header: {
+                        Label("Dificultad", systemImage: "chart.bar.fill")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.fnBlue)
                     }
-                    .pickerStyle(.menu)
-                } header: {
-                    Label("Modalidad", systemImage: "figure.mixed.cardio")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(.fnCyan)
-                }
 
-                Section {
-                    HStack {
-                        Text("Mínimo")
-                        Spacer()
-                        Stepper(
-                            value: Binding(
-                                get: { vm.minPrice ?? 0 },
-                                set: { vm.minPrice = $0 == 0 ? nil : $0 }
-                            ),
-                            in: 0...50000,
-                            step: 500
-                        ) {
-                            Text(vm.minPrice == nil ? "—" : "$\(vm.minPrice!)")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.fnPrimary)
+                    Section {
+                        Picker("Modalidad", selection: $vm.selectedModality) {
+                            Text("Cualquiera").tag("")
+                            ForEach(vm.modalityOptions.filter { !$0.isEmpty }, id: \.self) { opt in
+                                Text(opt.capitalized).tag(opt)
+                            }
                         }
+                        .pickerStyle(.menu)
+                    } header: {
+                        Label("Modalidad", systemImage: "figure.mixed.cardio")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.fnPurple)
                     }
-                    HStack {
-                        Text("Máximo")
-                        Spacer()
-                        Stepper(
-                            value: Binding(
-                                get: { vm.maxPrice ?? 0 },
-                                set: { vm.maxPrice = $0 == 0 ? nil : $0 }
-                            ),
-                            in: 0...50000,
-                            step: 500
-                        ) {
-                            Text(vm.maxPrice == nil ? "—" : "$\(vm.maxPrice!)")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.fnPrimary)
+
+                    Section {
+                        HStack {
+                            Text("Mínimo")
+                            Spacer()
+                            Stepper(
+                                value: Binding(
+                                    get: { vm.minPrice ?? 0 },
+                                    set: { vm.minPrice = $0 == 0 ? nil : $0 }
+                                ),
+                                in: 0...50000, step: 500
+                            ) {
+                                Text(vm.minPrice == nil ? "—" : "$\(vm.minPrice!)")
+                                    .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                                    .foregroundColor(.fnBlue)
+                            }
                         }
+                        HStack {
+                            Text("Máximo")
+                            Spacer()
+                            Stepper(
+                                value: Binding(
+                                    get: { vm.maxPrice ?? 0 },
+                                    set: { vm.maxPrice = $0 == 0 ? nil : $0 }
+                                ),
+                                in: 0...50000, step: 500
+                            ) {
+                                Text(vm.maxPrice == nil ? "—" : "$\(vm.maxPrice!)")
+                                    .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                                    .foregroundColor(.fnBlue)
+                            }
+                        }
+                    } header: {
+                        Label("Precio", systemImage: "creditcard.fill")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.fnGreen)
                     }
-                } header: {
-                    Label("Precio", systemImage: "creditcard.fill")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(.fnGreen)
                 }
+                .scrollContentBackground(.hidden)
             }
             .navigationTitle("Filtros")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.fnBg, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Limpiar") {
-                        vm.clearFilters()
-                    }
-                    .foregroundColor(.fnSecondary)
+                    Button("Limpiar") { vm.clearFilters() }
+                        .foregroundColor(.fnCrimson)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Aplicar") {
@@ -308,7 +309,7 @@ struct FiltersSheet: View {
                         vm.fetch()
                     }
                     .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(.fnPrimary)
+                    .foregroundColor(.fnBlue)
                 }
             }
         }
