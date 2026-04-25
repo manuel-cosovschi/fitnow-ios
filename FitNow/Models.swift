@@ -303,12 +303,15 @@ struct AdminStats: Decodable {
     let total_activities: Int?
     let total_enrollments: Int?
     let pending_offers: Int?
+    let total_revenue: Double?
 }
 struct AdminProviderItem: Identifiable, Decodable {
     let id: Int
     let name: String
     let email: String?
     let kind: String?
+    let status: String?
+    let activity_count: Int?
     let created_at: String?
 }
 struct AdminUserItem: Identifiable, Decodable {
@@ -316,6 +319,7 @@ struct AdminUserItem: Identifiable, Decodable {
     let name: String
     let email: String
     let role: String?
+    let is_banned: Bool?
     let created_at: String?
 }
 

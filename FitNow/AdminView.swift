@@ -62,60 +62,140 @@ struct AdminDashboardView: View {
     @State private var selectedTab = 0
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Admin header
-            adminHeader
-
-            // Tab picker
-            Picker("Sección", selection: $selectedTab) {
-                Text("Ofertas").tag(0)
-                Text("Estadísticas").tag(1)
-                Text("Usuarios").tag(2)
-                Text("Proveedores").tag(3)
+        TabView(selection: $selectedTab) {
+            NavigationStack {
+                AdminOverviewTab()
             }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .tabItem { Label("Resumen", systemImage: selectedTab == 0 ? "chart.bar.fill" : "chart.bar") }
+            .tag(0)
 
-            Divider()
-
-            // Content
-            switch selectedTab {
-            case 0: AdminOffersTab()
-            case 1: AdminStatsTab()
-            case 2: AdminUsersTab()
-            case 3: AdminProvidersTab()
-            default: EmptyView()
+            NavigationStack {
+                AdminUsersTab()
             }
+            .tabItem { Label("Usuarios", systemImage: selectedTab == 1 ? "person.3.fill" : "person.3") }
+            .tag(1)
+
+            NavigationStack {
+                AdminProvidersTab()
+            }
+            .tabItem { Label("Proveedores", systemImage: selectedTab == 2 ? "briefcase.fill" : "briefcase") }
+            .tag(2)
+
+            NavigationStack {
+                AdminOffersTab()
+            }
+            .tabItem { Label("Ofertas", systemImage: selectedTab == 3 ? "tag.fill" : "tag") }
+            .tag(3)
+        }
+        .tint(.fnPurple)
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MARK: - Admin Overview Tab
+// ─────────────────────────────────────────────────────────────────────────────
+
+struct AdminOverviewTab: View {
+    @StateObject private var vm = AdminStatsViewModel()
+
+    var body: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 20) {
+                headerBanner
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+
+                if vm.loading && vm.stats == nil {
+                    VStack(spacing: 12) {
+                        ForEach(0..<4, id: \.self) { _ in
+                            SkeletonView(cornerRadius: 16).frame(height: 80)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                } else if let s = vm.stats {
+                    kpiGrid(s).padding(.horizontal, 16)
+                    if let pending = s.pending_offers, pending > 0 {
+                        pendingBanner(pending).padding(.horizontal, 16)
+                    }
+                }
+            }
+            .padding(.bottom, 30)
         }
         .background(Color.fnBg)
         .navigationTitle("Panel Admin")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
+        .refreshable { vm.load() }
+        .onAppear { vm.load() }
     }
 
-    private var adminHeader: some View {
+    private var headerBanner: some View {
         HStack(spacing: 14) {
             ZStack {
                 Circle()
-                    .fill(LinearGradient(colors: [.fnSecondary, .fnPurple],
-                                        startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .frame(width: 46, height: 46)
+                    .fill(Color.fnPurple.opacity(0.18))
+                    .frame(width: 52, height: 52)
                 Image(systemName: "shield.fill")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.white)
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.fnPurple)
             }
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Panel de administración")
-                    .font(.system(size: 15, weight: .bold))
-                Text("FitNow · Acceso interno")
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Administración FitNow")
+                    .font(.system(size: 16, weight: .bold))
+                Text("Panel de control interno")
                     .font(.system(size: 12))
                     .foregroundColor(.fnSlate)
             }
             Spacer()
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(Color.fnSurface)
+        .padding(16)
+        .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 16))
+    }
+
+    private func kpiGrid(_ s: AdminStats) -> some View {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+            kpiCard(value: "\(s.total_users ?? 0)",       label: "Usuarios",        icon: "person.3.fill",              color: .fnCyan)
+            kpiCard(value: "\(s.total_providers ?? 0)",   label: "Proveedores",     icon: "briefcase.fill",             color: .fnPurple)
+            kpiCard(value: "\(s.total_activities ?? 0)",  label: "Actividades",     icon: "list.bullet.rectangle.fill", color: .fnPrimary)
+            kpiCard(value: "\(s.total_enrollments ?? 0)", label: "Inscripciones",   icon: "checkmark.seal.fill",        color: .fnGreen)
+            if let rev = s.total_revenue, rev > 0 {
+                kpiCard(value: "$\(Int(rev))", label: "Revenue total", icon: "dollarsign.circle.fill", color: .fnYellow)
+            }
+        }
+    }
+
+    private func kpiCard(value: String, label: String, icon: String, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(color)
+            Text(value)
+                .font(.custom("DM Serif Display", size: 28))
+                .foregroundColor(.fnWhite)
+            Text(label)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.fnSlate)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(color.opacity(0.15), lineWidth: 1))
+    }
+
+    private func pendingBanner(_ count: Int) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundColor(.fnYellow)
+            Text("\(count) oferta\(count == 1 ? "" : "s") pendiente\(count == 1 ? "" : "s") de revisión")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(.fnWhite)
+            Spacer()
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12))
+                .foregroundColor(.fnSlate)
+        }
+        .padding(14)
+        .background(Color.fnYellow.opacity(0.10), in: RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.fnYellow.opacity(0.25), lineWidth: 1))
     }
 }
 
@@ -254,61 +334,6 @@ struct AdminOffersTab: View {
 // MARK: - Admin Stats Tab
 // ─────────────────────────────────────────────────────────────────────────────
 
-struct AdminStatsTab: View {
-    @StateObject private var vm = AdminStatsViewModel()
-
-    var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 20) {
-                if vm.loading {
-                    ProgressView("Cargando estadísticas…")
-                        .padding(.top, 60)
-                } else if let s = vm.stats {
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
-                        adminStatCard(value: "\(s.total_users ?? 0)",       label: "Usuarios",         icon: "person.3.fill",                 color: .fnCyan)
-                        adminStatCard(value: "\(s.total_providers ?? 0)",   label: "Proveedores",      icon: "briefcase.fill",                color: .fnPurple)
-                        adminStatCard(value: "\(s.total_activities ?? 0)",  label: "Publicaciones",    icon: "list.bullet.rectangle.fill",    color: .fnPrimary)
-                        adminStatCard(value: "\(s.total_enrollments ?? 0)", label: "Inscripciones",   icon: "checkmark.seal.fill",           color: .fnGreen)
-                        if let pending = s.pending_offers, pending > 0 {
-                            adminStatCard(value: "\(pending)",              label: "Ofertas pendientes", icon: "tag.fill",                   color: .fnYellow)
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.top, 16)
-                } else if let err = vm.error {
-                    Text(err)
-                        .font(.system(size: 13))
-                        .foregroundColor(.fnSecondary)
-                        .padding(30)
-                }
-            }
-        }
-        .onAppear { vm.load() }
-    }
-
-    private func adminStatCard(value: String, label: String, icon: String, color: Color) -> some View {
-        VStack(spacing: 10) {
-            ZStack {
-                Circle()
-                    .fill(color.opacity(0.14))
-                    .frame(width: 52, height: 52)
-                Image(systemName: icon)
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundColor(color)
-            }
-            Text(value)
-                .font(.custom("DM Serif Display", size: 28))
-                .foregroundColor(.white)
-            Text(label)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(.fnSlate)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(18)
-        .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 16))
-    }
-}
 
 final class AdminStatsViewModel: ObservableObject {
     @Published var stats: AdminStats?
@@ -335,46 +360,139 @@ final class AdminStatsViewModel: ObservableObject {
 
 struct AdminUsersTab: View {
     @StateObject private var vm = AdminUsersViewModel()
+    @State private var query = ""
+    @State private var roleFilter = "all"
+    private let roleOptions = [("all","Todos"), ("user","Usuarios"), ("provider_admin","Proveedores"), ("admin","Admins")]
+
+    private var filtered: [AdminUserItem] {
+        vm.users.filter { u in
+            let matchesRole = roleFilter == "all" || u.role == roleFilter
+            let matchesQuery = query.isEmpty ||
+                u.name.localizedCaseInsensitiveContains(query) ||
+                u.email.localizedCaseInsensitiveContains(query)
+            return matchesRole && matchesQuery
+        }
+    }
 
     var body: some View {
-        usersContent
-            .onAppear { vm.load() }
+        ZStack {
+            Color.fnBg.ignoresSafeArea()
+            VStack(spacing: 0) {
+                searchBar
+                roleFilterBar
+                Rectangle().fill(Color.fnBorder.opacity(0.5)).frame(height: 0.5)
+                usersContent
+            }
+        }
+        .navigationTitle("Usuarios")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Color.fnBg, for: .navigationBar)
+        .onAppear { vm.load() }
+        .refreshable { vm.load() }
+    }
+
+    private var searchBar: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "magnifyingglass").foregroundColor(.fnSlate).font(.system(size: 14))
+            TextField("Buscar por nombre o email…", text: $query)
+                .font(.system(size: 14)).foregroundColor(.fnWhite)
+        }
+        .padding(12)
+        .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.fnBorder, lineWidth: 1))
+        .padding(.horizontal, 16).padding(.vertical, 10)
+    }
+
+    private var roleFilterBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(roleOptions, id: \.0) { key, label in
+                    Button { roleFilter = key } label: {
+                        Text(label)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(roleFilter == key ? .white : .fnSlate)
+                            .padding(.horizontal, 14).padding(.vertical, 7)
+                            .background(roleFilter == key ? Color.fnPurple : Color.fnSurface,
+                                        in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 16).padding(.vertical, 8)
+        }
     }
 
     @ViewBuilder
     private var usersContent: some View {
         if vm.loading && vm.users.isEmpty {
-            ProgressView("Cargando usuarios…").frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else if vm.users.isEmpty {
-            Text("Sin usuarios registrados.")
-                .foregroundColor(.fnSlate)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            VStack(spacing: 10) {
+                ForEach(0..<5, id: \.self) { _ in SkeletonView(cornerRadius: 12).frame(height: 68) }
+            }.padding(.horizontal, 16).padding(.top, 12)
+        } else if filtered.isEmpty {
+            Spacer()
+            VStack(spacing: 12) {
+                Image(systemName: "person.slash").font(.system(size: 40)).foregroundColor(.fnAsh)
+                Text("Sin resultados").font(.system(size: 15, weight: .semibold)).foregroundColor(.fnSlate)
+            }
+            Spacer()
         } else {
-            List(vm.users) { user in
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack {
-                        Text(user.name).font(.system(size: 14, weight: .semibold))
-                        Spacer()
-                        roleBadge(user.role ?? "user")
-                    }
-                    Text(user.email).font(.system(size: 12)).foregroundColor(.fnSlate)
+            ScrollView(showsIndicators: false) {
+                LazyVStack(spacing: 8) {
+                    ForEach(filtered) { user in userRow(user) }
                 }
-                .padding(.vertical, 4)
+                .padding(.horizontal, 16).padding(.vertical, 12)
             }
         }
+    }
+
+    private func userRow(_ user: AdminUserItem) -> some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle().fill(Color.fnPurple.opacity(0.15)).frame(width: 40, height: 40)
+                Text(String(user.name.prefix(1)).uppercased())
+                    .font(.system(size: 16, weight: .bold)).foregroundColor(.fnPurple)
+            }
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    Text(user.name).font(.system(size: 14, weight: .semibold)).foregroundColor(.fnWhite)
+                    if user.is_banned == true {
+                        Text("Baneado").font(.system(size: 9, weight: .bold))
+                            .foregroundColor(.fnCrimson)
+                            .padding(.horizontal, 6).padding(.vertical, 2)
+                            .background(Color.fnCrimson.opacity(0.12), in: Capsule())
+                    }
+                }
+                Text(user.email).font(.system(size: 12)).foregroundColor(.fnSlate).lineLimit(1)
+            }
+            Spacer()
+            roleBadge(user.role ?? "user")
+            Menu {
+                if user.is_banned == true {
+                    Button("Desbanear") { vm.setBanned(userId: user.id, banned: false) }
+                } else {
+                    Button("Banear usuario", role: .destructive) { vm.setBanned(userId: user.id, banned: true) }
+                }
+                Divider()
+                Button("Hacer proveedor") { vm.setRole(userId: user.id, role: "provider_admin") }
+                Button("Hacer usuario")   { vm.setRole(userId: user.id, role: "user") }
+            } label: {
+                Image(systemName: "ellipsis.circle").font(.system(size: 18)).foregroundColor(.fnSlate)
+            }
+        }
+        .padding(12)
+        .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 13))
     }
 
     private func roleBadge(_ role: String) -> some View {
         let (label, color): (String, Color) = {
             switch role {
-            case "provider": return ("Proveedor", .fnPurple)
-            case "admin":    return ("Admin", .fnSecondary)
-            default:         return ("Usuario", .fnCyan)
+            case "provider_admin": return ("Proveedor", .fnPurple)
+            case "admin":          return ("Admin", .fnCrimson)
+            default:               return ("Usuario", .fnCyan)
             }
         }()
         return Text(label)
-            .font(.system(size: 9, weight: .bold))
-            .foregroundColor(color)
+            .font(.system(size: 9, weight: .bold)).foregroundColor(color)
             .padding(.horizontal, 7).padding(.vertical, 3)
             .background(color.opacity(0.12), in: Capsule())
     }
@@ -396,6 +514,24 @@ final class AdminUsersViewModel: ObservableObject {
             }
             .store(in: &bag)
     }
+
+    func setBanned(userId: Int, banned: Bool) {
+        guard let data = try? JSONSerialization.data(withJSONObject: ["is_banned": banned]) else { return }
+        APIClient.shared.requestPublisher("admin/users/\(userId)", method: "PATCH", body: data, authorized: true)
+            .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] (_: AdminUserItem) in
+                self?.load()
+            })
+            .store(in: &bag)
+    }
+
+    func setRole(userId: Int, role: String) {
+        guard let data = try? JSONSerialization.data(withJSONObject: ["role": role]) else { return }
+        APIClient.shared.requestPublisher("admin/users/\(userId)", method: "PATCH", body: data, authorized: true)
+            .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] (_: AdminUserItem) in
+                self?.load()
+            })
+            .store(in: &bag)
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -404,46 +540,138 @@ final class AdminUsersViewModel: ObservableObject {
 
 struct AdminProvidersTab: View {
     @StateObject private var vm = AdminProvidersViewModel()
+    @State private var query = ""
+    @State private var statusFilter = "all"
+    private let statusOptions = [("all","Todos"), ("active","Activos"), ("suspended","Suspendidos"), ("pending","Pendientes")]
+
+    private var filtered: [AdminProviderItem] {
+        vm.providers.filter { p in
+            let matchesStatus = statusFilter == "all" || p.status == statusFilter
+            let matchesQuery = query.isEmpty || p.name.localizedCaseInsensitiveContains(query) ||
+                (p.email?.localizedCaseInsensitiveContains(query) == true)
+            return matchesStatus && matchesQuery
+        }
+    }
 
     var body: some View {
-        providersContent
-            .onAppear { vm.load() }
+        ZStack {
+            Color.fnBg.ignoresSafeArea()
+            VStack(spacing: 0) {
+                searchBar
+                statusFilterBar
+                Rectangle().fill(Color.fnBorder.opacity(0.5)).frame(height: 0.5)
+                providersContent
+            }
+        }
+        .navigationTitle("Proveedores")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Color.fnBg, for: .navigationBar)
+        .onAppear { vm.load() }
+        .refreshable { vm.load() }
+    }
+
+    private var searchBar: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "magnifyingglass").foregroundColor(.fnSlate).font(.system(size: 14))
+            TextField("Buscar proveedor…", text: $query)
+                .font(.system(size: 14)).foregroundColor(.fnWhite)
+        }
+        .padding(12)
+        .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.fnBorder, lineWidth: 1))
+        .padding(.horizontal, 16).padding(.vertical, 10)
+    }
+
+    private var statusFilterBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(statusOptions, id: \.0) { key, label in
+                    Button { statusFilter = key } label: {
+                        Text(label)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(statusFilter == key ? .white : .fnSlate)
+                            .padding(.horizontal, 14).padding(.vertical, 7)
+                            .background(statusFilter == key ? Color.fnPurple : Color.fnSurface, in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 16).padding(.vertical, 8)
+        }
     }
 
     @ViewBuilder
     private var providersContent: some View {
         if vm.loading && vm.providers.isEmpty {
-            ProgressView("Cargando proveedores…").frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else if vm.providers.isEmpty {
-            Text("Sin proveedores registrados.")
-                .foregroundColor(.fnSlate)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            VStack(spacing: 10) {
+                ForEach(0..<5, id: \.self) { _ in SkeletonView(cornerRadius: 12).frame(height: 72) }
+            }.padding(.horizontal, 16).padding(.top, 12)
+        } else if filtered.isEmpty {
+            Spacer()
+            VStack(spacing: 12) {
+                Image(systemName: "briefcase.slash").font(.system(size: 40)).foregroundColor(.fnAsh)
+                Text("Sin proveedores").font(.system(size: 15, weight: .semibold)).foregroundColor(.fnSlate)
+            }
+            Spacer()
         } else {
-            List(vm.providers) { p in
-                providerRow(p)
+            ScrollView(showsIndicators: false) {
+                LazyVStack(spacing: 8) {
+                    ForEach(filtered) { p in providerRow(p) }
+                }
+                .padding(.horizontal, 16).padding(.vertical, 12)
             }
         }
     }
 
     private func providerRow(_ p: AdminProviderItem) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            HStack {
-                Text(p.name).font(.system(size: 14, weight: .semibold))
-                Spacer()
-                if let kind = p.kind {
-                    let info = ActivityTypeInfo.from(kind: kind)
-                    Text(info.label)
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundColor(info.color)
-                        .padding(.horizontal, 7).padding(.vertical, 3)
-                        .background(info.color.opacity(0.12), in: Capsule())
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10).fill(Color.fnPurple.opacity(0.12)).frame(width: 42, height: 42)
+                Image(systemName: "briefcase.fill").font(.system(size: 16, weight: .semibold)).foregroundColor(.fnPurple)
+            }
+            VStack(alignment: .leading, spacing: 3) {
+                Text(p.name).font(.system(size: 14, weight: .semibold)).foregroundColor(.fnWhite)
+                HStack(spacing: 6) {
+                    if let email = p.email {
+                        Text(email).font(.system(size: 11)).foregroundColor(.fnSlate).lineLimit(1)
+                    }
+                    if let count = p.activity_count, count > 0 {
+                        Text("· \(count) act.").font(.system(size: 11)).foregroundColor(.fnAsh)
+                    }
                 }
             }
-            if let email = p.email {
-                Text(email).font(.system(size: 12)).foregroundColor(.fnSlate)
+            Spacer()
+            statusBadge(p.status ?? "active")
+            Menu {
+                if p.status == "suspended" {
+                    Button("Reactivar") { vm.setStatus(providerId: p.id, status: "active") }
+                } else {
+                    Button("Suspender", role: .destructive) { vm.setStatus(providerId: p.id, status: "suspended") }
+                }
+                if p.status == "pending" {
+                    Button("Aprobar") { vm.setStatus(providerId: p.id, status: "active") }
+                }
+            } label: {
+                Image(systemName: "ellipsis.circle").font(.system(size: 18)).foregroundColor(.fnSlate)
             }
         }
-        .padding(.vertical, 4)
+        .padding(12)
+        .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 13))
+    }
+
+    private func statusBadge(_ status: String) -> some View {
+        let (label, color): (String, Color) = {
+            switch status {
+            case "active":    return ("Activo", .fnGreen)
+            case "suspended": return ("Suspendido", .fnCrimson)
+            case "pending":   return ("Pendiente", .fnYellow)
+            default:          return (status, .fnSlate)
+            }
+        }()
+        return Text(label)
+            .font(.system(size: 9, weight: .bold)).foregroundColor(color)
+            .padding(.horizontal, 7).padding(.vertical, 3)
+            .background(color.opacity(0.12), in: Capsule())
     }
 }
 
@@ -461,6 +689,15 @@ final class AdminProvidersViewModel: ObservableObject {
             receiveValue: { [weak self] (resp: ProvidersResponse) in
                 self?.providers = resp.items; self?.loading = false
             }
+            .store(in: &bag)
+    }
+
+    func setStatus(providerId: Int, status: String) {
+        guard let data = try? JSONSerialization.data(withJSONObject: ["status": status]) else { return }
+        APIClient.shared.requestPublisher("admin/providers/\(providerId)", method: "PATCH", body: data, authorized: true)
+            .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] (_: AdminProviderItem) in
+                self?.load()
+            })
             .store(in: &bag)
     }
 }
