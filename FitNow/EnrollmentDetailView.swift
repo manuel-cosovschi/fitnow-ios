@@ -80,6 +80,7 @@ struct EnrollmentDetailView: View {
 
     @StateObject private var vm = EnrollmentDetailViewModel()
     @State private var showCancelConfirm = false
+    @State private var showRefund = false
     @State private var appeared = false
 
     private var kind: String { enrollment.activity_kind ?? "" }
@@ -513,10 +514,17 @@ struct EnrollmentDetailView: View {
             .disabled(vm.cancelling)
             .opacity(vm.cancelling ? 0.6 : 1)
 
-            Text("Las políticas de reembolso dependen de cada proveedor.")
-                .font(.system(size: 11))
-                .foregroundColor(.fnSlate.opacity(0.7))
-                .multilineTextAlignment(.center)
+            Button {
+                showRefund = true
+            } label: {
+                Label("Solicitar reembolso", systemImage: "arrow.uturn.backward")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.fnSlate)
+            }
+            .sheet(isPresented: $showRefund) {
+                RefundView(enrollment: enrollment)
+                    .preferredColorScheme(.dark)
+            }
         }
     }
 
