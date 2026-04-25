@@ -1,12 +1,11 @@
 import SwiftUI
-import Combine
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MARK: - EnrollmentFlowView
 // Multi-step enrollment wizard shown as a sheet from ActivityDetailView.
 // Steps vary by activity kind:
-//   trainer / gym / club  → confirm → selectPlan → payment → success
-//   club_sport            → confirm → payment → success
+//   trainer / gym / club  → confirm → selectPlan → coupon → stripePayment → success
+//   club_sport            → confirm → coupon → stripePayment → success
 // ─────────────────────────────────────────────────────────────────────────────
 
 struct EnrollmentFlowView: View {
@@ -15,31 +14,41 @@ struct EnrollmentFlowView: View {
     let activity: Activity
     var onEnrolled: (() -> Void)?
 
+    // Flow
     @State private var step: FlowStep = .confirm
     @State private var selectedPlan: LocalPlan? = nil
     @State private var paymentChoice: PaymentChoice = .full
-    @State private var paymentMethod: PaymentMethod = .card
-    @State private var enrolling = false
-    @State private var errorMessage: String? = nil
-    @StateObject private var helper = EnrollHelper()
+
+    // Coupon
+    @State private var couponCode = ""
+    @State private var couponResult: CouponValidationResponse? = nil
+    @State private var couponError: String? = nil
+    @State private var validatingCoupon = false
+
+    // Stripe payment intent
+    @State private var isCreatingIntent = false
+    @State private var clientSecret: String? = nil
+    @State private var pendingEnrollmentId: Int? = nil
+    @State private var confirmedEnrollmentId: Int? = nil
+    @State private var intentError: String? = nil
 
     // MARK: - Types
 
     enum FlowStep: Int {
-        case confirm = 0, selectPlan = 1, payment = 2, success = 3
+        case confirm, selectPlan, coupon, stripePayment, success
 
         var title: String {
             switch self {
-            case .confirm:    return "Confirmá tu inscripción"
-            case .selectPlan: return "Elegí tu plan"
-            case .payment:    return "Forma de pago"
-            case .success:    return "¡Listo!"
+            case .confirm:       return "Confirmá tu inscripción"
+            case .selectPlan:    return "Elegí tu plan"
+            case .coupon:        return "¿Tenés un cupón?"
+            case .stripePayment: return "Pago seguro"
+            case .success:       return "¡Listo!"
             }
         }
     }
 
     enum PaymentChoice { case full, deposit }
-    enum PaymentMethod { case card, transfer }
 
     struct LocalPlan: Identifiable {
         var id: String { name }   // stable across re-renders; name is unique per plan
@@ -95,24 +104,27 @@ struct EnrollmentFlowView: View {
         }
     }
 
-    private var totalSteps: Int { showPlanStep ? 3 : 2 }
+    private var totalSteps: Int { showPlanStep ? 4 : 3 }
 
     private var currentStepNumber: Int {
         switch step {
-        case .confirm:    return 1
-        case .selectPlan: return 2
-        case .payment:    return showPlanStep ? 3 : 2
-        case .success:    return totalSteps
+        case .confirm:       return 1
+        case .selectPlan:    return 2
+        case .coupon:        return showPlanStep ? 3 : 2
+        case .stripePayment: return showPlanStep ? 4 : 3
+        case .success:       return totalSteps
         }
     }
 
+    private var basePrice: Double { selectedPlan?.price ?? activity.price ?? 0 }
+
     private var finalPrice: Double {
-        let base = selectedPlan?.price ?? activity.price ?? 0
-        return paymentChoice == .deposit ? base * Double(depositPercent) / 100.0 : base
+        if let couponFinal = couponResult?.finalPrice { return couponFinal }
+        return paymentChoice == .deposit ? basePrice * Double(depositPercent) / 100.0 : basePrice
     }
 
     private var remainingPrice: Double {
-        let base = selectedPlan?.price ?? activity.price ?? 0
+        let base = couponResult?.finalPrice ?? basePrice
         return paymentChoice == .deposit ? base - finalPrice : 0
     }
 
@@ -127,15 +139,16 @@ struct EnrollmentFlowView: View {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
                         switch step {
-                        case .confirm:    confirmStep
-                        case .selectPlan: selectPlanStep
-                        case .payment:    paymentStep
-                        case .success:    successStep
+                        case .confirm:       confirmStep
+                        case .selectPlan:    selectPlanStep
+                        case .coupon:        couponStep
+                        case .stripePayment: stripePaymentStep
+                        case .success:       successStep
                         }
                     }
                     .padding(.bottom, 110)
                 }
-                if step != .success {
+                if step != .success && step != .stripePayment {
                     bottomAction
                 }
             }
@@ -149,6 +162,212 @@ struct EnrollmentFlowView: View {
                             .foregroundColor(.secondary)
                     }
                 }
+            }
+            .onChange(of: step) { _, newStep in
+                if newStep == .stripePayment { Task { await createIntent() } }
+            }
+        }
+    }
+
+    // MARK: - Step: Coupon
+
+    private var couponStep: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Descuento y forma de pago")
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                Text("Aplicá un cupón o continuá sin descuento.")
+                    .font(.system(size: 13))
+                    .foregroundColor(.fnSlate)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+
+            // Coupon input
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Código de descuento")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.fnSlate)
+                    .textCase(.uppercase)
+                    .tracking(0.5)
+
+                HStack(spacing: 8) {
+                    TextField("Ej: FITNOW20", text: $couponCode)
+                        .textInputAutocapitalization(.characters)
+                        .autocorrectionDisabled()
+                        .font(.system(size: 15, design: .monospaced))
+                        .padding(12)
+                        .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 12))
+                        .onChange(of: couponCode) { _, _ in
+                            couponResult = nil; couponError = nil
+                        }
+
+                    Button {
+                        Task { await validateCoupon() }
+                    } label: {
+                        Group {
+                            if validatingCoupon {
+                                ProgressView().tint(.fnBlue)
+                            } else {
+                                Text("Validar")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.fnBlue)
+                            }
+                        }
+                        .frame(width: 70, height: 44)
+                        .background(Color.fnBlue.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+                    }
+                    .disabled(couponCode.trimmingCharacters(in: .whitespaces).isEmpty || validatingCoupon)
+                }
+
+                if let result = couponResult, result.valid {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark.seal.fill").foregroundColor(.fnGreen)
+                        if let pct = result.discountPercent {
+                            Text("\(pct)% de descuento aplicado")
+                        } else if let amt = result.discountAmount {
+                            Text("$\(Int(amt)) de descuento aplicado")
+                        }
+                    }
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.fnGreen)
+                }
+
+                if let err = couponError {
+                    HStack(spacing: 8) {
+                        Image(systemName: "xmark.circle.fill").foregroundColor(.fnCrimson)
+                        Text(err)
+                    }
+                    .font(.system(size: 13))
+                    .foregroundColor(.fnCrimson)
+                }
+            }
+            .padding(.horizontal, 20)
+
+            // Deposit toggle if supported
+            if supportsDeposit {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Modalidad de pago")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(.fnSlate)
+                        .textCase(.uppercase)
+                        .tracking(0.5)
+                        .padding(.horizontal, 20)
+
+                    paymentTypeCard(.full,
+                        title: "Pago completo",
+                        subtitle: "Abonás el total ahora",
+                        amount: finalPrice,
+                        badge: nil)
+                    paymentTypeCard(.deposit,
+                        title: "Seña (\(depositPercent)%)",
+                        subtitle: "Abonás la seña ahora y el resto en el lugar",
+                        amount: basePrice * Double(depositPercent) / 100.0,
+                        badge: "FLEXIBLE")
+                }
+            }
+
+            // Price summary
+            VStack(spacing: 8) {
+                Divider()
+                HStack(alignment: .bottom) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("A pagar ahora")
+                            .font(.system(size: 12))
+                            .foregroundColor(.fnSlate)
+                        Text("$\(Int(finalPrice))")
+                            .font(.custom("DM Serif Display", size: 30))
+                            .foregroundColor(typeInfo.color)
+                    }
+                    Spacer()
+                    if paymentChoice == .deposit && remainingPrice > 0 {
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("Resto al concurrir")
+                                .font(.system(size: 11))
+                                .foregroundColor(.fnSlate)
+                            Text("$\(Int(remainingPrice))")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(.fnSlate)
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+        }
+    }
+
+    // MARK: - Step: Stripe Payment
+
+    private var stripePaymentStep: some View {
+        VStack(spacing: 20) {
+            // Price recap
+            VStack(spacing: 10) {
+                if let plan = selectedPlan {
+                    HStack {
+                        Text("Plan").font(.system(size: 13)).foregroundColor(.fnSlate)
+                        Spacer()
+                        Text(plan.name).font(.system(size: 13, weight: .semibold))
+                    }
+                    Divider()
+                }
+                if couponResult?.valid == true {
+                    HStack {
+                        Text("Descuento").font(.system(size: 13)).foregroundColor(.fnGreen)
+                        Spacer()
+                        if let pct = couponResult?.discountPercent {
+                            Text("-\(pct)%").font(.system(size: 13, weight: .semibold)).foregroundColor(.fnGreen)
+                        } else if let amt = couponResult?.discountAmount {
+                            Text("-$\(Int(amt))").font(.system(size: 13, weight: .semibold)).foregroundColor(.fnGreen)
+                        }
+                    }
+                    Divider()
+                }
+                HStack {
+                    Text("Total a pagar").font(.system(size: 14, weight: .semibold))
+                    Spacer()
+                    Text("$\(Int(finalPrice))")
+                        .font(.custom("DM Serif Display", size: 20))
+                        .foregroundColor(typeInfo.color)
+                }
+            }
+            .padding(16)
+            .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 16))
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+
+            if isCreatingIntent {
+                VStack(spacing: 12) {
+                    ProgressView().tint(.fnBlue)
+                    Text("Preparando pago seguro…")
+                        .font(.system(size: 14))
+                        .foregroundColor(.fnSlate)
+                }
+                .padding(.top, 30)
+            } else if let secret = clientSecret {
+                StripePaymentView(
+                    clientSecret: secret,
+                    merchantName: activity.provider_name ?? "FitNow"
+                ) { _ in
+                    handlePaymentSuccess()
+                } onCancel: {
+                    withAnimation { step = .coupon }
+                }
+                .padding(.horizontal, 20)
+            } else if let err = intentError {
+                VStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 32))
+                        .foregroundColor(.fnCrimson)
+                    Text(err)
+                        .font(.system(size: 14))
+                        .foregroundColor(.fnCrimson)
+                        .multilineTextAlignment(.center)
+                    Button("Reintentar") { Task { await createIntent() } }
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.fnBlue)
+                }
+                .padding(.horizontal, 30)
+                .padding(.top, 20)
             }
         }
     }
@@ -247,13 +466,6 @@ struct EnrollmentFlowView: View {
             }
             .padding(.horizontal, 20)
 
-            if let error = errorMessage {
-                Text(error)
-                    .font(.system(size: 14))
-                    .foregroundColor(.fnSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 20)
-            }
         }
     }
 
@@ -345,113 +557,6 @@ struct EnrollmentFlowView: View {
         .buttonStyle(ScaleButtonStyle())
     }
 
-    // MARK: - Step 3: Payment
-
-    private var paymentStep: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("¿Cómo querés pagar?")
-                .font(.system(size: 22, weight: .bold, design: .rounded))
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
-
-            // Plan summary
-            VStack(spacing: 10) {
-                if let plan = selectedPlan {
-                    HStack {
-                        Text("Plan seleccionado")
-                            .font(.system(size: 13))
-                            .foregroundColor(.fnSlate)
-                        Spacer()
-                        Text(plan.name)
-                            .font(.system(size: 13, weight: .semibold))
-                    }
-                    Divider()
-                }
-                HStack {
-                    Text("Total del plan")
-                        .font(.system(size: 14, weight: .semibold))
-                    Spacer()
-                    Text("$\(Int(selectedPlan?.price ?? activity.price ?? 0))")
-                        .font(.custom("DM Serif Display", size: 17))
-                        .foregroundColor(typeInfo.color)
-                }
-            }
-            .padding(16)
-            .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 16))
-            .padding(.horizontal, 20)
-
-            // Payment type (full vs deposit) — only if provider enables it
-            if supportsDeposit {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Modalidad de pago")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.fnSlate)
-                        .textCase(.uppercase)
-                        .tracking(0.5)
-                        .padding(.horizontal, 20)
-
-                    paymentTypeCard(.full,
-                        title: "Pago completo",
-                        subtitle: "Abonás el total ahora",
-                        amount: selectedPlan?.price ?? activity.price ?? 0,
-                        badge: nil)
-                    paymentTypeCard(.deposit,
-                        title: "Seña (\(depositPercent)%)",
-                        subtitle: "Abonás la seña ahora y el resto en el lugar",
-                        amount: (selectedPlan?.price ?? activity.price ?? 0) * Double(depositPercent) / 100,
-                        badge: "FLEXIBLE")
-                }
-            }
-
-            // Payment method
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Medio de pago")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(.fnSlate)
-                    .textCase(.uppercase)
-                    .tracking(0.5)
-                    .padding(.horizontal, 20)
-
-                methodCard(.card,     icon: "creditcard.fill",         title: "Tarjeta",              subtitle: "Crédito o débito")
-                methodCard(.transfer, icon: "arrow.left.arrow.right",  title: "Transferencia bancaria", subtitle: "CVU / CBU / Alias")
-            }
-
-            // Total to pay
-            VStack(spacing: 8) {
-                Divider()
-                HStack(alignment: .bottom) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("A pagar ahora")
-                            .font(.system(size: 12))
-                            .foregroundColor(.fnSlate)
-                        Text("$\(Int(finalPrice))")
-                            .font(.custom("DM Serif Display", size: 30))
-                            .foregroundStyle(typeInfo.gradient)
-                    }
-                    Spacer()
-                    if paymentChoice == .deposit && remainingPrice > 0 {
-                        VStack(alignment: .trailing, spacing: 2) {
-                            Text("Resto al concurrir")
-                                .font(.system(size: 11))
-                                .foregroundColor(.fnSlate)
-                            Text("$\(Int(remainingPrice))")
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(.fnSlate)
-                        }
-                    }
-                }
-            }
-            .padding(.horizontal, 20)
-
-            if let error = errorMessage {
-                Text(error)
-                    .font(.system(size: 14))
-                    .foregroundColor(.fnSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 20)
-            }
-        }
-    }
 
     private func paymentTypeCard(_ type: PaymentChoice, title: String, subtitle: String, amount: Double, badge: String?) -> some View {
         let isSelected = paymentChoice == type
@@ -498,103 +603,89 @@ struct EnrollmentFlowView: View {
         .padding(.horizontal, 20)
     }
 
-    private func methodCard(_ method: PaymentMethod, icon: String, title: String, subtitle: String) -> some View {
-        let isSelected = paymentMethod == method
-        return Button {
-            withAnimation(.spring(response: 0.3)) { paymentMethod = method }
-        } label: {
-            HStack(spacing: 14) {
-                ZStack {
-                    Circle()
-                        .stroke(isSelected ? typeInfo.color : .fnSlate.opacity(0.7), lineWidth: 2)
-                        .frame(width: 22, height: 22)
-                    if isSelected { Circle().fill(typeInfo.color).frame(width: 13, height: 13) }
-                }
-                Image(systemName: icon)
-                    .font(.system(size: 16))
-                    .foregroundColor(isSelected ? typeInfo.color : .fnSlate)
-                    .frame(width: 24)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(title)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.white)
-                    Text(subtitle)
-                        .font(.system(size: 12))
-                        .foregroundColor(.fnSlate)
-                }
-                Spacer()
-            }
-            .padding(14)
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(isSelected ? typeInfo.color.opacity(0.08) : Color.fnSurface)
-                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(isSelected ? typeInfo.color : Color.clear, lineWidth: 1.5))
-            )
-        }
-        .buttonStyle(ScaleButtonStyle())
-        .padding(.horizontal, 20)
-    }
-
-    // MARK: - Step 4: Success
+    // MARK: - Step: Success
 
     private var successStep: some View {
-        VStack(spacing: 32) {
-            Spacer(minLength: 50)
+        VStack(spacing: 28) {
+            Spacer(minLength: 30)
 
             ZStack {
                 Circle()
-                    .fill(FNGradient.success)
-                    .frame(width: 110, height: 110)
-                    .fnShadowColored(.fnGreen)
+                    .fill(Color.fnGreen)
+                    .frame(width: 100, height: 100)
                 Image(systemName: "checkmark")
-                    .font(.system(size: 48, weight: .bold))
+                    .font(.system(size: 44, weight: .bold))
                     .foregroundColor(.white)
             }
-            .scaleEffect(step == .success ? 1 : 0.5)
-            .animation(.spring(response: 0.5, dampingFraction: 0.65), value: step)
+            .scaleEffect(step == .success ? 1 : 0.4)
+            .animation(.spring(response: 0.5, dampingFraction: 0.6), value: step)
 
-            VStack(spacing: 12) {
+            VStack(spacing: 8) {
                 Text("¡Inscripción confirmada!")
-                    .font(.custom("DM Serif Display", size: 30))
+                    .font(.custom("DM Serif Display", size: 28))
                     .multilineTextAlignment(.center)
-
                 if let plan = selectedPlan {
                     HStack(spacing: 6) {
                         Image(systemName: typeInfo.icon)
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(typeInfo.color)
                         Text(plan.name)
-                            .font(.system(size: 15, weight: .semibold))
+                            .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(typeInfo.color)
                     }
                 }
-
-                Text("Te avisaremos antes de cada clase o actividad.")
-                    .font(.system(size: 14))
+                Text("Te avisaremos antes de cada clase.")
+                    .font(.system(size: 13))
                     .foregroundColor(.fnSlate)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 40)
+            }
 
-                if paymentChoice == .deposit {
-                    HStack(spacing: 8) {
-                        Image(systemName: "info.circle.fill")
-                            .foregroundColor(.fnYellow)
-                        Text("Recordá abonar el resto ($\(Int(remainingPrice))) en el lugar")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.fnYellow)
-                    }
-                    .padding(12)
-                    .background(Color.fnYellow.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
-                    .padding(.horizontal, 30)
+            // QR access card
+            if let enrollId = confirmedEnrollmentId ?? pendingEnrollmentId {
+                EnrollmentQRCard(
+                    enrollmentId: enrollId,
+                    activityTitle: activity.title,
+                    date: activity.date_start
+                )
+                .padding(.horizontal, 20)
+            }
+
+            if paymentChoice == .deposit && remainingPrice > 0 {
+                HStack(spacing: 8) {
+                    Image(systemName: "info.circle.fill").foregroundColor(.fnYellow)
+                    Text("Recordá abonar el resto ($\(Int(remainingPrice))) en el lugar")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.fnYellow)
                 }
+                .padding(12)
+                .background(Color.fnYellow.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+                .padding(.horizontal, 24)
             }
 
-            FitNowButton(title: "Ver mis inscripciones", icon: "list.bullet.rectangle.portrait.fill") {
-                dismiss()
-            }
-            .padding(.horizontal, 40)
+            VStack(spacing: 10) {
+                if let enrollId = confirmedEnrollmentId ?? pendingEnrollmentId {
+                    ShareLink(
+                        item: "fitnow://checkin/\(enrollId)",
+                        subject: Text("Mi inscripción en FitNow"),
+                        message: Text("Usá este código para el check-in: \(enrollId)")
+                    ) {
+                        Label("Compartir código", systemImage: "square.and.arrow.up")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.fnBlue)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(Color.fnBlue.opacity(0.12), in: RoundedRectangle(cornerRadius: 14))
+                    }
+                    .padding(.horizontal, 24)
+                }
 
-            Spacer()
+                FitNowButton(title: "Ver mis inscripciones",
+                             icon: "list.bullet.rectangle.portrait.fill") {
+                    dismiss()
+                }
+                .padding(.horizontal, 24)
+            }
+
+            Spacer(minLength: 20)
         }
     }
 
@@ -622,21 +713,19 @@ struct EnrollmentFlowView: View {
                         gradient: typeInfo.gradient,
                         isDisabled: selectedPlan == nil
                     ) {
-                        if selectedPlan != nil { withAnimation { step = .payment } }
+                        if selectedPlan != nil { withAnimation { step = .coupon } }
                     }
 
-                case .payment:
+                case .coupon:
                     FitNowButton(
-                        title: enrolling ? "Procesando…" : "Confirmar · $\(Int(finalPrice))",
-                        icon: "checkmark.circle.fill",
-                        gradient: typeInfo.gradient,
-                        isLoading: enrolling,
-                        isDisabled: enrolling
+                        title: "Ir al pago · $\(Int(finalPrice))",
+                        icon: "lock.shield.fill",
+                        gradient: typeInfo.gradient
                     ) {
-                        createEnrollment()
+                        withAnimation { step = .stripePayment }
                     }
 
-                case .success:
+                case .stripePayment, .success:
                     EmptyView()
                 }
             }
@@ -646,63 +735,73 @@ struct EnrollmentFlowView: View {
         }
     }
 
-    // MARK: - Navigation Logic
+    // MARK: - Navigation
 
     private func advanceFromConfirm() {
         if showPlanStep {
             if plans.isEmpty {
-                step = .payment
+                step = .coupon
             } else {
                 if selectedPlan == nil { selectedPlan = plans.first }
                 step = .selectPlan
             }
         } else {
-            step = .payment
+            step = .coupon
         }
     }
 
     // MARK: - API
 
-    private func createEnrollment() {
-        enrolling = true
-        errorMessage = nil
-
-        var body: [String: Any] = ["activity_id": activity.id]
-        if let plan = selectedPlan {
-            body["plan_name"] = plan.name
-            body["plan_price"] = plan.price
-        }
-        body["payment_type"]   = paymentChoice == .full ? "full" : "deposit"
-        body["payment_method"] = paymentMethod == .card  ? "card" : "transfer"
-
-        let data = (try? JSONSerialization.data(withJSONObject: body)) ?? Data()
-        APIClient.shared.requestPublisher("enrollments", method: "POST", body: data, authorized: true)
-            .sink { completion in
-                if case .failure(let e) = completion {
-                    if case APIError.http(let code, let bodyStr) = e {
-                        if code == 409 && (bodyStr.contains("ALREADY_ENROLLED") || bodyStr.contains("Already enrolled") || bodyStr.contains("Ya estás inscripto")) {
-                            withAnimation { self.step = .success }
-                            self.onEnrolled?()
-                        } else if code == 409 && (bodyStr.contains("No seats left") || bodyStr.contains("NO_SEATS")) {
-                            self.errorMessage = "No quedan cupos disponibles."
-                        } else {
-                            self.errorMessage = "Error \(code): no se pudo completar la inscripción."
-                        }
-                    } else {
-                        self.errorMessage = e.localizedDescription
-                    }
-                    self.enrolling = false
-                }
-            } receiveValue: { (_: SimpleOK) in
-                self.enrolling = false
-                NotificationsService.shared.scheduleReminders(
-                    activityTitle: self.activity.title,
-                    activityId: self.activity.id,
-                    dateStart: self.activity.date_start
-                )
-                withAnimation { self.step = .success }
-                self.onEnrolled?()
+    private func validateCoupon() async {
+        let code = couponCode.trimmingCharacters(in: .whitespaces)
+        guard !code.isEmpty else { return }
+        validatingCoupon = true
+        couponError = nil
+        couponResult = nil
+        do {
+            let result = try await PaymentService.shared.validateCoupon(code, activityId: activity.id)
+            if result.valid {
+                couponResult = result
+            } else {
+                couponError = result.message ?? "Cupón inválido o expirado."
             }
-            .store(in: &helper.bag)
+        } catch {
+            couponError = "No se pudo validar el cupón."
+        }
+        validatingCoupon = false
+    }
+
+    private func createIntent() async {
+        guard clientSecret == nil else { return }
+        isCreatingIntent = true
+        intentError = nil
+        do {
+            let response = try await PaymentService.shared.createPaymentIntent(
+                activityId: activity.id,
+                planName: selectedPlan?.name ?? "Inscripción",
+                couponCode: couponResult?.valid == true ? couponCode : nil
+            )
+            clientSecret = response.clientSecret
+            pendingEnrollmentId = response.enrollmentId
+        } catch {
+            intentError = error.localizedDescription
+        }
+        isCreatingIntent = false
+    }
+
+    private func handlePaymentSuccess() {
+        NotificationsService.shared.scheduleReminders(
+            activityTitle: activity.title,
+            activityId: activity.id,
+            dateStart: activity.date_start
+        )
+        Task {
+            if let enrollId = pendingEnrollmentId {
+                let confirmed = try? await PaymentService.shared.pollEnrollmentConfirmation(enrollmentId: enrollId)
+                confirmedEnrollmentId = confirmed?.id ?? enrollId
+            }
+            withAnimation { step = .success }
+            onEnrolled?()
+        }
     }
 }
