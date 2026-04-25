@@ -69,14 +69,20 @@ struct ProviderDashboardView: View {
             .tag(1)
 
             NavigationStack {
-                ProviderMyOffersView()
+                ProviderEnrollmentsTab(providerId: providerId)
             }
-            .tabItem { Label("Ofertas", systemImage: selectedTab == 2 ? "tag.fill" : "tag") }
+            .tabItem { Label("Inscripciones", systemImage: selectedTab == 2 ? "person.badge.clock.fill" : "person.badge.clock") }
             .tag(2)
 
+            NavigationStack {
+                ProviderMyOffersView()
+            }
+            .tabItem { Label("Ofertas", systemImage: selectedTab == 3 ? "tag.fill" : "tag") }
+            .tag(3)
+
             ProfileView()
-                .tabItem { Label("Perfil", systemImage: selectedTab == 3 ? "person.circle.fill" : "person.circle") }
-                .tag(3)
+                .tabItem { Label("Perfil", systemImage: selectedTab == 4 ? "person.circle.fill" : "person.circle") }
+                .tag(4)
         }
         .tint(.fnPurple)
         .onAppear { vm.load() }
