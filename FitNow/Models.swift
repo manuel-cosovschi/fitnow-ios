@@ -90,6 +90,10 @@ struct Activity: Identifiable, Codable {
     let deposit_percent: Int?      // deposit percentage (default 50 if nil)
     let has_capacity_limit: Bool?  // provider enforces seat limit
     let status: String?            // "draft" | "active" | "cancelled"
+    let lat: Double?
+    let lng: Double?
+    let rating: Double?            // average rating (0-5)
+    let review_count: Int?
 
     enum CodingKeys: String, CodingKey {
         case id, title, description, modality, difficulty, location, price
@@ -97,6 +101,7 @@ struct Activity: Identifiable, Codable {
         case kind, provider_id, provider_name, rules
         case sport_id, sport_name
         case enable_running, enable_deposit, deposit_percent, has_capacity_limit, status
+        case lat, lng, rating, review_count
     }
 
     init(from decoder: Decoder) throws {
@@ -135,6 +140,10 @@ struct Activity: Identifiable, Codable {
         deposit_percent     = try c.decodeIfPresent(Int.self,    forKey: .deposit_percent)
         has_capacity_limit  = try c.decodeIfPresent(Bool.self,   forKey: .has_capacity_limit)
         status              = try c.decodeIfPresent(String.self, forKey: .status)
+        lat          = try c.decodeIfPresent(Double.self, forKey: .lat)
+        lng          = try c.decodeIfPresent(Double.self, forKey: .lng)
+        rating       = try c.decodeIfPresent(Double.self, forKey: .rating)
+        review_count = try c.decodeIfPresent(Int.self,    forKey: .review_count)
     }
 }
 
