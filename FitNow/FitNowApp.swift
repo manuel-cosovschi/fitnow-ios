@@ -1,5 +1,6 @@
 import SwiftUI
 import UserNotifications
+import AppTrackingTransparency
 
 @main
 struct FitNowApp: App {
@@ -18,6 +19,10 @@ struct FitNowApp: App {
                 .onAppear {
                     LocationService.shared.start()
                     registerForPushNotifications()
+                }
+                .task {
+                    try? await Task.sleep(nanoseconds: 1_000_000_000)
+                    await ATTService.shared.requestTracking()
                 }
                 .onOpenURL { url in
                     handleURL(url)
