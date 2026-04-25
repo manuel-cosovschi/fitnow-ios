@@ -15,6 +15,10 @@
 		FF000006FF000006FF000006 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF000016FF000016FF000016 /* SplashView.swift */; };
 		36820F192E82144200B51DAF /* HazardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F092E82144200B51DAF /* HazardService.swift */; };
 		EE220001EE330001EE440001 /* TokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE110001EE220001EE330001 /* TokenStore.swift */; };
+		M1BB0001M1CC0001M1DD0001 /* BiometricService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1AA0001M1BB0001M1CC0001 /* BiometricService.swift */; };
+		M1BB0002M1CC0002M1DD0002 /* AppleSignInService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1AA0002M1BB0002M1CC0002 /* AppleSignInService.swift */; };
+		M1BB0003M1CC0003M1DD0003 /* TwoFactorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1AA0003M1BB0003M1CC0003 /* TwoFactorView.swift */; };
+		M1BB0004M1CC0004M1DD0004 /* DeepLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1AA0004M1BB0004M1CC0004 /* DeepLinkHandler.swift */; };
 		36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F082E82144200B51DAF /* FitNowApp.swift */; };
 		36820F1C2E82144200B51DAF /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0C2E82144200B51DAF /* KeychainService.swift */; };
 		36820F1D2E82144200B51DAF /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0E2E82144200B51DAF /* LoginView.swift */; };
@@ -94,6 +98,10 @@
 		36820F032E82144200B51DAF /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		36820F042E82144200B51DAF /* ClubSportsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubSportsView.swift; sourceTree = "<group>"; };
 		EE110001EE220001EE330001 /* TokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenStore.swift; sourceTree = "<group>"; };
+		M1AA0001M1BB0001M1CC0001 /* BiometricService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricService.swift; sourceTree = "<group>"; };
+		M1AA0002M1BB0002M1CC0002 /* AppleSignInService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInService.swift; sourceTree = "<group>"; };
+		M1AA0003M1BB0003M1CC0003 /* TwoFactorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwoFactorView.swift; sourceTree = "<group>"; };
+		M1AA0004M1BB0004M1CC0004 /* DeepLinkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkHandler.swift; sourceTree = "<group>"; };
 		36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnrollmentsViewModel.swift; sourceTree = "<group>"; };
 		36820F072E82144200B51DAF /* FitNow.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FitNow.entitlements; sourceTree = "<group>"; };
 		36820F082E82144200B51DAF /* FitNowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitNowApp.swift; sourceTree = "<group>"; };
@@ -211,6 +219,10 @@
 				36820F032E82144200B51DAF /* AuthViewModel.swift */,
 				36820F042E82144200B51DAF /* ClubSportsView.swift */,
 				EE110001EE220001EE330001 /* TokenStore.swift */,
+				M1AA0001M1BB0001M1CC0001 /* BiometricService.swift */,
+				M1AA0002M1BB0002M1CC0002 /* AppleSignInService.swift */,
+				M1AA0003M1BB0003M1CC0003 /* TwoFactorView.swift */,
+				M1AA0004M1BB0004M1CC0004 /* DeepLinkHandler.swift */,
 				36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */,
 				36820F072E82144200B51DAF /* FitNow.entitlements */,
 				36820F082E82144200B51DAF /* FitNowApp.swift */,
@@ -419,6 +431,10 @@
 			files = (
 				36820F192E82144200B51DAF /* HazardService.swift in Sources */,
 				EE220001EE330001EE440001 /* TokenStore.swift in Sources */,
+				M1BB0001M1CC0001M1DD0001 /* BiometricService.swift in Sources */,
+				M1BB0002M1CC0002M1DD0002 /* AppleSignInService.swift in Sources */,
+				M1BB0003M1CC0003M1DD0003 /* TwoFactorView.swift in Sources */,
+				M1BB0004M1CC0004M1DD0004 /* DeepLinkHandler.swift in Sources */,
 				36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */,
 				36820F1C2E82144200B51DAF /* KeychainService.swift in Sources */,
 				36820F1D2E82144200B51DAF /* LoginView.swift in Sources */,

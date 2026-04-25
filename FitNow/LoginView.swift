@@ -30,8 +30,11 @@ struct LoginView: View {
                     formCard
                         .padding(.horizontal, 24)
 
+                    appleSignInSection
+                        .padding(.top, 16)
+
                     toggleButton
-                        .padding(.top, 24)
+                        .padding(.top, 20)
                         .padding(.bottom, 16)
 
                     Button { showAdminLogin = true } label: {
@@ -59,6 +62,13 @@ struct LoginView: View {
         }
         .sheet(isPresented: $showAdminLogin) {
             AdminLoginSheet().environmentObject(auth)
+        }
+        .sheet(item: Binding(
+            get: { auth.pendingTwoFactor.map { TwoFactorToken(token: $0) } },
+            set: { if $0 == nil { auth.cancelTwoFactor() } }
+        )) { wrapper in
+            TwoFactorView(tempToken: wrapper.token)
+                .environmentObject(auth)
         }
     }
 
@@ -287,6 +297,42 @@ struct LoginView: View {
         .opacity(appeared ? 1 : 0)
         .animation(.spring(response: 0.55).delay(0.28), value: appeared)
     }
+
+    // MARK: - Sign in with Apple
+
+    @ViewBuilder
+    private var appleSignInSection: some View {
+        if !isRegister {
+            VStack(spacing: 16) {
+                dividerRow
+                SignInWithAppleButton { request in
+                    request.requestedScopes = [.fullName, .email]
+                } onCompletion: { result in
+                    switch result {
+                    case .success(let auth):
+                        // Delegate to AuthViewModel via AppleSignInService path
+                        _ = auth  // credential handled by AuthViewModel.signInWithApple()
+                    case .failure:
+                        break
+                    }
+                }
+                .frame(height: 50)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .onTapGesture { auth.signInWithApple() }
+            }
+            .padding(.horizontal, 24)
+            .opacity(appeared ? 1 : 0)
+            .animation(.spring(response: 0.55).delay(0.32), value: appeared)
+        }
+    }
+
+    private var dividerRow: some View {
+        HStack(spacing: 12) {
+            Rectangle().fill(Color.fnBorder).frame(height: 1)
+            Text("o").font(.system(size: 12)).foregroundColor(.fnSlate)
+            Rectangle().fill(Color.fnBorder).frame(height: 1)
+        }
+    }
 }
 
 // MARK: - Dark Secure Field
@@ -325,6 +371,13 @@ private struct FNDarkSecureField: View {
                     .stroke(Color.fnBorder, lineWidth: 1))
         .clipShape(RoundedRectangle(cornerRadius: 14))
     }
+}
+
+// MARK: - Helpers
+
+private struct TwoFactorToken: Identifiable {
+    let id = UUID()
+    let token: String
 }
 
 // MARK: - Admin Login Sheet
