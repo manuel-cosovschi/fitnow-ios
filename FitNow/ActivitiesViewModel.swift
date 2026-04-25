@@ -13,9 +13,17 @@ final class ActivitiesViewModel: ObservableObject {
     @Published var selectedModality: String = ""     // "", "outdoor", "gimnasio", "clase"
     @Published var minPrice: Int?
     @Published var maxPrice: Int?
+    @Published var selectedSort: String = "popular"  // "popular", "price_asc", "price_desc", "rating", "distance"
 
     let difficultyOptions = ["", "baja", "media", "alta"]
     let modalityOptions = ["", "outdoor", "gimnasio", "clase"]
+    let sortOptions: [(label: String, value: String)] = [
+        ("Popular",   "popular"),
+        ("Precio ↑",  "price_asc"),
+        ("Precio ↓",  "price_desc"),
+        ("Rating",    "rating"),
+        ("Cercanía",  "distance"),
+    ]
 
     private var bag = Set<AnyCancellable>()
 
@@ -25,6 +33,7 @@ final class ActivitiesViewModel: ObservableObject {
         selectedModality = ""
         minPrice = nil
         maxPrice = nil
+        selectedSort = "popular"
     }
 
     func fetch() {
@@ -46,6 +55,7 @@ final class ActivitiesViewModel: ObservableObject {
         }
         if let minPrice { qItems.append(URLQueryItem(name: "min_price", value: String(minPrice))) }
         if let maxPrice { qItems.append(URLQueryItem(name: "max_price", value: String(maxPrice))) }
+        if !selectedSort.isEmpty { qItems.append(URLQueryItem(name: "sort", value: selectedSort)) }
 
         APIClient.shared.requestPublisher("activities", authorized: false, query: qItems)
             .sink { [weak self] completion in

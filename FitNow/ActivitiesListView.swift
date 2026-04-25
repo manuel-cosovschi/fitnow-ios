@@ -1,10 +1,12 @@
 import SwiftUI
+import MapKit
 
 struct ActivitiesListView: View {
     @StateObject private var vm = ActivitiesViewModel()
     @EnvironmentObject var auth: AuthViewModel
     @State private var showingFilters = false
     @State private var appeared = false
+    @State private var showMap = false
 
     private let kindFilters: [(label: String, value: String)] = [
         ("Todos",        ""),
@@ -24,14 +26,13 @@ struct ActivitiesListView: View {
                     .padding(.top, 8)
                     .padding(.bottom, 10)
 
+                // Kind filter chips
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(kindFilters, id: \.value) { f in
                             FilterChip(title: f.label,
                                        isSelected: vm.selectedKind == f.value) {
-                                withAnimation(.spring(response: 0.3)) {
-                                    vm.selectedKind = f.value
-                                }
+                                withAnimation(.spring(response: 0.3)) { vm.selectedKind = f.value }
                                 vm.fetch()
                             }
                         }
@@ -39,21 +40,40 @@ struct ActivitiesListView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 4)
                 }
-                .padding(.bottom, 8)
+
+                // Sort chips
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(vm.sortOptions, id: \.value) { opt in
+                            FilterChip(title: opt.label,
+                                       isSelected: vm.selectedSort == opt.value) {
+                                withAnimation(.spring(response: 0.3)) { vm.selectedSort = opt.value }
+                                vm.fetch()
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 4)
+                }
+                .padding(.bottom, 4)
 
                 Rectangle()
                     .fill(Color.fnBorder.opacity(0.5))
                     .frame(height: 0.5)
 
-                Group {
-                    if vm.loading && vm.items.isEmpty {
-                        loadingState
-                    } else if let error = vm.error {
-                        errorState(error)
-                    } else if vm.items.isEmpty {
-                        emptyState
-                    } else {
-                        activityList
+                if showMap {
+                    activitiesMap
+                } else {
+                    Group {
+                        if vm.loading && vm.items.isEmpty {
+                            loadingState
+                        } else if let error = vm.error {
+                            errorState(error)
+                        } else if vm.items.isEmpty {
+                            emptyState
+                        } else {
+                            activityList
+                        }
                     }
                 }
             }
@@ -63,14 +83,19 @@ struct ActivitiesListView: View {
         .toolbarBackground(Color.fnBg, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button { showingFilters = true } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "slider.horizontal.3")
-                            .font(.system(size: 14, weight: .medium))
-                        Text("Filtros")
-                            .font(.system(size: 14, weight: .semibold))
+                HStack(spacing: 12) {
+                    Button {
+                        withAnimation(.spring(response: 0.35)) { showMap.toggle() }
+                    } label: {
+                        Image(systemName: showMap ? "list.bullet" : "map")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.fnBlue)
                     }
-                    .foregroundColor(.fnBlue)
+                    Button { showingFilters = true } label: {
+                        Image(systemName: "slider.horizontal.3")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.fnBlue)
+                    }
                 }
             }
         }
@@ -82,6 +107,38 @@ struct ActivitiesListView: View {
             FiltersSheet(vm: vm, isPresented: $showingFilters)
                 .preferredColorScheme(.dark)
         }
+    }
+
+    // MARK: - Map View
+
+    private var activitiesMap: some View {
+        let pinned = vm.items.compactMap { a -> ActivityPin? in
+            guard let lat = a.lat, let lng = a.lng else { return nil }
+            return ActivityPin(activity: a, coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng))
+        }
+        return Map {
+            ForEach(pinned) { pin in
+                Annotation(pin.activity.title, coordinate: pin.coordinate) {
+                    NavigationLink {
+                        ActivityDetailLoader(activityId: pin.activity.id, title: pin.activity.title)
+                    } label: {
+                        let typeInfo = ActivityTypeInfo.from(kind: pin.activity.kind ?? "")
+                        ZStack {
+                            Circle()
+                                .fill(typeInfo.color)
+                                .frame(width: 36, height: 36)
+                                .shadow(color: typeInfo.color.opacity(0.4), radius: 4, y: 2)
+                            Image(systemName: typeInfo.icon)
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .mapStyle(.standard(elevation: .flat))
+        .ignoresSafeArea(edges: .bottom)
     }
 
     // MARK: - Search Bar
@@ -315,5 +372,19 @@ struct FiltersSheet: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+    }
+}
+
+// MARK: - Map pin model
+
+private struct ActivityPin: Identifiable {
+    let id: Int
+    let activity: Activity
+    let coordinate: CLLocationCoordinate2D
+
+    init(activity: Activity, coordinate: CLLocationCoordinate2D) {
+        self.id = activity.id
+        self.activity = activity
+        self.coordinate = coordinate
     }
 }
