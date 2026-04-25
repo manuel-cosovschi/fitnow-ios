@@ -38,6 +38,10 @@
 	<string>FitNow usa Face ID para proteger el acceso a tu cuenta.</string>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>FitNow te envía recordatorios de tus clases y actualizaciones de tus entrenamientos.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Permitir el seguimiento nos ayuda a mostrarte anuncios y contenido relevante para vos.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>FitNow agrega tus clases y entrenamientos a tu calendario.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
