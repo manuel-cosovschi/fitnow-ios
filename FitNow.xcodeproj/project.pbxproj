@@ -26,6 +26,7 @@
 		M3BB0002M3CC0002M3DD0002 /* SavedPaymentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M3AA0002M3BB0002M3CC0002 /* SavedPaymentsView.swift */; };
 		M3BB0003M3CC0003M3DD0003 /* RefundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M3AA0003M3BB0003M3CC0003 /* RefundView.swift */; };
 		M4BB0001M4CC0001M4DD0001 /* MessagesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M4AA0001M4BB0001M4CC0001 /* MessagesView.swift */; };
+		M5BB0001M5CC0001M5DD0001 /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M5AA0001M5BB0001M5CC0001 /* HealthKitService.swift */; };
 		36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F082E82144200B51DAF /* FitNowApp.swift */; };
 		36820F1C2E82144200B51DAF /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0C2E82144200B51DAF /* KeychainService.swift */; };
 		36820F1D2E82144200B51DAF /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0E2E82144200B51DAF /* LoginView.swift */; };
@@ -116,6 +117,7 @@
 		M3AA0002M3BB0002M3CC0002 /* SavedPaymentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedPaymentsView.swift; sourceTree = "<group>"; };
 		M3AA0003M3BB0003M3CC0003 /* RefundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RefundView.swift; sourceTree = "<group>"; };
 		M4AA0001M4BB0001M4CC0001 /* MessagesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesView.swift; sourceTree = "<group>"; };
+		M5AA0001M5BB0001M5CC0001 /* HealthKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitService.swift; sourceTree = "<group>"; };
 		36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnrollmentsViewModel.swift; sourceTree = "<group>"; };
 		36820F072E82144200B51DAF /* FitNow.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FitNow.entitlements; sourceTree = "<group>"; };
 		36820F082E82144200B51DAF /* FitNowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitNowApp.swift; sourceTree = "<group>"; };
@@ -244,6 +246,7 @@
 				M3AA0002M3BB0002M3CC0002 /* SavedPaymentsView.swift */,
 				M3AA0003M3BB0003M3CC0003 /* RefundView.swift */,
 				M4AA0001M4BB0001M4CC0001 /* MessagesView.swift */,
+				M5AA0001M5BB0001M5CC0001 /* HealthKitService.swift */,
 				36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */,
 				36820F072E82144200B51DAF /* FitNow.entitlements */,
 				36820F082E82144200B51DAF /* FitNowApp.swift */,
@@ -463,6 +466,7 @@
 				M3BB0002M3CC0002M3DD0002 /* SavedPaymentsView.swift in Sources */,
 				M3BB0003M3CC0003M3DD0003 /* RefundView.swift in Sources */,
 				M4BB0001M4CC0001M4DD0001 /* MessagesView.swift in Sources */,
+				M5BB0001M5CC0001M5DD0001 /* HealthKitService.swift in Sources */,
 				36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */,
 				36820F1C2E82144200B51DAF /* KeychainService.swift in Sources */,
 				36820F1D2E82144200B51DAF /* LoginView.swift in Sources */,
