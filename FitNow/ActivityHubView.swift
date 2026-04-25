@@ -153,12 +153,19 @@ struct ActivityHubView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    showCompose = true
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 22))
-                        .foregroundColor(.fnPurple)
+                HStack(spacing: 12) {
+                    NavigationLink(destination: FormCheckView()) {
+                        Image(systemName: "figure.strengthtraining.traditional")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.fnCyan)
+                    }
+                    Button {
+                        showCompose = true
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 22))
+                            .foregroundColor(.fnPurple)
+                    }
                 }
             }
         }

@@ -166,13 +166,13 @@ final class APIClient: APIClientProtocol {
         }
     }
 
-    private func buildRequest(
+    func buildRequest(
         _ path: String,
-        method: String,
-        body: Data?,
-        authorized: Bool,
-        query: [URLQueryItem],
-        headers: [String: String]
+        method: String = "GET",
+        body: Data? = nil,
+        authorized: Bool = false,
+        query: [URLQueryItem] = [],
+        headers: [String: String] = [:]
     ) throws -> URLRequest {
         var components = URLComponents(url: APIConfig.baseURL, resolvingAgainstBaseURL: false)!
         let cleanPath = path.hasPrefix("/") ? String(path.dropFirst()) : path
