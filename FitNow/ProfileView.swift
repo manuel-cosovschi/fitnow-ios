@@ -140,6 +140,27 @@ struct ProfileView: View {
                     }
                 }
 
+                // ── FitNow+ ──
+                Section {
+                    NavigationLink { FitNowPlusView() } label: {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle().fill(Color.fnPurple.opacity(0.14)).frame(width: 32, height: 32)
+                                Image(systemName: "star.fill")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.fnPurple)
+                            }
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("FitNow+")
+                                    .font(.system(size: 15, weight: .semibold))
+                                Text(StoreKitService.shared.isPlusActive ? "Suscripción activa" : "Desbloquear funciones premium")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(StoreKitService.shared.isPlusActive ? .fnGreen : .fnSlate)
+                            }
+                        }
+                    }
+                }
+
                 // ── Pagos ──
                 Section("Pagos") {
                     NavigationLink { SavedPaymentsView() } label: {

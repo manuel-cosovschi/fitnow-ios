@@ -29,6 +29,9 @@
 		M5BB0001M5CC0001M5DD0001 /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M5AA0001M5BB0001M5CC0001 /* HealthKitService.swift */; };
 		M6BB0001M6CC0001M6DD0001 /* QRScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M6AA0001M6BB0001M6CC0001 /* QRScannerView.swift */; };
 		M6BB0002M6CC0002M6DD0002 /* CheckInService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M6AA0002M6BB0002M6CC0002 /* CheckInService.swift */; };
+		M8BB0001M8CC0001M8DD0001 /* StoreKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M8AA0001M8BB0001M8CC0001 /* StoreKitService.swift */; };
+		M8BB0002M8CC0002M8DD0002 /* ATTService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M8AA0002M8BB0002M8CC0002 /* ATTService.swift */; };
+		M8BB0003M8CC0003M8DD0003 /* FitNowPlusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M8AA0003M8BB0003M8CC0003 /* FitNowPlusView.swift */; };
 		36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F082E82144200B51DAF /* FitNowApp.swift */; };
 		36820F1C2E82144200B51DAF /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0C2E82144200B51DAF /* KeychainService.swift */; };
 		36820F1D2E82144200B51DAF /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0E2E82144200B51DAF /* LoginView.swift */; };
@@ -122,6 +125,9 @@
 		M5AA0001M5BB0001M5CC0001 /* HealthKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitService.swift; sourceTree = "<group>"; };
 		M6AA0001M6BB0001M6CC0001 /* QRScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRScannerView.swift; sourceTree = "<group>"; };
 		M6AA0002M6BB0002M6CC0002 /* CheckInService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckInService.swift; sourceTree = "<group>"; };
+		M8AA0001M8BB0001M8CC0001 /* StoreKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitService.swift; sourceTree = "<group>"; };
+		M8AA0002M8BB0002M8CC0002 /* ATTService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ATTService.swift; sourceTree = "<group>"; };
+		M8AA0003M8BB0003M8CC0003 /* FitNowPlusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitNowPlusView.swift; sourceTree = "<group>"; };
 		36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnrollmentsViewModel.swift; sourceTree = "<group>"; };
 		36820F072E82144200B51DAF /* FitNow.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FitNow.entitlements; sourceTree = "<group>"; };
 		36820F082E82144200B51DAF /* FitNowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitNowApp.swift; sourceTree = "<group>"; };
@@ -253,6 +259,9 @@
 				M5AA0001M5BB0001M5CC0001 /* HealthKitService.swift */,
 				M6AA0001M6BB0001M6CC0001 /* QRScannerView.swift */,
 				M6AA0002M6BB0002M6CC0002 /* CheckInService.swift */,
+				M8AA0001M8BB0001M8CC0001 /* StoreKitService.swift */,
+				M8AA0002M8BB0002M8CC0002 /* ATTService.swift */,
+				M8AA0003M8BB0003M8CC0003 /* FitNowPlusView.swift */,
 				36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */,
 				36820F072E82144200B51DAF /* FitNow.entitlements */,
 				36820F082E82144200B51DAF /* FitNowApp.swift */,
@@ -475,6 +484,9 @@
 				M5BB0001M5CC0001M5DD0001 /* HealthKitService.swift in Sources */,
 				M6BB0001M6CC0001M6DD0001 /* QRScannerView.swift in Sources */,
 				M6BB0002M6CC0002M6DD0002 /* CheckInService.swift in Sources */,
+				M8BB0001M8CC0001M8DD0001 /* StoreKitService.swift in Sources */,
+				M8BB0002M8CC0002M8DD0002 /* ATTService.swift in Sources */,
+				M8BB0003M8CC0003M8DD0003 /* FitNowPlusView.swift in Sources */,
 				36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */,
 				36820F1C2E82144200B51DAF /* KeychainService.swift in Sources */,
 				36820F1D2E82144200B51DAF /* LoginView.swift in Sources */,
