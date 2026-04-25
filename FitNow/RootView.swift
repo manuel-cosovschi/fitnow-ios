@@ -5,6 +5,7 @@ struct RootView: View {
     @Environment(BiometricService.self) var biometric
 
     @State private var showSplash = true
+    @AppStorage("fn_onboarding_done") private var onboardingDone = false
 
     var body: some View {
         Group {
@@ -40,7 +41,11 @@ struct RootView: View {
         case "admin":
             NavigationStack { AdminView() }
         default:
-            MainTabView()
+            if !onboardingDone {
+                OnboardingView(onComplete: { onboardingDone = true })
+            } else {
+                MainTabView()
+            }
         }
     }
 }

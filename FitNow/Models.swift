@@ -94,6 +94,8 @@ struct Activity: Identifiable, Codable {
     let lng: Double?
     let rating: Double?            // average rating (0-5)
     let review_count: Int?
+    let image_urls: [String]?
+    let cancellation_policy: String?
 
     enum CodingKeys: String, CodingKey {
         case id, title, description, modality, difficulty, location, price
@@ -102,6 +104,7 @@ struct Activity: Identifiable, Codable {
         case sport_id, sport_name
         case enable_running, enable_deposit, deposit_percent, has_capacity_limit, status
         case lat, lng, rating, review_count
+        case image_urls, cancellation_policy
     }
 
     init(from decoder: Decoder) throws {
@@ -140,11 +143,28 @@ struct Activity: Identifiable, Codable {
         deposit_percent     = try c.decodeIfPresent(Int.self,    forKey: .deposit_percent)
         has_capacity_limit  = try c.decodeIfPresent(Bool.self,   forKey: .has_capacity_limit)
         status              = try c.decodeIfPresent(String.self, forKey: .status)
-        lat          = try c.decodeIfPresent(Double.self, forKey: .lat)
-        lng          = try c.decodeIfPresent(Double.self, forKey: .lng)
-        rating       = try c.decodeIfPresent(Double.self, forKey: .rating)
-        review_count = try c.decodeIfPresent(Int.self,    forKey: .review_count)
+        lat                 = try c.decodeIfPresent(Double.self,   forKey: .lat)
+        lng                 = try c.decodeIfPresent(Double.self,   forKey: .lng)
+        rating              = try c.decodeIfPresent(Double.self,   forKey: .rating)
+        review_count        = try c.decodeIfPresent(Int.self,      forKey: .review_count)
+        image_urls          = try c.decodeIfPresent([String].self,  forKey: .image_urls)
+        cancellation_policy = try c.decodeIfPresent(String.self,   forKey: .cancellation_policy)
     }
+}
+
+// MARK: - Review
+
+struct ActivityReview: Identifiable, Decodable {
+    let id: Int
+    let user_name: String
+    let rating: Int          // 1-5
+    let comment: String?
+    let created_at: String?
+}
+
+struct ReviewsResponse: Decodable {
+    let items: [ActivityReview]
+    let total: Int?
 }
 
 

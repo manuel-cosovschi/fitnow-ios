@@ -19,6 +19,9 @@
 		M1BB0002M1CC0002M1DD0002 /* AppleSignInService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1AA0002M1BB0002M1CC0002 /* AppleSignInService.swift */; };
 		M1BB0003M1CC0003M1DD0003 /* TwoFactorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1AA0003M1BB0003M1CC0003 /* TwoFactorView.swift */; };
 		M1BB0004M1CC0004M1DD0004 /* DeepLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1AA0004M1BB0004M1CC0004 /* DeepLinkHandler.swift */; };
+		M2BB0001M2CC0001M2DD0001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M2AA0001M2BB0001M2CC0001 /* OnboardingView.swift */; };
+		M2BB0002M2CC0002M2DD0002 /* QRCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M2AA0002M2BB0002M2CC0002 /* QRCodeView.swift */; };
+		M2BB0003M2CC0003M2DD0003 /* PaymentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M2AA0003M2BB0003M2CC0003 /* PaymentService.swift */; };
 		36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F082E82144200B51DAF /* FitNowApp.swift */; };
 		36820F1C2E82144200B51DAF /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0C2E82144200B51DAF /* KeychainService.swift */; };
 		36820F1D2E82144200B51DAF /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0E2E82144200B51DAF /* LoginView.swift */; };
@@ -102,6 +105,9 @@
 		M1AA0002M1BB0002M1CC0002 /* AppleSignInService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInService.swift; sourceTree = "<group>"; };
 		M1AA0003M1BB0003M1CC0003 /* TwoFactorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwoFactorView.swift; sourceTree = "<group>"; };
 		M1AA0004M1BB0004M1CC0004 /* DeepLinkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkHandler.swift; sourceTree = "<group>"; };
+		M2AA0001M2BB0001M2CC0001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		M2AA0002M2BB0002M2CC0002 /* QRCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeView.swift; sourceTree = "<group>"; };
+		M2AA0003M2BB0003M2CC0003 /* PaymentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentService.swift; sourceTree = "<group>"; };
 		36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnrollmentsViewModel.swift; sourceTree = "<group>"; };
 		36820F072E82144200B51DAF /* FitNow.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FitNow.entitlements; sourceTree = "<group>"; };
 		36820F082E82144200B51DAF /* FitNowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitNowApp.swift; sourceTree = "<group>"; };
@@ -223,6 +229,9 @@
 				M1AA0002M1BB0002M1CC0002 /* AppleSignInService.swift */,
 				M1AA0003M1BB0003M1CC0003 /* TwoFactorView.swift */,
 				M1AA0004M1BB0004M1CC0004 /* DeepLinkHandler.swift */,
+				M2AA0001M2BB0001M2CC0001 /* OnboardingView.swift */,
+				M2AA0002M2BB0002M2CC0002 /* QRCodeView.swift */,
+				M2AA0003M2BB0003M2CC0003 /* PaymentService.swift */,
 				36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */,
 				36820F072E82144200B51DAF /* FitNow.entitlements */,
 				36820F082E82144200B51DAF /* FitNowApp.swift */,
@@ -435,6 +444,9 @@
 				M1BB0002M1CC0002M1DD0002 /* AppleSignInService.swift in Sources */,
 				M1BB0003M1CC0003M1DD0003 /* TwoFactorView.swift in Sources */,
 				M1BB0004M1CC0004M1DD0004 /* DeepLinkHandler.swift in Sources */,
+				M2BB0001M2CC0001M2DD0001 /* OnboardingView.swift in Sources */,
+				M2BB0002M2CC0002M2DD0002 /* QRCodeView.swift in Sources */,
+				M2BB0003M2CC0003M2DD0003 /* PaymentService.swift in Sources */,
 				36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */,
 				36820F1C2E82144200B51DAF /* KeychainService.swift in Sources */,
 				36820F1D2E82144200B51DAF /* LoginView.swift in Sources */,
