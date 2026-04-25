@@ -19,6 +19,33 @@ struct AuthResponse: Codable {
     }
 }
 
+// Returned by login when 2FA is required
+struct TwoFactorChallenge: Decodable {
+    let requiresTwoFactor: Bool
+    let tempToken: String
+
+    enum CodingKeys: String, CodingKey {
+        case requiresTwoFactor = "requires_two_factor"
+        case tempToken = "temp_token"
+    }
+}
+
+// Flexible login response: either full auth OR 2FA challenge
+struct LoginFlexResponse: Decodable {
+    let token: String?
+    let refreshToken: String?
+    let user: User?
+    let requiresTwoFactor: Bool?
+    let tempToken: String?
+
+    enum CodingKeys: String, CodingKey {
+        case token, user
+        case refreshToken      = "refresh_token"
+        case requiresTwoFactor = "requires_two_factor"
+        case tempToken         = "temp_token"
+    }
+}
+
 // MARK: - Provider
 struct Provider: Identifiable, Codable {
     let id: Int
