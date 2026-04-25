@@ -101,14 +101,12 @@ final class RunSessionTracker: ObservableObject {
     func finish() {
         flush()
         guard let sid = sessionId else { return }
+        let distanceM = totalDistanceM
+        let started   = startedAt
         sessionId = nil
 
-        var body: [String: Any] = [
-            "distance_m": Int(totalDistanceM),
-        ]
-        if let started = startedAt {
-            body["duration_s"] = Int(Date().timeIntervalSince(started))
-        }
+        var body: [String: Any] = ["distance_m": Int(distanceM)]
+        if let s = started { body["duration_s"] = Int(Date().timeIntervalSince(s)) }
 
         guard let data = try? JSONSerialization.data(withJSONObject: body) else { return }
 
@@ -121,6 +119,20 @@ final class RunSessionTracker: ObservableObject {
                 receiveValue: { (_: SimpleOK) in }
             )
             .store(in: &bag)
+
+        // Save to HealthKit
+        if let s = started {
+            let end = Date()
+            let duration = end.timeIntervalSince(s)
+            Task {
+                await HealthKitService.shared.saveRun(
+                    distanceMeters: distanceM,
+                    durationSeconds: duration,
+                    startDate: s,
+                    endDate: end
+                )
+            }
+        }
     }
 
     /// Call when the user exits navigation without completing the run.
