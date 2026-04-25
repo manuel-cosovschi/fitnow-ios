@@ -676,7 +676,7 @@ struct EnrollmentFlowView: View {
         body["payment_method"] = paymentMethod == .card  ? "card" : "transfer"
 
         let data = (try? JSONSerialization.data(withJSONObject: body)) ?? Data()
-        APIClient.shared.request("enrollments", method: "POST", body: data, authorized: true)
+        APIClient.shared.requestPublisher("enrollments", method: "POST", body: data, authorized: true)
             .sink { completion in
                 if case .failure(let e) = completion {
                     if case APIError.http(let code, let bodyStr) = e {

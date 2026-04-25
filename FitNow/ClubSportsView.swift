@@ -226,7 +226,7 @@ struct ClubSportsView: View {
     private func reloadAll() {
         loading = true; error = nil
 
-        APIClient.shared.request("providers/\(providerId)/sports", authorized: false)
+        APIClient.shared.requestPublisher("providers/\(providerId)/sports", authorized: false)
             .sink { completion in
                 if case .failure = completion, self.allSports.isEmpty { self.allSports = typicalClubSports }
             } receiveValue: { (resp: SportsResponse) in
@@ -241,7 +241,7 @@ struct ClubSportsView: View {
             .init(name: "kind", value: "club_sport"),
             .init(name: "include_sports", value: "1")
         ]
-        APIClient.shared.request("activities", authorized: false, query: q)
+        APIClient.shared.requestPublisher("activities", authorized: false, query: q)
             .sink { completion in
                 if case .failure(let e) = completion { self.error = e.localizedDescription }
             } receiveValue: { (resp: Paged<Activity>) in
@@ -254,7 +254,7 @@ struct ClubSportsView: View {
             }
             .store(in: &bag)
 
-        APIClient.shared.request("enrollments/mine", authorized: true,
+        APIClient.shared.requestPublisher("enrollments/mine", authorized: true,
                                  query: [URLQueryItem(name: "when", value: "all")])
             .sink { _ in } receiveValue: { (resp: ListResponse<EnrollmentItem>) in
                 self.myItems = resp.items; self.loading = false
@@ -267,7 +267,7 @@ struct ClubSportsView: View {
     }
 
     private func enroll(activityId: Int) {
-        APIClient.shared.request("enrollments", method: "POST",
+        APIClient.shared.requestPublisher("enrollments", method: "POST",
                                  body: try? JSONEncoder().encode(["activity_id": activityId]),
                                  authorized: true)
             .sink { completion in
@@ -278,7 +278,7 @@ struct ClubSportsView: View {
 
     private func cancel(activityId: Int) {
         guard let eid = myItems.first(where: { $0.activity_id == activityId && $0.session_id == nil })?.id else { return }
-        APIClient.shared.request("enrollments/\(eid)", method: "DELETE", authorized: true)
+        APIClient.shared.requestPublisher("enrollments/\(eid)", method: "DELETE", authorized: true)
             .sink { completion in
                 if case .failure(let e) = completion { self.error = e.localizedDescription }
             } receiveValue: { (_: SimpleOK) in reloadAll() }

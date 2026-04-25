@@ -11,6 +11,12 @@ struct User: Codable {
 struct AuthResponse: Codable {
     let user: User
     let token: String
+    let refreshToken: String?
+
+    enum CodingKeys: String, CodingKey {
+        case user, token
+        case refreshToken = "refresh_token"
+    }
 }
 
 // MARK: - Provider

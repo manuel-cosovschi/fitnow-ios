@@ -13,7 +13,7 @@ final class GymHubViewModel: ObservableObject {
 
     func fetch() {
         loading = true; error = nil
-        APIClient.shared.request("gym/sessions/mine", authorized: true)
+        APIClient.shared.requestPublisher("gym/sessions/mine", authorized: true)
             .sink { [weak self] completion in
                 self?.loading = false
                 if case .failure(let e) = completion { self?.error = e.localizedDescription }
@@ -295,7 +295,7 @@ struct StartGymSessionView: View {
         guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
 
         var bag = Set<AnyCancellable>()
-        APIClient.shared.request("gym/sessions", method: "POST", body: data, authorized: true)
+        APIClient.shared.requestPublisher("gym/sessions", method: "POST", body: data, authorized: true)
             .sink { [self] completion in
                 loading = false
                 if case .failure(let e) = completion { error = e.localizedDescription }
@@ -466,7 +466,7 @@ struct GymActiveSessionView: View {
     private func loadSession() {
         loading = true
         var bag = Set<AnyCancellable>()
-        APIClient.shared.request("gym/sessions/\(sessionId)", authorized: true)
+        APIClient.shared.requestPublisher("gym/sessions/\(sessionId)", authorized: true)
             .sink { _ in loading = false }
             receiveValue: { [self] (s: GymSession) in
                 session = s
@@ -479,7 +479,7 @@ struct GymActiveSessionView: View {
 
     private func finishSession() {
         var bag = Set<AnyCancellable>()
-        APIClient.shared.request("gym/sessions/\(sessionId)/finish", method: "POST", authorized: true)
+        APIClient.shared.requestPublisher("gym/sessions/\(sessionId)/finish", method: "POST", authorized: true)
             .sink { _ in }
             receiveValue: { [self] (_: GymSession) in dismiss() }
             .store(in: &bag)
@@ -542,7 +542,7 @@ struct LogSetView: View {
         ]
         guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
         var bag = Set<AnyCancellable>()
-        APIClient.shared.request("gym/sessions/\(sessionId)/sets", method: "POST", body: data, authorized: true)
+        APIClient.shared.requestPublisher("gym/sessions/\(sessionId)/sets", method: "POST", body: data, authorized: true)
             .sink { _ in loading = false }
             receiveValue: { [self] (_: GymSet) in
                 onDone()
@@ -600,7 +600,7 @@ struct RerouteSheet: View {
         let payload = ["instruction": instruction]
         guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
         var bag = Set<AnyCancellable>()
-        APIClient.shared.request("gym/sessions/\(sessionId)/reroute", method: "POST", body: data, authorized: true)
+        APIClient.shared.requestPublisher("gym/sessions/\(sessionId)/reroute", method: "POST", body: data, authorized: true)
             .sink { _ in loading = false }
             receiveValue: { [self] (resp: RerouteResponse) in result = resp }
             .store(in: &bag)

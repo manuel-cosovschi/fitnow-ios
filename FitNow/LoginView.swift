@@ -1,5 +1,4 @@
 import SwiftUI
-import Combine
 
 struct LoginView: View {
     @EnvironmentObject var auth: AuthViewModel
@@ -333,11 +332,10 @@ private struct FNDarkSecureField: View {
 private struct AdminLoginSheet: View {
     @EnvironmentObject private var auth: AuthViewModel
     @Environment(\.dismiss) private var dismiss
-    @State private var adminEmail    = "admin@fitnow.com"
-    @State private var adminPassword = "Admin1234!"
+    @State private var adminEmail    = ""
+    @State private var adminPassword = ""
     @State private var localError: String?
     @State private var loading = false
-    @State private var cancellable: AnyCancellable?
 
     var body: some View {
         NavigationStack {
@@ -440,45 +438,41 @@ private struct AdminLoginSheet: View {
 
     private func adminLogin() {
         localError = nil; loading = true
-        guard let data = try? JSONSerialization.data(
-            withJSONObject: ["email": adminEmail, "password": adminPassword]
-        ) else { return }
-        cancellable = APIClient.shared
-            .request("auth/login", method: "POST", body: data, authorized: false)
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                loading = false
-                if case .failure(let e) = completion {
-                    if case APIError.http(let code, _) = e {
-                        switch code {
-                        case 401: localError = "Email o contraseña incorrectos."
-                        case 403: localError = "No tenés permisos de administrador."
-                        case 404: localError = "Usuario no encontrado."
-                        default:  localError = "Error al iniciar sesión (código \(code))."
-                        }
-                    } else {
-                        localError = "No se pudo conectar. Verificá tu conexión a internet."
-                    }
-                }
-            } receiveValue: { (resp: AuthResponse) in
-                loading = false
-                let role = resp.user.role ?? ""
-                guard role == "admin" else {
+        Task { @MainActor in
+            defer { loading = false }
+            do {
+                struct LoginPayload: Encodable { let email, password: String }
+                guard let body = try? JSONEncoder().encode(
+                    LoginPayload(email: adminEmail, password: adminPassword)
+                ) else { return }
+                let resp: AuthResponse = try await APIClient.shared.request(
+                    "auth/login", method: "POST", body: body, authorized: false
+                )
+                guard resp.user.role == "admin" else {
                     localError = "Esta cuenta no tiene permisos de administrador."
                     return
                 }
-                APIClient.shared.setToken(resp.token)
-                let u = User(id: resp.user.id,
-                             name: resp.user.name,
-                             email: resp.user.email,
-                             role: "admin",
-                             provider_id: nil)
+                TokenStore.shared.store(access: resp.token, refresh: resp.refreshToken)
+                let u = User(id: resp.user.id, name: resp.user.name,
+                             email: resp.user.email, role: "admin", provider_id: nil)
                 if let d = try? JSONEncoder().encode(u) {
                     UserDefaults.standard.set(d, forKey: "saved_user")
                 }
                 auth.user = u
                 auth.isAuthenticated = true
                 dismiss()
+            } catch {
+                if case APIError.http(let code, _) = error {
+                    switch code {
+                    case 401: localError = "Email o contraseña incorrectos."
+                    case 403: localError = "No tenés permisos de administrador."
+                    case 404: localError = "Usuario no encontrado."
+                    default:  localError = "Error al iniciar sesión (código \(code))."
+                    }
+                } else {
+                    localError = "No se pudo conectar. Verificá tu conexión a internet."
+                }
             }
+        }
     }
 }

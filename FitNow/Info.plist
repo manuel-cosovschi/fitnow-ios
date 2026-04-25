@@ -4,28 +4,10 @@
 <dict>
 	<key>APIBaseURL</key>
 	<string>https://fitnow-api-production.up.railway.app/api/</string>
-	<key>MBXAccessToken</key>
-	<string>$(MAPBOX_ACCESS_TOKEN)</string>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>FitNow necesita acceso a la red local para conectarse al servidor de desarrollo.</string>
-	<key>NSBonjourServices</key>
-	<array>
-		<string>_http._tcp</string>
-	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>192.168.0.240</key>
-			<dict>
-				<key>NSIncludesSubdomains</key>
-				<true/>
-				<key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-			</dict>
-		</dict>
+		<false/>
 	</dict>
 	<key>UIAppFonts</key>
 	<array>
@@ -40,5 +22,21 @@
 		<string>location</string>
 		<string>audio</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>FitNow usa tu ubicación para mostrar actividades cercanas y rastrear tus salidas a correr.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>FitNow usa tu ubicación en segundo plano para continuar rastreando tu recorrido.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>FitNow usa el sensor de movimiento para calcular con precisión tus métricas de entrenamiento.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>FitNow lee tus datos de salud para personalizar tu experiencia de entrenamiento.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>FitNow guarda tus entrenamientos en Apple Health.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>FitNow usa la cámara para el análisis de postura con Form Check y para escanear códigos QR.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>FitNow usa Face ID para proteger el acceso a tu cuenta.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>FitNow te envía recordatorios de tus clases y actualizaciones de tus entrenamientos.</string>
 </dict>
 </plist>

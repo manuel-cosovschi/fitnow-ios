@@ -16,7 +16,7 @@ final class HomeViewModel: ObservableObject {
             URLQueryItem(name: "status", value: "approved"),
             URLQueryItem(name: "limit", value: "1")
         ]
-        APIClient.shared.request("offers", authorized: false, query: offerQ)
+        APIClient.shared.requestPublisher("offers", authorized: false, query: offerQ)
             .sink { _ in }
             receiveValue: { [weak self] (resp: OffersListResponse) in
                 self?.featuredOffer = resp.items.first
@@ -24,7 +24,7 @@ final class HomeViewModel: ObservableObject {
             .store(in: &bag)
 
         let q = [URLQueryItem(name: "when", value: "upcoming")]
-        APIClient.shared.request("enrollments/mine", authorized: true, query: q)
+        APIClient.shared.requestPublisher("enrollments/mine", authorized: true, query: q)
             .sink { _ in }
             receiveValue: { [weak self] (resp: ListResponse<EnrollmentItem>) in
                 self?.upcomingCount = resp.items.count
@@ -32,7 +32,7 @@ final class HomeViewModel: ObservableObject {
             }
             .store(in: &bag)
 
-        APIClient.shared.request("run/sessions/mine", authorized: true)
+        APIClient.shared.requestPublisher("run/sessions/mine", authorized: true)
             .sink { _ in }
             receiveValue: { [weak self] (resp: RunSessionsResponse) in
                 let weekAgo = Date().addingTimeInterval(-7 * 86_400)

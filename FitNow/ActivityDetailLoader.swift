@@ -118,7 +118,7 @@ struct ActivityDetailLoader: View {
 
     private func fetch() {
         loading = true; error = nil
-        APIClient.shared.request("activities/\(activityId)", authorized: false)
+        APIClient.shared.requestPublisher("activities/\(activityId)", authorized: false)
             .sink { completion in
                 self.loading = false
                 if case .failure(let e) = completion { self.error = e.localizedDescription }

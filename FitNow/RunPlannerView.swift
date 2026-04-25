@@ -286,7 +286,7 @@ struct RunPlannerView: View {
             "distance_m": Int(distanceKm * 1000)
         ]
         let data = try! JSONSerialization.data(withJSONObject: body)
-        APIClient.shared.request("run/routes", method: "POST", body: data, authorized: true)
+        APIClient.shared.requestPublisher("run/routes", method: "POST", body: data, authorized: true)
             .sink { completion in
                 self.generating = false
                 if case .failure(let e) = completion { self.error = e.localizedDescription }

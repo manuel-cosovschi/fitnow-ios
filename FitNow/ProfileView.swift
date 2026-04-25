@@ -423,7 +423,7 @@ private struct ChangePasswordView: View {
 
         isLoading = true
         message = nil
-        APIClient.shared.request("auth/me/password", method: "POST", body: data, authorized: true)
+        APIClient.shared.requestPublisher("auth/me/password", method: "POST", body: data, authorized: true)
             .sink { completion in
                 isLoading = false
                 if case .failure(let e) = completion {
@@ -594,7 +594,7 @@ struct ProviderInfoView: View {
 
     private func loadProvider() {
         loading = true
-        APIClient.shared.request("providers/\(providerId)")
+        APIClient.shared.requestPublisher("providers/\(providerId)")
             .sink { _ in loading = false }
                    receiveValue: { (p: Provider) in
                 loading = false
@@ -621,7 +621,7 @@ struct ProviderInfoView: View {
             "website_url": website
         ]
         guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
-        APIClient.shared.request("providers/\(providerId)", method: "PATCH", body: data)
+        APIClient.shared.requestPublisher("providers/\(providerId)", method: "PATCH", body: data)
             .sink { completion in
                 saving = false
                 if case .failure = completion { message = "Error al guardar. Intentá de nuevo." }
