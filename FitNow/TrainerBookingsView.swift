@@ -274,12 +274,12 @@ struct TrainerBookingsView: View {
 
     private func reloadAll() {
         loading = true
-        APIClient.shared.request("activities/\(activityId)/sessions", authorized: false)
+        APIClient.shared.requestPublisher("activities/\(activityId)/sessions", authorized: false)
             .sink { _ in self.loading = false }
             receiveValue: { (resp: ListResponse<ActivitySession>) in self.sessions = resp.items; self.loading = false }
             .store(in: &bag)
 
-        APIClient.shared.request("activities/\(activityId)", authorized: false)
+        APIClient.shared.requestPublisher("activities/\(activityId)", authorized: false)
             .sink { _ in }
             receiveValue: { (resp: ActivityRulesResponse) in
                 if let rulesStr = resp.activity.rules,
@@ -292,7 +292,7 @@ struct TrainerBookingsView: View {
             }
             .store(in: &bag)
 
-        APIClient.shared.request("enrollments/mine", authorized: true,
+        APIClient.shared.requestPublisher("enrollments/mine", authorized: true,
                                  query: [URLQueryItem(name: "when", value: "all")])
             .sink { _ in }
             receiveValue: { (resp: ListResponse<EnrollmentItem>) in self.myItems = resp.items }
@@ -320,7 +320,7 @@ struct TrainerBookingsView: View {
 
     private func book(_ s: ActivitySession) {
         message = nil
-        APIClient.shared.request("sessions/\(s.id)/book", method: "POST", authorized: true)
+        APIClient.shared.requestPublisher("sessions/\(s.id)/book", method: "POST", authorized: true)
             .sink { completion in
                 if case .failure(let e) = completion {
                     if case APIError.http(let code, let body) = e {
@@ -339,7 +339,7 @@ struct TrainerBookingsView: View {
 
     private func cancel(_ s: ActivitySession) {
         message = nil
-        APIClient.shared.request("sessions/\(s.id)/book", method: "DELETE", authorized: true)
+        APIClient.shared.requestPublisher("sessions/\(s.id)/book", method: "DELETE", authorized: true)
             .sink { completion in
                 if case .failure(let e) = completion { self.message = e.localizedDescription }
             } receiveValue: { (_: SimpleOK) in

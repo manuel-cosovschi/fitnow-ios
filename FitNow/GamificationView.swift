@@ -16,19 +16,25 @@ final class GamificationViewModel: ObservableObject {
 
     func loadProfile() {
         loading = true; error = nil
-        APIClient.shared.request("gamification/me", authorized: true)
+        APIClient.shared.requestPublisher("gamification/me", authorized: true)
             .sink { [weak self] completion in
                 self?.loading = false
                 if case .failure(let e) = completion { self?.error = e.localizedDescription }
             } receiveValue: { [weak self] (resp: GamificationProfile) in
                 self?.profile = resp
+                WidgetDataService.shared.write(
+                    level: resp.level,
+                    totalXP: resp.total_xp,
+                    streakDays: resp.streak_days,
+                    userName: ""
+                )
             }
             .store(in: &bag)
     }
 
     func loadRanking() {
         let q = [URLQueryItem(name: "type", value: rankingType)]
-        APIClient.shared.request("gamification/ranking", authorized: true, query: q)
+        APIClient.shared.requestPublisher("gamification/ranking", authorized: true, query: q)
             .sink { _ in }
             receiveValue: { [weak self] (resp: PagedGamification<RankingUser>) in
                 self?.ranking = resp.items
@@ -37,7 +43,7 @@ final class GamificationViewModel: ObservableObject {
     }
 
     func loadBadges() {
-        APIClient.shared.request("gamification/badges", authorized: true)
+        APIClient.shared.requestPublisher("gamification/badges", authorized: true)
             .sink { _ in }
             receiveValue: { [weak self] (badges: [BadgeItem]) in
                 self?.allBadges = badges
@@ -46,7 +52,7 @@ final class GamificationViewModel: ObservableObject {
     }
 
     func loadXpHistory() {
-        APIClient.shared.request("gamification/me/history", authorized: true)
+        APIClient.shared.requestPublisher("gamification/me/history", authorized: true)
             .sink { _ in }
             receiveValue: { [weak self] (resp: PagedGamification<XpLogEntry>) in
                 self?.xpHistory = resp.items
@@ -72,6 +78,8 @@ struct GamificationView: View {
                     .padding(.horizontal, 16)
                 } else if let profile = vm.profile {
                     levelHeader(profile)
+                    coachIACTA
+                        .padding(.horizontal, 16)
                     statsGrid(profile.stats)
                     badgesSection(profile.badges)
                     segmentedSection
@@ -97,6 +105,33 @@ struct GamificationView: View {
             vm.loadXpHistory()
             withAnimation(.spring(response: 0.55).delay(0.1)) { appeared = true }
         }
+    }
+
+    // MARK: - Coach IA CTA
+
+    private var coachIACTA: some View {
+        NavigationLink(destination: CoachIAView()) {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle().fill(Color.white.opacity(0.20)).frame(width: 48, height: 48)
+                    Image(systemName: "brain.head.profile")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(.white)
+                }
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Coach IA")
+                        .font(.system(size: 16, weight: .bold)).foregroundColor(.white)
+                    Text("Preguntá sobre entrenamiento y nutrición")
+                        .font(.system(size: 12)).foregroundColor(.white.opacity(0.75))
+                }
+                Spacer()
+                Image(systemName: "arrow.right.circle.fill")
+                    .font(.system(size: 22)).foregroundColor(.white.opacity(0.7))
+            }
+            .padding(18)
+            .background(RoundedRectangle(cornerRadius: 18).fill(FNGradient.club))
+        }
+        .buttonStyle(ScaleButtonStyle())
     }
 
     // MARK: - Level Header

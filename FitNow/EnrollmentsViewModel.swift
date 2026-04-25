@@ -10,7 +10,7 @@ final class EnrollmentsViewModel: ObservableObject {
 
     func fetchMine() {
         loading = true; error = nil
-        APIClient.shared.request("enrollments/mine", authorized: true)
+        APIClient.shared.requestPublisher("enrollments/mine", authorized: true)
             .sink { [weak self] completion in
                 self?.loading = false
                 if case .failure(let e) = completion { self?.error = e.localizedDescription }

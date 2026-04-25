@@ -56,7 +56,7 @@ final class HazardService {
             URLQueryItem(name: "radius_m", value: "800")
         ]
 
-        APIClient.shared.request("hazards/near", authorized: true, query: query)
+        APIClient.shared.requestPublisher("hazards/near", authorized: true, query: query)
             .sink { completion in
                 if case .failure(let e) = completion {
                     print("Hazards fetch error:", e.localizedDescription)

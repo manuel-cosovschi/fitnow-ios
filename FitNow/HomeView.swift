@@ -8,6 +8,7 @@ final class HomeViewModel: ObservableObject {
     @Published var weeklyRunKm: Double = 0
     @Published var streakDays = 0
     @Published var featuredOffer: SpecialOffer? = nil
+    @Published var nextEnrollment: EnrollmentItem? = nil
 
     private var bag = Set<AnyCancellable>()
 
@@ -16,7 +17,7 @@ final class HomeViewModel: ObservableObject {
             URLQueryItem(name: "status", value: "approved"),
             URLQueryItem(name: "limit", value: "1")
         ]
-        APIClient.shared.request("offers", authorized: false, query: offerQ)
+        APIClient.shared.requestPublisher("offers", authorized: false, query: offerQ)
             .sink { _ in }
             receiveValue: { [weak self] (resp: OffersListResponse) in
                 self?.featuredOffer = resp.items.first
@@ -24,15 +25,19 @@ final class HomeViewModel: ObservableObject {
             .store(in: &bag)
 
         let q = [URLQueryItem(name: "when", value: "upcoming")]
-        APIClient.shared.request("enrollments/mine", authorized: true, query: q)
+        APIClient.shared.requestPublisher("enrollments/mine", authorized: true, query: q)
             .sink { _ in }
             receiveValue: { [weak self] (resp: ListResponse<EnrollmentItem>) in
-                self?.upcomingCount = resp.items.count
-                self?.computeStreak(from: resp.items)
+                let sorted = resp.items
+                    .filter { $0.status == "active" }
+                    .sorted { ($0.date_start ?? "") < ($1.date_start ?? "") }
+                self?.upcomingCount = sorted.count
+                self?.nextEnrollment = sorted.first
+                self?.computeStreak(from: sorted)
             }
             .store(in: &bag)
 
-        APIClient.shared.request("run/sessions/mine", authorized: true)
+        APIClient.shared.requestPublisher("run/sessions/mine", authorized: true)
             .sink { _ in }
             receiveValue: { [weak self] (resp: RunSessionsResponse) in
                 let weekAgo = Date().addingTimeInterval(-7 * 86_400)
@@ -176,6 +181,9 @@ struct HomeView: View {
 
     private var contentBody: some View {
         VStack(spacing: 28) {
+            if vm.nextEnrollment != nil {
+                nextClassSection
+            }
             statsSection
             quickActionsSection
             promoBannerSection
@@ -184,6 +192,99 @@ struct HomeView: View {
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 20)
         .animation(.spring(response: 0.6, dampingFraction: 0.82).delay(0.3), value: appeared)
+    }
+
+    // MARK: - Next Class Hero
+
+    private var nextClassSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            SectionHeader(title: "Tu próxima clase")
+                .padding(.horizontal, 20)
+
+            if let enrollment = vm.nextEnrollment {
+                nextClassCard(enrollment)
+                    .padding(.horizontal, 20)
+            }
+        }
+    }
+
+    private func nextClassCard(_ enrollment: EnrollmentItem) -> some View {
+        let typeInfo = ActivityTypeInfo.from(kind: enrollment.activity_kind ?? "")
+        let dateStr  = enrollment.date_start.flatMap { formatEnrollmentDate($0) }
+
+        return VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(typeInfo.color.opacity(0.15))
+                        .frame(width: 48, height: 48)
+                    Image(systemName: typeInfo.icon)
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundColor(typeInfo.color)
+                }
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(enrollment.title)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.fnWhite)
+                        .lineLimit(1)
+                    if let date = dateStr {
+                        Label(date, systemImage: "clock")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.fnSlate)
+                    }
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.fnSlate)
+            }
+
+            if let loc = enrollment.location, !loc.isEmpty {
+                Divider()
+                HStack(spacing: 8) {
+                    Label(loc, systemImage: "mappin.circle.fill")
+                        .font(.system(size: 13))
+                        .foregroundColor(.fnSlate)
+                        .lineLimit(1)
+                    Spacer()
+                    Button {
+                        openInMaps(location: loc)
+                    } label: {
+                        Label("Cómo llegar", systemImage: "arrow.triangle.turn.up.right.circle.fill")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.fnBlue)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color.fnBlue.opacity(0.12), in: Capsule())
+                    }
+                }
+            }
+        }
+        .padding(16)
+        .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(typeInfo.color.opacity(0.25), lineWidth: 1))
+    }
+
+    private func formatEnrollmentDate(_ iso: String) -> String? {
+        let fracF = ISO8601DateFormatter()
+        fracF.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let basicF = ISO8601DateFormatter()
+        basicF.formatOptions = [.withInternetDateTime]
+        guard let date = fracF.date(from: iso) ?? basicF.date(from: iso) else { return nil }
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "es_AR")
+        let cal = Calendar.current
+        if cal.isDateInToday(date)    { f.dateFormat = "'Hoy' · HH:mm" }
+        else if cal.isDateInTomorrow(date) { f.dateFormat = "'Mañana' · HH:mm" }
+        else { f.dateFormat = "EEEE d MMM · HH:mm" }
+        return f.string(from: date).capitalized
+    }
+
+    private func openInMaps(location: String) {
+        let encoded = location.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        if let url = URL(string: "maps://maps.apple.com/?q=\(encoded)") {
+            UIApplication.shared.open(url)
+        }
     }
 
     // MARK: - Stats

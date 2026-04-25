@@ -1,0 +1,41 @@
+included:
+  - FitNow
+
+excluded:
+  - FitNowTests
+  - FitNowUITests
+  - FitNow.xcodeproj
+
+disabled_rules:
+  - trailing_whitespace
+  - line_length
+  - file_length
+  - type_body_length
+  - function_body_length
+  - cyclomatic_complexity
+  - nesting
+  - force_cast            # some SwiftUI patterns require this
+  - force_try
+
+opt_in_rules:
+  - empty_count
+  - explicit_init
+  - closure_spacing
+  - unneeded_parentheses_in_closure_argument
+
+identifier_name:
+  min_length: 1
+  excluded:
+    - id
+    - vm
+    - bg
+    - x
+    - y
+    - p
+    - e
+    - a
+    - s
+    - q
+
+type_name:
+  min_length: 2

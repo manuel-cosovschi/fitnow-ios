@@ -1,5 +1,4 @@
 import SwiftUI
-import Combine
 
 struct LoginView: View {
     @EnvironmentObject var auth: AuthViewModel
@@ -31,8 +30,11 @@ struct LoginView: View {
                     formCard
                         .padding(.horizontal, 24)
 
+                    appleSignInSection
+                        .padding(.top, 16)
+
                     toggleButton
-                        .padding(.top, 24)
+                        .padding(.top, 20)
                         .padding(.bottom, 16)
 
                     Button { showAdminLogin = true } label: {
@@ -60,6 +62,13 @@ struct LoginView: View {
         }
         .sheet(isPresented: $showAdminLogin) {
             AdminLoginSheet().environmentObject(auth)
+        }
+        .sheet(item: Binding(
+            get: { auth.pendingTwoFactor.map { TwoFactorToken(token: $0) } },
+            set: { if $0 == nil { auth.cancelTwoFactor() } }
+        )) { wrapper in
+            TwoFactorView(tempToken: wrapper.token)
+                .environmentObject(auth)
         }
     }
 
@@ -288,6 +297,42 @@ struct LoginView: View {
         .opacity(appeared ? 1 : 0)
         .animation(.spring(response: 0.55).delay(0.28), value: appeared)
     }
+
+    // MARK: - Sign in with Apple
+
+    @ViewBuilder
+    private var appleSignInSection: some View {
+        if !isRegister {
+            VStack(spacing: 16) {
+                dividerRow
+                SignInWithAppleButton { request in
+                    request.requestedScopes = [.fullName, .email]
+                } onCompletion: { result in
+                    switch result {
+                    case .success(let auth):
+                        // Delegate to AuthViewModel via AppleSignInService path
+                        _ = auth  // credential handled by AuthViewModel.signInWithApple()
+                    case .failure:
+                        break
+                    }
+                }
+                .frame(height: 50)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .onTapGesture { auth.signInWithApple() }
+            }
+            .padding(.horizontal, 24)
+            .opacity(appeared ? 1 : 0)
+            .animation(.spring(response: 0.55).delay(0.32), value: appeared)
+        }
+    }
+
+    private var dividerRow: some View {
+        HStack(spacing: 12) {
+            Rectangle().fill(Color.fnBorder).frame(height: 1)
+            Text("o").font(.system(size: 12)).foregroundColor(.fnSlate)
+            Rectangle().fill(Color.fnBorder).frame(height: 1)
+        }
+    }
 }
 
 // MARK: - Dark Secure Field
@@ -328,16 +373,22 @@ private struct FNDarkSecureField: View {
     }
 }
 
+// MARK: - Helpers
+
+private struct TwoFactorToken: Identifiable {
+    let id = UUID()
+    let token: String
+}
+
 // MARK: - Admin Login Sheet
 
 private struct AdminLoginSheet: View {
     @EnvironmentObject private var auth: AuthViewModel
     @Environment(\.dismiss) private var dismiss
-    @State private var adminEmail    = "admin@fitnow.com"
-    @State private var adminPassword = "Admin1234!"
+    @State private var adminEmail    = ""
+    @State private var adminPassword = ""
     @State private var localError: String?
     @State private var loading = false
-    @State private var cancellable: AnyCancellable?
 
     var body: some View {
         NavigationStack {
@@ -440,45 +491,41 @@ private struct AdminLoginSheet: View {
 
     private func adminLogin() {
         localError = nil; loading = true
-        guard let data = try? JSONSerialization.data(
-            withJSONObject: ["email": adminEmail, "password": adminPassword]
-        ) else { return }
-        cancellable = APIClient.shared
-            .request("auth/login", method: "POST", body: data, authorized: false)
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                loading = false
-                if case .failure(let e) = completion {
-                    if case APIError.http(let code, _) = e {
-                        switch code {
-                        case 401: localError = "Email o contraseña incorrectos."
-                        case 403: localError = "No tenés permisos de administrador."
-                        case 404: localError = "Usuario no encontrado."
-                        default:  localError = "Error al iniciar sesión (código \(code))."
-                        }
-                    } else {
-                        localError = "No se pudo conectar. Verificá tu conexión a internet."
-                    }
-                }
-            } receiveValue: { (resp: AuthResponse) in
-                loading = false
-                let role = resp.user.role ?? ""
-                guard role == "admin" else {
+        Task { @MainActor in
+            defer { loading = false }
+            do {
+                struct LoginPayload: Encodable { let email, password: String }
+                guard let body = try? JSONEncoder().encode(
+                    LoginPayload(email: adminEmail, password: adminPassword)
+                ) else { return }
+                let resp: AuthResponse = try await APIClient.shared.request(
+                    "auth/login", method: "POST", body: body, authorized: false
+                )
+                guard resp.user.role == "admin" else {
                     localError = "Esta cuenta no tiene permisos de administrador."
                     return
                 }
-                APIClient.shared.setToken(resp.token)
-                let u = User(id: resp.user.id,
-                             name: resp.user.name,
-                             email: resp.user.email,
-                             role: "admin",
-                             provider_id: nil)
+                TokenStore.shared.store(access: resp.token, refresh: resp.refreshToken)
+                let u = User(id: resp.user.id, name: resp.user.name,
+                             email: resp.user.email, role: "admin", provider_id: nil)
                 if let d = try? JSONEncoder().encode(u) {
                     UserDefaults.standard.set(d, forKey: "saved_user")
                 }
                 auth.user = u
                 auth.isAuthenticated = true
                 dismiss()
+            } catch {
+                if case APIError.http(let code, _) = error {
+                    switch code {
+                    case 401: localError = "Email o contraseña incorrectos."
+                    case 403: localError = "No tenés permisos de administrador."
+                    case 404: localError = "Usuario no encontrado."
+                    default:  localError = "Error al iniciar sesión (código \(code))."
+                    }
+                } else {
+                    localError = "No se pudo conectar. Verificá tu conexión a internet."
+                }
             }
+        }
     }
 }

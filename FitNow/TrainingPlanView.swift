@@ -14,7 +14,7 @@ final class TrainingPlanViewModel: ObservableObject {
 
     func loadPlans() {
         loading = true; error = nil
-        APIClient.shared.request("training-plans", authorized: true)
+        APIClient.shared.requestPublisher("training-plans", authorized: true)
             .sink { [weak self] completion in
                 self?.loading = false
                 if case .failure(let e) = completion { self?.error = e.localizedDescription }
@@ -25,7 +25,7 @@ final class TrainingPlanViewModel: ObservableObject {
     }
 
     func loadActive() {
-        APIClient.shared.request("training-plans/active", authorized: true)
+        APIClient.shared.requestPublisher("training-plans/active", authorized: true)
             .sink { _ in }
             receiveValue: { [weak self] (plan: TrainingPlan) in
                 self?.activePlan = plan
@@ -38,7 +38,7 @@ final class TrainingPlanViewModel: ObservableObject {
         let payload: [String: Any] = ["goal": goal, "duration_weeks": durationWeeks, "difficulty": difficulty]
         guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
 
-        APIClient.shared.request("training-plans/generate", method: "POST", body: data, authorized: true)
+        APIClient.shared.requestPublisher("training-plans/generate", method: "POST", body: data, authorized: true)
             .sink { [weak self] comp in
                 self?.generating = false
                 if case .failure(let e) = comp { self?.error = e.localizedDescription; completion(nil) }
@@ -51,7 +51,7 @@ final class TrainingPlanViewModel: ObservableObject {
     }
 
     func cancel(planId: Int) {
-        APIClient.shared.request("training-plans/\(planId)/cancel", method: "PATCH", authorized: true)
+        APIClient.shared.requestPublisher("training-plans/\(planId)/cancel", method: "PATCH", authorized: true)
             .sink { _ in }
             receiveValue: { [weak self] (_: TrainingPlan) in
                 self?.activePlan = nil
@@ -445,7 +445,7 @@ struct TrainingPlanDetailView: View {
     private func loadPlan() {
         loading = true
         var bag = Set<AnyCancellable>()
-        APIClient.shared.request("training-plans/\(planId)", authorized: true)
+        APIClient.shared.requestPublisher("training-plans/\(planId)", authorized: true)
             .sink { _ in loading = false }
             receiveValue: { [self] (p: TrainingPlan) in plan = p; loading = false }
             .store(in: &bag)

@@ -18,7 +18,7 @@ final class ProviderDashboardViewModel: ObservableObject {
     func load() {
         loading = true; error = nil
         let url = providerId.map { "activities?provider_id=\($0)&limit=50" } ?? "activities?limit=50"
-        APIClient.shared.request(url)
+        APIClient.shared.requestPublisher(url)
             .sink { [weak self] completion in
                 self?.loading = false
                 if case .failure(let e) = completion { self?.error = e.localizedDescription }
@@ -31,7 +31,7 @@ final class ProviderDashboardViewModel: ObservableObject {
 
     func createActivity(_ payload: [String: Any], completion: @escaping (Bool) -> Void) {
         guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
-        APIClient.shared.request("activities", method: "POST", body: data)
+        APIClient.shared.requestPublisher("activities", method: "POST", body: data)
             .sink { result in
                 if case .failure = result { completion(false) }
             } receiveValue: { [weak self] (a: Activity) in
@@ -69,14 +69,20 @@ struct ProviderDashboardView: View {
             .tag(1)
 
             NavigationStack {
-                ProviderMyOffersView()
+                ProviderEnrollmentsTab(providerId: providerId)
             }
-            .tabItem { Label("Ofertas", systemImage: selectedTab == 2 ? "tag.fill" : "tag") }
+            .tabItem { Label("Inscripciones", systemImage: selectedTab == 2 ? "person.badge.clock.fill" : "person.badge.clock") }
             .tag(2)
 
+            NavigationStack {
+                ProviderMyOffersView()
+            }
+            .tabItem { Label("Ofertas", systemImage: selectedTab == 3 ? "tag.fill" : "tag") }
+            .tag(3)
+
             ProfileView()
-                .tabItem { Label("Perfil", systemImage: selectedTab == 3 ? "person.circle.fill" : "person.circle") }
-                .tag(3)
+                .tabItem { Label("Perfil", systemImage: selectedTab == 4 ? "person.circle.fill" : "person.circle") }
+                .tag(4)
         }
         .tint(.fnPurple)
         .onAppear { vm.load() }
