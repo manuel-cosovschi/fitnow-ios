@@ -42,7 +42,7 @@ final class CalendarViewModel: ObservableObject {
     func fetch() {
         loading = true; error = nil
         let q = [URLQueryItem(name: "when", value: "upcoming")]
-        APIClient.shared.request("enrollments/mine", authorized: true, query: q)
+        APIClient.shared.requestPublisher("enrollments/mine", authorized: true, query: q)
             .sink { [weak self] completion in
                 self?.loading = false
                 if case .failure(let e) = completion { self?.error = e.localizedDescription }

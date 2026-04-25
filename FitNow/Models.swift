@@ -11,6 +11,39 @@ struct User: Codable {
 struct AuthResponse: Codable {
     let user: User
     let token: String
+    let refreshToken: String?
+
+    enum CodingKeys: String, CodingKey {
+        case user, token
+        case refreshToken = "refresh_token"
+    }
+}
+
+// Returned by login when 2FA is required
+struct TwoFactorChallenge: Decodable {
+    let requiresTwoFactor: Bool
+    let tempToken: String
+
+    enum CodingKeys: String, CodingKey {
+        case requiresTwoFactor = "requires_two_factor"
+        case tempToken = "temp_token"
+    }
+}
+
+// Flexible login response: either full auth OR 2FA challenge
+struct LoginFlexResponse: Decodable {
+    let token: String?
+    let refreshToken: String?
+    let user: User?
+    let requiresTwoFactor: Bool?
+    let tempToken: String?
+
+    enum CodingKeys: String, CodingKey {
+        case token, user
+        case refreshToken      = "refresh_token"
+        case requiresTwoFactor = "requires_two_factor"
+        case tempToken         = "temp_token"
+    }
 }
 
 // MARK: - Provider
@@ -57,6 +90,12 @@ struct Activity: Identifiable, Codable {
     let deposit_percent: Int?      // deposit percentage (default 50 if nil)
     let has_capacity_limit: Bool?  // provider enforces seat limit
     let status: String?            // "draft" | "active" | "cancelled"
+    let lat: Double?
+    let lng: Double?
+    let rating: Double?            // average rating (0-5)
+    let review_count: Int?
+    let image_urls: [String]?
+    let cancellation_policy: String?
 
     enum CodingKeys: String, CodingKey {
         case id, title, description, modality, difficulty, location, price
@@ -64,6 +103,8 @@ struct Activity: Identifiable, Codable {
         case kind, provider_id, provider_name, rules
         case sport_id, sport_name
         case enable_running, enable_deposit, deposit_percent, has_capacity_limit, status
+        case lat, lng, rating, review_count
+        case image_urls, cancellation_policy
     }
 
     init(from decoder: Decoder) throws {
@@ -102,7 +143,28 @@ struct Activity: Identifiable, Codable {
         deposit_percent     = try c.decodeIfPresent(Int.self,    forKey: .deposit_percent)
         has_capacity_limit  = try c.decodeIfPresent(Bool.self,   forKey: .has_capacity_limit)
         status              = try c.decodeIfPresent(String.self, forKey: .status)
+        lat                 = try c.decodeIfPresent(Double.self,   forKey: .lat)
+        lng                 = try c.decodeIfPresent(Double.self,   forKey: .lng)
+        rating              = try c.decodeIfPresent(Double.self,   forKey: .rating)
+        review_count        = try c.decodeIfPresent(Int.self,      forKey: .review_count)
+        image_urls          = try c.decodeIfPresent([String].self,  forKey: .image_urls)
+        cancellation_policy = try c.decodeIfPresent(String.self,   forKey: .cancellation_policy)
     }
+}
+
+// MARK: - Review
+
+struct ActivityReview: Identifiable, Decodable {
+    let id: Int
+    let user_name: String
+    let rating: Int          // 1-5
+    let comment: String?
+    let created_at: String?
+}
+
+struct ReviewsResponse: Decodable {
+    let items: [ActivityReview]
+    let total: Int?
 }
 
 
@@ -241,12 +303,15 @@ struct AdminStats: Decodable {
     let total_activities: Int?
     let total_enrollments: Int?
     let pending_offers: Int?
+    let total_revenue: Double?
 }
 struct AdminProviderItem: Identifiable, Decodable {
     let id: Int
     let name: String
     let email: String?
     let kind: String?
+    let status: String?
+    let activity_count: Int?
     let created_at: String?
 }
 struct AdminUserItem: Identifiable, Decodable {
@@ -254,7 +319,52 @@ struct AdminUserItem: Identifiable, Decodable {
     let name: String
     let email: String
     let role: String?
+    let is_banned: Bool?
     let created_at: String?
 }
 
 
+
+// MARK: - M3: Payment Methods & MercadoPago
+
+struct SavedPaymentMethod: Identifiable, Decodable {
+    let id: Int
+    let provider: String          // "stripe" | "mercadopago"
+    let brand: String?            // "visa", "mastercard", etc.
+    let last4: String?
+    let expiryMonth: Int?
+    let expiryYear: Int?
+    let holderName: String?
+    let isDefault: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case id, provider, brand, last4, holderName = "holder_name"
+        case expiryMonth = "expiry_month", expiryYear = "expiry_year"
+        case isDefault = "is_default"
+    }
+}
+
+struct MercadoPagoPreference: Decodable {
+    let preferenceId: String
+    let initPoint: String        // URL to open in browser/WebView
+    let enrollmentId: Int
+
+    enum CodingKeys: String, CodingKey {
+        case preferenceId = "preference_id"
+        case initPoint    = "init_point"
+        case enrollmentId = "enrollment_id"
+    }
+}
+
+struct RefundRequest: Decodable {
+    let id: Int
+    let enrollmentId: Int
+    let status: String           // "pending" | "approved" | "rejected"
+    let amount: Double?
+    let reason: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, status, amount, reason
+        case enrollmentId = "enrollment_id"
+    }
+}

@@ -45,7 +45,7 @@ final class RunSessionTracker: ObservableObject {
 
         guard let data = try? JSONSerialization.data(withJSONObject: body) else { return }
 
-        APIClient.shared.request("run/sessions",
+        APIClient.shared.requestPublisher("run/sessions",
                                  method: "POST",
                                  body: data,
                                  authorized: true)
@@ -86,7 +86,7 @@ final class RunSessionTracker: ObservableObject {
 
         guard let data = try? JSONSerialization.data(withJSONObject: ["points": batch]) else { return }
 
-        APIClient.shared.request("run/sessions/\(sid)/points",
+        APIClient.shared.requestPublisher("run/sessions/\(sid)/points",
                                  method: "POST",
                                  body: data,
                                  authorized: true)
@@ -101,18 +101,16 @@ final class RunSessionTracker: ObservableObject {
     func finish() {
         flush()
         guard let sid = sessionId else { return }
+        let distanceM = totalDistanceM
+        let started   = startedAt
         sessionId = nil
 
-        var body: [String: Any] = [
-            "distance_m": Int(totalDistanceM),
-        ]
-        if let started = startedAt {
-            body["duration_s"] = Int(Date().timeIntervalSince(started))
-        }
+        var body: [String: Any] = ["distance_m": Int(distanceM)]
+        if let s = started { body["duration_s"] = Int(Date().timeIntervalSince(s)) }
 
         guard let data = try? JSONSerialization.data(withJSONObject: body) else { return }
 
-        APIClient.shared.request("run/sessions/\(sid)/finish",
+        APIClient.shared.requestPublisher("run/sessions/\(sid)/finish",
                                  method: "POST",
                                  body: data,
                                  authorized: true)
@@ -121,6 +119,20 @@ final class RunSessionTracker: ObservableObject {
                 receiveValue: { (_: SimpleOK) in }
             )
             .store(in: &bag)
+
+        // Save to HealthKit
+        if let s = started {
+            let end = Date()
+            let duration = end.timeIntervalSince(s)
+            Task {
+                await HealthKitService.shared.saveRun(
+                    distanceMeters: distanceM,
+                    durationSeconds: duration,
+                    startDate: s,
+                    endDate: end
+                )
+            }
+        }
     }
 
     /// Call when the user exits navigation without completing the run.
@@ -129,7 +141,7 @@ final class RunSessionTracker: ObservableObject {
         guard let sid = sessionId else { return }
         sessionId = nil
 
-        APIClient.shared.request("run/sessions/\(sid)/abandon",
+        APIClient.shared.requestPublisher("run/sessions/\(sid)/abandon",
                                  method: "POST",
                                  authorized: true)
             .sink(

@@ -14,7 +14,30 @@
 		FF000005FF000005FF000005 /* JetBrainsMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FF000015FF000015FF000015 /* JetBrainsMono-Bold.ttf */; };
 		FF000006FF000006FF000006 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF000016FF000016FF000016 /* SplashView.swift */; };
 		36820F192E82144200B51DAF /* HazardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F092E82144200B51DAF /* HazardService.swift */; };
-		36820F1A2E82144200B51DAF /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F052E82144200B51DAF /* ContentView.swift */; };
+		EE220001EE330001EE440001 /* TokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE110001EE220001EE330001 /* TokenStore.swift */; };
+		M1BB0001M1CC0001M1DD0001 /* BiometricService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1AA0001M1BB0001M1CC0001 /* BiometricService.swift */; };
+		M1BB0002M1CC0002M1DD0002 /* AppleSignInService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1AA0002M1BB0002M1CC0002 /* AppleSignInService.swift */; };
+		M1BB0003M1CC0003M1DD0003 /* TwoFactorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1AA0003M1BB0003M1CC0003 /* TwoFactorView.swift */; };
+		M1BB0004M1CC0004M1DD0004 /* DeepLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1AA0004M1BB0004M1CC0004 /* DeepLinkHandler.swift */; };
+		M2BB0001M2CC0001M2DD0001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M2AA0001M2BB0001M2CC0001 /* OnboardingView.swift */; };
+		M2BB0002M2CC0002M2DD0002 /* QRCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M2AA0002M2BB0002M2CC0002 /* QRCodeView.swift */; };
+		M2BB0003M2CC0003M2DD0003 /* PaymentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M2AA0003M2BB0003M2CC0003 /* PaymentService.swift */; };
+		M3BB0001M3CC0001M3DD0001 /* MercadoPagoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M3AA0001M3BB0001M3CC0001 /* MercadoPagoService.swift */; };
+		M3BB0002M3CC0002M3DD0002 /* SavedPaymentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M3AA0002M3BB0002M3CC0002 /* SavedPaymentsView.swift */; };
+		M3BB0003M3CC0003M3DD0003 /* RefundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M3AA0003M3BB0003M3CC0003 /* RefundView.swift */; };
+		M4BB0001M4CC0001M4DD0001 /* MessagesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M4AA0001M4BB0001M4CC0001 /* MessagesView.swift */; };
+		M5BB0001M5CC0001M5DD0001 /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M5AA0001M5BB0001M5CC0001 /* HealthKitService.swift */; };
+		M6BB0001M6CC0001M6DD0001 /* QRScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M6AA0001M6BB0001M6CC0001 /* QRScannerView.swift */; };
+		M6BB0002M6CC0002M6DD0002 /* CheckInService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M6AA0002M6BB0002M6CC0002 /* CheckInService.swift */; };
+		M8BB0001M8CC0001M8DD0001 /* StoreKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M8AA0001M8BB0001M8CC0001 /* StoreKitService.swift */; };
+		M8BB0002M8CC0002M8DD0002 /* ATTService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M8AA0002M8BB0002M8CC0002 /* ATTService.swift */; };
+		M8BB0003M8CC0003M8DD0003 /* FitNowPlusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M8AA0003M8BB0003M8CC0003 /* FitNowPlusView.swift */; };
+		M9BB0001M9CC0001M9DD0001 /* WidgetDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M9AA0001M9BB0001M9CC0001 /* WidgetDataService.swift */; };
+		M9BB0002M9CC0002M9DD0002 /* FitNowAppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = M9AA0002M9BB0002M9CC0002 /* FitNowAppIntents.swift */; };
+		MAABB0001MACC0001MADD0001 /* CoachIAService.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAAA0001MAAA0002MAAA0003 /* CoachIAService.swift */; };
+		MAABB0002MACC0002MADD0002 /* CoachIAView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAAA0002MAAA0003MAAA0004 /* CoachIAView.swift */; };
+		MAABB0003MACC0003MADD0003 /* FormCheckService.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAAA0003MAAA0004MAAA0005 /* FormCheckService.swift */; };
+		MAABB0004MACC0004MADD0004 /* FormCheckView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MAAA0004MAAA0005MAAA0006 /* FormCheckView.swift */; };
 		36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F082E82144200B51DAF /* FitNowApp.swift */; };
 		36820F1C2E82144200B51DAF /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0C2E82144200B51DAF /* KeychainService.swift */; };
 		36820F1D2E82144200B51DAF /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0E2E82144200B51DAF /* LoginView.swift */; };
@@ -93,7 +116,30 @@
 		36820F002E82144200B51DAF /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		36820F032E82144200B51DAF /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		36820F042E82144200B51DAF /* ClubSportsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubSportsView.swift; sourceTree = "<group>"; };
-		36820F052E82144200B51DAF /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		EE110001EE220001EE330001 /* TokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenStore.swift; sourceTree = "<group>"; };
+		M1AA0001M1BB0001M1CC0001 /* BiometricService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricService.swift; sourceTree = "<group>"; };
+		M1AA0002M1BB0002M1CC0002 /* AppleSignInService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInService.swift; sourceTree = "<group>"; };
+		M1AA0003M1BB0003M1CC0003 /* TwoFactorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwoFactorView.swift; sourceTree = "<group>"; };
+		M1AA0004M1BB0004M1CC0004 /* DeepLinkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkHandler.swift; sourceTree = "<group>"; };
+		M2AA0001M2BB0001M2CC0001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		M2AA0002M2BB0002M2CC0002 /* QRCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeView.swift; sourceTree = "<group>"; };
+		M2AA0003M2BB0003M2CC0003 /* PaymentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentService.swift; sourceTree = "<group>"; };
+		M3AA0001M3BB0001M3CC0001 /* MercadoPagoService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MercadoPagoService.swift; sourceTree = "<group>"; };
+		M3AA0002M3BB0002M3CC0002 /* SavedPaymentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedPaymentsView.swift; sourceTree = "<group>"; };
+		M3AA0003M3BB0003M3CC0003 /* RefundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RefundView.swift; sourceTree = "<group>"; };
+		M4AA0001M4BB0001M4CC0001 /* MessagesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesView.swift; sourceTree = "<group>"; };
+		M5AA0001M5BB0001M5CC0001 /* HealthKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitService.swift; sourceTree = "<group>"; };
+		M6AA0001M6BB0001M6CC0001 /* QRScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRScannerView.swift; sourceTree = "<group>"; };
+		M6AA0002M6BB0002M6CC0002 /* CheckInService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckInService.swift; sourceTree = "<group>"; };
+		M8AA0001M8BB0001M8CC0001 /* StoreKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitService.swift; sourceTree = "<group>"; };
+		M8AA0002M8BB0002M8CC0002 /* ATTService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ATTService.swift; sourceTree = "<group>"; };
+		M8AA0003M8BB0003M8CC0003 /* FitNowPlusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitNowPlusView.swift; sourceTree = "<group>"; };
+		M9AA0001M9BB0001M9CC0001 /* WidgetDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetDataService.swift; sourceTree = "<group>"; };
+		M9AA0002M9BB0002M9CC0002 /* FitNowAppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitNowAppIntents.swift; sourceTree = "<group>"; };
+		MAAA0001MAAA0002MAAA0003 /* CoachIAService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachIAService.swift; sourceTree = "<group>"; };
+		MAAA0002MAAA0003MAAA0004 /* CoachIAView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachIAView.swift; sourceTree = "<group>"; };
+		MAAA0003MAAA0004MAAA0005 /* FormCheckService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormCheckService.swift; sourceTree = "<group>"; };
+		MAAA0004MAAA0005MAAA0006 /* FormCheckView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormCheckView.swift; sourceTree = "<group>"; };
 		36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnrollmentsViewModel.swift; sourceTree = "<group>"; };
 		36820F072E82144200B51DAF /* FitNow.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FitNow.entitlements; sourceTree = "<group>"; };
 		36820F082E82144200B51DAF /* FitNowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitNowApp.swift; sourceTree = "<group>"; };
@@ -210,7 +256,30 @@
 				36820F002E82144200B51DAF /* APIClient.swift */,
 				36820F032E82144200B51DAF /* AuthViewModel.swift */,
 				36820F042E82144200B51DAF /* ClubSportsView.swift */,
-				36820F052E82144200B51DAF /* ContentView.swift */,
+				EE110001EE220001EE330001 /* TokenStore.swift */,
+				M1AA0001M1BB0001M1CC0001 /* BiometricService.swift */,
+				M1AA0002M1BB0002M1CC0002 /* AppleSignInService.swift */,
+				M1AA0003M1BB0003M1CC0003 /* TwoFactorView.swift */,
+				M1AA0004M1BB0004M1CC0004 /* DeepLinkHandler.swift */,
+				M2AA0001M2BB0001M2CC0001 /* OnboardingView.swift */,
+				M2AA0002M2BB0002M2CC0002 /* QRCodeView.swift */,
+				M2AA0003M2BB0003M2CC0003 /* PaymentService.swift */,
+				M3AA0001M3BB0001M3CC0001 /* MercadoPagoService.swift */,
+				M3AA0002M3BB0002M3CC0002 /* SavedPaymentsView.swift */,
+				M3AA0003M3BB0003M3CC0003 /* RefundView.swift */,
+				M4AA0001M4BB0001M4CC0001 /* MessagesView.swift */,
+				M5AA0001M5BB0001M5CC0001 /* HealthKitService.swift */,
+				M6AA0001M6BB0001M6CC0001 /* QRScannerView.swift */,
+				M6AA0002M6BB0002M6CC0002 /* CheckInService.swift */,
+				M8AA0001M8BB0001M8CC0001 /* StoreKitService.swift */,
+				M8AA0002M8BB0002M8CC0002 /* ATTService.swift */,
+				M8AA0003M8BB0003M8CC0003 /* FitNowPlusView.swift */,
+				M9AA0001M9BB0001M9CC0001 /* WidgetDataService.swift */,
+				M9AA0002M9BB0002M9CC0002 /* FitNowAppIntents.swift */,
+				MAAA0001MAAA0002MAAA0003 /* CoachIAService.swift */,
+				MAAA0002MAAA0003MAAA0004 /* CoachIAView.swift */,
+				MAAA0003MAAA0004MAAA0005 /* FormCheckService.swift */,
+				MAAA0004MAAA0005MAAA0006 /* FormCheckView.swift */,
 				36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */,
 				36820F072E82144200B51DAF /* FitNow.entitlements */,
 				36820F082E82144200B51DAF /* FitNowApp.swift */,
@@ -369,7 +438,6 @@
 			mainGroup = 36820D4D2E5E169D00B51DAF;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				36820EE12E78B08500B51DAF /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 36820D572E5E169D00B51DAF /* Products */;
@@ -419,7 +487,30 @@
 			buildActionMask = 2147483647;
 			files = (
 				36820F192E82144200B51DAF /* HazardService.swift in Sources */,
-				36820F1A2E82144200B51DAF /* ContentView.swift in Sources */,
+				EE220001EE330001EE440001 /* TokenStore.swift in Sources */,
+				M1BB0001M1CC0001M1DD0001 /* BiometricService.swift in Sources */,
+				M1BB0002M1CC0002M1DD0002 /* AppleSignInService.swift in Sources */,
+				M1BB0003M1CC0003M1DD0003 /* TwoFactorView.swift in Sources */,
+				M1BB0004M1CC0004M1DD0004 /* DeepLinkHandler.swift in Sources */,
+				M2BB0001M2CC0001M2DD0001 /* OnboardingView.swift in Sources */,
+				M2BB0002M2CC0002M2DD0002 /* QRCodeView.swift in Sources */,
+				M2BB0003M2CC0003M2DD0003 /* PaymentService.swift in Sources */,
+				M3BB0001M3CC0001M3DD0001 /* MercadoPagoService.swift in Sources */,
+				M3BB0002M3CC0002M3DD0002 /* SavedPaymentsView.swift in Sources */,
+				M3BB0003M3CC0003M3DD0003 /* RefundView.swift in Sources */,
+				M4BB0001M4CC0001M4DD0001 /* MessagesView.swift in Sources */,
+				M5BB0001M5CC0001M5DD0001 /* HealthKitService.swift in Sources */,
+				M6BB0001M6CC0001M6DD0001 /* QRScannerView.swift in Sources */,
+				M6BB0002M6CC0002M6DD0002 /* CheckInService.swift in Sources */,
+				M8BB0001M8CC0001M8DD0001 /* StoreKitService.swift in Sources */,
+				M8BB0002M8CC0002M8DD0002 /* ATTService.swift in Sources */,
+				M8BB0003M8CC0003M8DD0003 /* FitNowPlusView.swift in Sources */,
+				M9BB0001M9CC0001M9DD0001 /* WidgetDataService.swift in Sources */,
+				M9BB0002M9CC0002M9DD0002 /* FitNowAppIntents.swift in Sources */,
+				MAABB0001MACC0001MADD0001 /* CoachIAService.swift in Sources */,
+				MAABB0002MACC0002MADD0002 /* CoachIAView.swift in Sources */,
+				MAABB0003MACC0003MADD0003 /* FormCheckService.swift in Sources */,
+				MAABB0004MACC0004MADD0004 /* FormCheckView.swift in Sources */,
 				36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */,
 				36820F1C2E82144200B51DAF /* KeychainService.swift in Sources */,
 				36820F1D2E82144200B51DAF /* LoginView.swift in Sources */,
@@ -823,16 +914,7 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		36820EE12E78B08500B51DAF /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/mapbox/mapbox-navigation-ios";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
+/* MapKit is used in place of Mapbox for all map features */
 	};
 	rootObject = 36820D4E2E5E169D00B51DAF /* Project object */;
 }

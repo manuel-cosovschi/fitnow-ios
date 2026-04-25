@@ -17,7 +17,7 @@ final class SpecialOffersViewModel: ObservableObject {
     func loadApproved() {
         loading = true; error = nil
         let q = [URLQueryItem(name: "status", value: "approved")]
-        APIClient.shared.request("offers", authorized: false, query: q)
+        APIClient.shared.requestPublisher("offers", authorized: false, query: q)
             .sink { [weak self] completion in
                 self?.loading = false
                 if case .failure(let e) = completion { self?.error = e.localizedDescription }
@@ -30,7 +30,7 @@ final class SpecialOffersViewModel: ObservableObject {
     func loadPending() {
         loading = true; error = nil
         let q = [URLQueryItem(name: "status", value: "pending")]
-        APIClient.shared.request("admin/offers", authorized: true, query: q)
+        APIClient.shared.requestPublisher("admin/offers", authorized: true, query: q)
             .sink { [weak self] completion in
                 self?.loading = false
                 if case .failure(let e) = completion { self?.error = e.localizedDescription }
@@ -41,7 +41,7 @@ final class SpecialOffersViewModel: ObservableObject {
     }
 
     func approve(offerId: Int) {
-        APIClient.shared.request("admin/offers/\(offerId)/approve", method: "POST", authorized: true)
+        APIClient.shared.requestPublisher("admin/offers/\(offerId)/approve", method: "POST", authorized: true)
             .sink { _ in }
             receiveValue: { [weak self] (_: SimpleOK) in
                 self?.offers.removeAll { $0.id == offerId }
@@ -50,7 +50,7 @@ final class SpecialOffersViewModel: ObservableObject {
     }
 
     func reject(offerId: Int) {
-        APIClient.shared.request("admin/offers/\(offerId)/reject", method: "POST", authorized: true)
+        APIClient.shared.requestPublisher("admin/offers/\(offerId)/reject", method: "POST", authorized: true)
             .sink { _ in }
             receiveValue: { [weak self] (_: SimpleOK) in
                 self?.offers.removeAll { $0.id == offerId }
@@ -369,7 +369,7 @@ struct ProviderSubmitOfferView: View {
         }
 
         let data = (try? JSONSerialization.data(withJSONObject: body)) ?? Data()
-        APIClient.shared.request("offers", method: "POST", body: data, authorized: true)
+        APIClient.shared.requestPublisher("offers", method: "POST", body: data, authorized: true)
             .sink { completion in
                 self.submitting = false
                 if case .failure(let e) = completion {
@@ -495,7 +495,7 @@ final class ProviderMyOffersViewModel: ObservableObject {
 
     func loadMine() {
         loading = true
-        APIClient.shared.request("offers/mine", authorized: true)
+        APIClient.shared.requestPublisher("offers/mine", authorized: true)
             .sink { [weak self] _ in self?.loading = false }
             receiveValue: { [weak self] (resp: OffersListResponse) in
                 self?.offers = resp.items

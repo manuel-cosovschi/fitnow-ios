@@ -20,39 +20,39 @@ final class AnalyticsViewModel: ObservableObject {
         let group = DispatchGroup()
 
         group.enter()
-        APIClient.shared.request("analytics/running/summary", authorized: true)
+        APIClient.shared.requestPublisher("analytics/running/summary", authorized: true)
             .sink { _ in group.leave() }
             receiveValue: { [weak self] (resp: RunningSummary) in self?.runningSummary = resp }
             .store(in: &bag)
 
         group.enter()
-        APIClient.shared.request("analytics/gym/summary", authorized: true)
+        APIClient.shared.requestPublisher("analytics/gym/summary", authorized: true)
             .sink { _ in group.leave() }
             receiveValue: { [weak self] (resp: GymSummary) in self?.gymSummary = resp }
             .store(in: &bag)
 
         group.enter()
-        APIClient.shared.request("analytics/combined/streak", authorized: true)
+        APIClient.shared.requestPublisher("analytics/combined/streak", authorized: true)
             .sink { _ in group.leave() }
             receiveValue: { [weak self] (resp: StreakInfo) in self?.streak = resp }
             .store(in: &bag)
 
         group.enter()
         let runQ = [URLQueryItem(name: "weeks", value: "8")]
-        APIClient.shared.request("analytics/running/weekly", authorized: true, query: runQ)
+        APIClient.shared.requestPublisher("analytics/running/weekly", authorized: true, query: runQ)
             .sink { _ in group.leave() }
             receiveValue: { [weak self] (resp: WeeklyItemsResponse) in self?.runWeekly = resp.items }
             .store(in: &bag)
 
         group.enter()
         let gymQ = [URLQueryItem(name: "weeks", value: "8")]
-        APIClient.shared.request("analytics/gym/weekly", authorized: true, query: gymQ)
+        APIClient.shared.requestPublisher("analytics/gym/weekly", authorized: true, query: gymQ)
             .sink { _ in group.leave() }
             receiveValue: { [weak self] (resp: GymWeeklyResponse) in self?.gymWeekly = resp.items }
             .store(in: &bag)
 
         group.enter()
-        APIClient.shared.request("analytics/gym/muscle-distribution", authorized: true)
+        APIClient.shared.requestPublisher("analytics/gym/muscle-distribution", authorized: true)
             .sink { _ in group.leave() }
             receiveValue: { [weak self] (resp: MuscleDistResponse) in self?.muscleDist = resp.items }
             .store(in: &bag)
