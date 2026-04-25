@@ -2,140 +2,149 @@ import Foundation
 import Combine
 
 final class AuthViewModel: ObservableObject {
-    @Published var email: String = ""
-    @Published var password: String = ""
-    @Published var name: String = ""
-    @Published var providerName: String = ""          // used during provider registration
-    @Published var selectedRole: String = "user"      // "user" | "provider_admin"
-    @Published var isAuthenticated: Bool = false
+    @Published var email        = ""
+    @Published var password     = ""
+    @Published var name         = ""
+    @Published var providerName = ""
+    @Published var selectedRole = "user"      // "user" | "provider_admin"
+    @Published var isAuthenticated = false
     @Published var loading = false
     @Published var error: String?
-    @Published var user: User? = nil
+    @Published var user: User?
 
-    private static let userKey    = "saved_user"
-    private static let roleMapKey = "email_role_map"
-    private var bag = Set<AnyCancellable>()
+    private static let userKey = "saved_user"
+    private let tokenStore     = TokenStore.shared
 
     init() {
-        if APIClient.shared.token != nil {
+        restoreSession()
+        observeSessionExpiry()
+    }
+
+    // MARK: - Session restore
+
+    private func restoreSession() {
+        guard tokenStore.isAuthenticated else { return }
+        if let data = UserDefaults.standard.data(forKey: Self.userKey),
+           let saved = try? JSONDecoder().decode(User.self, from: data) {
+            user = saved
             isAuthenticated = true
-            if let data = UserDefaults.standard.data(forKey: Self.userKey),
-               let saved = try? JSONDecoder().decode(User.self, from: data) {
-                user = saved
+        }
+    }
+
+    private func observeSessionExpiry() {
+        NotificationCenter.default.addObserver(
+            forName: .sessionExpired, object: nil, queue: .main
+        ) { [weak self] _ in
+            self?.forceLogout()
+        }
+    }
+
+    // MARK: - Auth actions (async/await)
+
+    func login() {
+        guard !loading else { return }
+        loading = true; error = nil
+        Task { @MainActor in
+            defer { loading = false }
+            do {
+                guard let body = try? JSONEncoder().encode(
+                    ["email": email, "password": password]
+                ) else { throw APIError.badURL }
+                let resp: AuthResponse = try await APIClient.shared.request(
+                    "auth/login", method: "POST", body: body, authorized: false
+                )
+                applyAuth(resp)
+            } catch {
+                self.error = humanError(error)
             }
         }
     }
 
-    // MARK: - Role cache
-
-    private func storeRole(_ role: String, forEmail email: String) {
-        var map = (UserDefaults.standard.dictionary(forKey: Self.roleMapKey) as? [String: String]) ?? [:]
-        map[email] = role
-        UserDefaults.standard.set(map, forKey: Self.roleMapKey)
-    }
-
-    private func cachedRole(forEmail email: String) -> String? {
-        let map = (UserDefaults.standard.dictionary(forKey: Self.roleMapKey) as? [String: String]) ?? [:]
-        return map[email]
-    }
-
-    private func resolvedRole(from backendUser: User, fallbackRole: String? = nil) -> String {
-        // Prefer any non-"user" role returned by the backend
-        if let r = backendUser.role, r != "user", !r.isEmpty { return r }
-        // Heuristic: provider_id set → this is a provider account
-        if backendUser.provider_id != nil { return "provider_admin" }
-        // Fall back to local cache (handles backends that always echo "user")
-        if let cached = cachedRole(forEmail: backendUser.email), cached != "user" { return cached }
-        return fallbackRole ?? backendUser.role ?? "user"
-    }
-
-    private func saveUser(_ u: User) {
-        if let data = try? JSONEncoder().encode(u) {
-            UserDefaults.standard.set(data, forKey: Self.userKey)
-        }
-    }
-
-    private func applyAuth(_ resp: AuthResponse, intendedRole: String? = nil) {
-        APIClient.shared.setToken(resp.token)
-        let role = resolvedRole(from: resp.user, fallbackRole: intendedRole)
-        let u = User(id: resp.user.id, name: resp.user.name, email: resp.user.email,
-                     role: role, provider_id: resp.user.provider_id)
-        storeRole(role, forEmail: u.email)
-        user = u
-        saveUser(u)
-        isAuthenticated = true
-    }
-
-    // MARK: - Auth actions
-
-    func login() {
-        error = nil; loading = true
-        let payload = ["email": email, "password": password]
-        let data = try! JSONSerialization.data(withJSONObject: payload, options: [])
-        APIClient.shared.request("auth/login", method: "POST", body: data, authorized: false)
-            .sink { [weak self] completion in
-                self?.loading = false
-                if case .failure(let e) = completion {
-                    if case APIError.http(let code, _) = e {
-                        switch code {
-                        case 401: self?.error = "Email o contraseña incorrectos."
-                        case 404: self?.error = "No existe una cuenta con ese email."
-                        default:  self?.error = "No se pudo iniciar sesión. Intentá de nuevo."
-                        }
-                    } else {
-                        self?.error = "Sin conexión. Verificá tu red."
-                    }
-                }
-            } receiveValue: { [weak self] (resp: AuthResponse) in
-                self?.applyAuth(resp)
-            }.store(in: &bag)
-    }
-
     func register() {
-        error = nil; loading = true
-
-        if selectedRole == "provider_admin" {
-            // Use the dedicated register-provider endpoint
-            let pName = providerName.trimmingCharacters(in: .whitespaces)
-            let payload: [String: String] = [
-                "name": name,
-                "email": email,
-                "password": password,
-                "provider_name": pName.isEmpty ? name : pName
-            ]
-            let data = try! JSONSerialization.data(withJSONObject: payload, options: [])
-            APIClient.shared.request("auth/register-provider", method: "POST", body: data, authorized: false)
-                .sink { [weak self] completion in
-                    self?.loading = false
-                    if case .failure(let e) = completion {
-                    if case APIError.http(let code, _) = e {
-                        self?.error = code == 409 ? "Ya existe una cuenta con ese email." : "No se pudo crear la cuenta. Intentá de nuevo."
-                    } else { self?.error = "Sin conexión. Verificá tu red." }
+        guard !loading else { return }
+        loading = true; error = nil
+        Task { @MainActor in
+            defer { loading = false }
+            do {
+                if selectedRole == "provider_admin" {
+                    let pName = providerName.trimmingCharacters(in: .whitespaces)
+                    let payload = ProviderRegisterPayload(
+                        name: name, email: email, password: password,
+                        provider_name: pName.isEmpty ? name : pName
+                    )
+                    guard let body = try? JSONEncoder().encode(payload) else { throw APIError.badURL }
+                    let resp: AuthResponse = try await APIClient.shared.request(
+                        "auth/register-provider", method: "POST", body: body, authorized: false
+                    )
+                    applyAuth(resp, intendedRole: "provider_admin")
+                } else {
+                    let payload = UserRegisterPayload(name: name, email: email, password: password)
+                    guard let body = try? JSONEncoder().encode(payload) else { throw APIError.badURL }
+                    let resp: AuthResponse = try await APIClient.shared.request(
+                        "auth/register", method: "POST", body: body, authorized: false
+                    )
+                    applyAuth(resp, intendedRole: "user")
                 }
-                } receiveValue: { [weak self] (resp: AuthResponse) in
-                    self?.applyAuth(resp, intendedRole: "provider_admin")
-                }.store(in: &bag)
-        } else {
-            let payload: [String: String] = ["name": name, "email": email, "password": password]
-            let data = try! JSONSerialization.data(withJSONObject: payload, options: [])
-            APIClient.shared.request("auth/register", method: "POST", body: data, authorized: false)
-                .sink { [weak self] completion in
-                    self?.loading = false
-                    if case .failure(let e) = completion {
-                    if case APIError.http(let code, _) = e {
-                        self?.error = code == 409 ? "Ya existe una cuenta con ese email." : "No se pudo crear la cuenta. Intentá de nuevo."
-                    } else { self?.error = "Sin conexión. Verificá tu red." }
-                }
-                } receiveValue: { [weak self] (resp: AuthResponse) in
-                    self?.applyAuth(resp, intendedRole: "user")
-                }.store(in: &bag)
+            } catch {
+                self.error = humanError(error)
+            }
         }
     }
 
     func logout() {
-        APIClient.shared.clearToken()
+        tokenStore.clear()
         UserDefaults.standard.removeObject(forKey: Self.userKey)
         user = nil
         isAuthenticated = false
     }
+
+    // MARK: - Private
+
+    private func applyAuth(_ resp: AuthResponse, intendedRole: String? = nil) {
+        tokenStore.store(access: resp.token, refresh: resp.refreshToken)
+        let resolvedRole = resp.user.role.flatMap { $0.isEmpty ? nil : $0 }
+            ?? intendedRole
+            ?? "user"
+        let u = User(
+            id: resp.user.id, name: resp.user.name,
+            email: resp.user.email, role: resolvedRole,
+            provider_id: resp.user.provider_id
+        )
+        save(user: u)
+        user = u
+        isAuthenticated = true
+    }
+
+    private func save(user: User) {
+        if let data = try? JSONEncoder().encode(user) {
+            UserDefaults.standard.set(data, forKey: Self.userKey)
+        }
+    }
+
+    private func forceLogout() {
+        user = nil
+        isAuthenticated = false
+    }
+
+    private func humanError(_ error: Error) -> String {
+        if let api = error as? APIError, case .http(let code, _) = api {
+            switch code {
+            case 401: return "Email o contraseña incorrectos."
+            case 404: return "No existe una cuenta con ese email."
+            case 409: return "Ya existe una cuenta con ese email."
+            default:  return "Error del servidor (\(code)). Intentá de nuevo."
+            }
+        }
+        return "Sin conexión. Verificá tu red."
+    }
+}
+
+// MARK: - Codable payloads
+
+private struct UserRegisterPayload: Encodable {
+    let name, email, password: String
+}
+
+private struct ProviderRegisterPayload: Encodable {
+    let name, email, password, provider_name: String
 }

@@ -697,7 +697,7 @@ struct ActivityDetailView: View {
     private func createEnrollment() {
         enrolling = true; message = nil
         let payload = try! JSONEncoder().encode(["activity_id": activity.id])
-        APIClient.shared.request("enrollments", method: "POST", body: payload, authorized: true)
+        APIClient.shared.requestPublisher("enrollments", method: "POST", body: payload, authorized: true)
             .sink { completion in
                 if case .failure(let e) = completion {
                     if case APIError.http(let code, let body) = e {
@@ -724,7 +724,7 @@ struct ActivityDetailView: View {
     private func cancelEnrollment() {
         guard let eid = enrollmentId else { return }
         enrolling = true; message = nil
-        APIClient.shared.request("enrollments/\(eid)", method: "DELETE", authorized: true)
+        APIClient.shared.requestPublisher("enrollments/\(eid)", method: "DELETE", authorized: true)
             .sink { completion in
                 if case .failure(let e) = completion { message = (e as NSError).localizedDescription; enrolling = false }
             } receiveValue: { (_: SimpleOK) in
@@ -736,7 +736,7 @@ struct ActivityDetailView: View {
     }
 
     private func fetchSessions() {
-        APIClient.shared.request("activities/\(activity.id)/sessions", authorized: false)
+        APIClient.shared.requestPublisher("activities/\(activity.id)/sessions", authorized: false)
             .sink { completion in if case .failure(let e) = completion { self.message = e.localizedDescription } }
             receiveValue: { (resp: ListResponse<ActivitySession>) in self.sessions = resp.items }
             .store(in: &helper.bag)
@@ -744,7 +744,7 @@ struct ActivityDetailView: View {
 
     private func fetchClubSports() {
         guard let pid = activity.provider_id else { clubSports = typicalClubSports; return }
-        APIClient.shared.request("providers/\(pid)/sports", authorized: false)
+        APIClient.shared.requestPublisher("providers/\(pid)/sports", authorized: false)
             .sink { completion in if case .failure(_) = completion, self.clubSports.isEmpty { self.clubSports = typicalClubSports } }
             receiveValue: { (resp: SportsResponse) in
                 let names = resp.items.map { $0.name }
@@ -754,7 +754,7 @@ struct ActivityDetailView: View {
     }
 
     private func fetchActivity() {
-        APIClient.shared.request("activities/\(activity.id)", authorized: false)
+        APIClient.shared.requestPublisher("activities/\(activity.id)", authorized: false)
             .sink { _ in enrolling = false }
             receiveValue: { (resp: ActivityAndProviderResponse) in
                 seatsLeft = resp.activity.seats_left
@@ -768,7 +768,7 @@ struct ActivityDetailView: View {
     }
 
     private func checkEnrollment() {
-        APIClient.shared.request("enrollments/mine", authorized: true,
+        APIClient.shared.requestPublisher("enrollments/mine", authorized: true,
                                  query: [URLQueryItem(name: "when", value: "all")])
             .sink { _ in }
             receiveValue: { (resp: ListResponse<EnrollmentItem>) in

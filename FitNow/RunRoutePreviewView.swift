@@ -263,7 +263,7 @@ struct RunRoutePreviewView: View {
     private func sendFeedback() {
         let body: [String: Any] = ["rating": rating]
         let data = try! JSONSerialization.data(withJSONObject: body)
-        APIClient.shared.request("run/routes/\(option.id)/feedback", method: "POST", body: data, authorized: true)
+        APIClient.shared.requestPublisher("run/routes/\(option.id)/feedback", method: "POST", body: data, authorized: true)
             .sink { completion in
                 if case .failure(let e) = completion { self.message = e.localizedDescription }
             } receiveValue: { (_: SimpleOK) in

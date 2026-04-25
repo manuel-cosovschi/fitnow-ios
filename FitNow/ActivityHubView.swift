@@ -80,7 +80,7 @@ final class ActivityHubViewModel: ObservableObject {
     func load() {
         loading = true
         error = nil
-        APIClient.shared.request("activities/\(activityId)/posts", authorized: false)
+        APIClient.shared.requestPublisher("activities/\(activityId)/posts", authorized: false)
             .sink { [weak self] completion in
                 self?.loading = false
                 if case .failure(let e) = completion {
@@ -97,7 +97,7 @@ final class ActivityHubViewModel: ObservableObject {
         if !body.isEmpty { dict["body"] = body }
         if let fn = fileName, !fn.isEmpty { dict["file_name"] = fn }
         guard let data = try? JSONSerialization.data(withJSONObject: dict) else { return }
-        APIClient.shared.request(
+        APIClient.shared.requestPublisher(
             "activities/\(activityId)/posts",
             method: "POST",
             body: data,
@@ -114,7 +114,7 @@ final class ActivityHubViewModel: ObservableObject {
         // Optimistic remove
         posts.removeAll { $0.id == post.id }
         // Fire-and-forget (backend returns 204, no body)
-        APIClient.shared.request(
+        APIClient.shared.requestPublisher(
             "activities/\(activityId)/posts/\(post.id)",
             method: "DELETE",
             authorized: true

@@ -47,7 +47,7 @@ final class EnrollmentDetailViewModel: ObservableObject {
 
     func load(activityId: Int) {
         loading = true; error = nil
-        APIClient.shared.request("activities/\(activityId)", authorized: false)
+        APIClient.shared.requestPublisher("activities/\(activityId)", authorized: false)
             .sink { [weak self] completion in
                 self?.loading = false
                 if case .failure(let e) = completion { self?.error = e.localizedDescription }
@@ -61,7 +61,7 @@ final class EnrollmentDetailViewModel: ObservableObject {
 
     func cancel(enrollmentId: Int, completion: @escaping () -> Void) {
         cancelling = true
-        APIClient.shared.request("enrollments/\(enrollmentId)", method: "DELETE", authorized: true)
+        APIClient.shared.requestPublisher("enrollments/\(enrollmentId)", method: "DELETE", authorized: true)
             .sink { [weak self] comp in
                 self?.cancelling = false
                 if case .failure(let e) = comp { self?.error = e.localizedDescription }

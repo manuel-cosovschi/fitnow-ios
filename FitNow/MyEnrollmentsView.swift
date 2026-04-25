@@ -51,7 +51,7 @@ final class MyEnrollmentsViewModel: ObservableObject {
     func fetchMine() {
         loading = true; error = nil
         let q = [URLQueryItem(name: "when", value: filter.queryValue)]
-        APIClient.shared.request("enrollments/mine", authorized: true, query: q)
+        APIClient.shared.requestPublisher("enrollments/mine", authorized: true, query: q)
             .sink { [weak self] completion in
                 self?.loading = false
                 if case .failure(let e) = completion { self?.error = e.localizedDescription }
@@ -64,7 +64,7 @@ final class MyEnrollmentsViewModel: ObservableObject {
     func cancel(_ item: EnrollmentItem) {
         guard let idx = items.firstIndex(where: { $0.id == item.id }) else { return }
         loading = true; error = nil
-        APIClient.shared.request("enrollments/\(item.id)", method: "DELETE", authorized: true)
+        APIClient.shared.requestPublisher("enrollments/\(item.id)", method: "DELETE", authorized: true)
             .sink { [weak self] completion in
                 self?.loading = false
                 if case .failure(let e) = completion { self?.error = e.localizedDescription }

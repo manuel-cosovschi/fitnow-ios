@@ -12,7 +12,7 @@ final class RunHistoryViewModel: ObservableObject {
 
     func fetch() {
         loading = true; error = nil
-        APIClient.shared.request("run/sessions/mine", authorized: true)
+        APIClient.shared.requestPublisher("run/sessions/mine", authorized: true)
             .sink { [weak self] completion in
                 self?.loading = false
                 if case .failure(let e) = completion { self?.error = e.localizedDescription }

@@ -18,7 +18,7 @@ final class ProviderDashboardViewModel: ObservableObject {
     func load() {
         loading = true; error = nil
         let url = providerId.map { "activities?provider_id=\($0)&limit=50" } ?? "activities?limit=50"
-        APIClient.shared.request(url)
+        APIClient.shared.requestPublisher(url)
             .sink { [weak self] completion in
                 self?.loading = false
                 if case .failure(let e) = completion { self?.error = e.localizedDescription }
@@ -31,7 +31,7 @@ final class ProviderDashboardViewModel: ObservableObject {
 
     func createActivity(_ payload: [String: Any], completion: @escaping (Bool) -> Void) {
         guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
-        APIClient.shared.request("activities", method: "POST", body: data)
+        APIClient.shared.requestPublisher("activities", method: "POST", body: data)
             .sink { result in
                 if case .failure = result { completion(false) }
             } receiveValue: { [weak self] (a: Activity) in

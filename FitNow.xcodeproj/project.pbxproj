@@ -14,7 +14,7 @@
 		FF000005FF000005FF000005 /* JetBrainsMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FF000015FF000015FF000015 /* JetBrainsMono-Bold.ttf */; };
 		FF000006FF000006FF000006 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF000016FF000016FF000016 /* SplashView.swift */; };
 		36820F192E82144200B51DAF /* HazardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F092E82144200B51DAF /* HazardService.swift */; };
-		36820F1A2E82144200B51DAF /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F052E82144200B51DAF /* ContentView.swift */; };
+		EE220001EE330001EE440001 /* TokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE110001EE220001EE330001 /* TokenStore.swift */; };
 		36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F082E82144200B51DAF /* FitNowApp.swift */; };
 		36820F1C2E82144200B51DAF /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0C2E82144200B51DAF /* KeychainService.swift */; };
 		36820F1D2E82144200B51DAF /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0E2E82144200B51DAF /* LoginView.swift */; };
@@ -93,7 +93,7 @@
 		36820F002E82144200B51DAF /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		36820F032E82144200B51DAF /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		36820F042E82144200B51DAF /* ClubSportsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubSportsView.swift; sourceTree = "<group>"; };
-		36820F052E82144200B51DAF /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		EE110001EE220001EE330001 /* TokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenStore.swift; sourceTree = "<group>"; };
 		36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnrollmentsViewModel.swift; sourceTree = "<group>"; };
 		36820F072E82144200B51DAF /* FitNow.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FitNow.entitlements; sourceTree = "<group>"; };
 		36820F082E82144200B51DAF /* FitNowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitNowApp.swift; sourceTree = "<group>"; };
@@ -210,7 +210,7 @@
 				36820F002E82144200B51DAF /* APIClient.swift */,
 				36820F032E82144200B51DAF /* AuthViewModel.swift */,
 				36820F042E82144200B51DAF /* ClubSportsView.swift */,
-				36820F052E82144200B51DAF /* ContentView.swift */,
+				EE110001EE220001EE330001 /* TokenStore.swift */,
 				36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */,
 				36820F072E82144200B51DAF /* FitNow.entitlements */,
 				36820F082E82144200B51DAF /* FitNowApp.swift */,
@@ -369,7 +369,6 @@
 			mainGroup = 36820D4D2E5E169D00B51DAF;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				36820EE12E78B08500B51DAF /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 36820D572E5E169D00B51DAF /* Products */;
@@ -419,7 +418,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				36820F192E82144200B51DAF /* HazardService.swift in Sources */,
-				36820F1A2E82144200B51DAF /* ContentView.swift in Sources */,
+				EE220001EE330001EE440001 /* TokenStore.swift in Sources */,
 				36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */,
 				36820F1C2E82144200B51DAF /* KeychainService.swift in Sources */,
 				36820F1D2E82144200B51DAF /* LoginView.swift in Sources */,
@@ -823,16 +822,7 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		36820EE12E78B08500B51DAF /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/mapbox/mapbox-navigation-ios";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
+/* MapKit is used in place of Mapbox for all map features */
 	};
 	rootObject = 36820D4E2E5E169D00B51DAF /* Project object */;
 }

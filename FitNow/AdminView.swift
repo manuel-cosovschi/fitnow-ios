@@ -318,7 +318,7 @@ final class AdminStatsViewModel: ObservableObject {
 
     func load() {
         loading = true; error = nil
-        APIClient.shared.request("admin/stats", authorized: true)
+        APIClient.shared.requestPublisher("admin/stats", authorized: true)
             .sink { [weak self] completion in
                 self?.loading = false
                 if case .failure(let e) = completion { self?.error = e.localizedDescription }
@@ -389,7 +389,7 @@ final class AdminUsersViewModel: ObservableObject {
 
     func load() {
         loading = true
-        APIClient.shared.request("admin/users", authorized: true)
+        APIClient.shared.requestPublisher("admin/users", authorized: true)
             .sink { [weak self] _ in self?.loading = false }
             receiveValue: { [weak self] (resp: UsersResponse) in
                 self?.users = resp.items; self?.loading = false
@@ -456,7 +456,7 @@ final class AdminProvidersViewModel: ObservableObject {
 
     func load() {
         loading = true
-        APIClient.shared.request("admin/providers", authorized: true)
+        APIClient.shared.requestPublisher("admin/providers", authorized: true)
             .sink { [weak self] _ in self?.loading = false }
             receiveValue: { [weak self] (resp: ProvidersResponse) in
                 self?.providers = resp.items; self?.loading = false

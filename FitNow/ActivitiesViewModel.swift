@@ -47,7 +47,7 @@ final class ActivitiesViewModel: ObservableObject {
         if let minPrice { qItems.append(URLQueryItem(name: "min_price", value: String(minPrice))) }
         if let maxPrice { qItems.append(URLQueryItem(name: "max_price", value: String(maxPrice))) }
 
-        APIClient.shared.request("activities", authorized: false, query: qItems)
+        APIClient.shared.requestPublisher("activities", authorized: false, query: qItems)
             .sink { [weak self] completion in
                 self?.loading = false
                 if case .failure(let e) = completion { self?.error = e.localizedDescription }

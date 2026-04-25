@@ -16,7 +16,7 @@ final class GamificationViewModel: ObservableObject {
 
     func loadProfile() {
         loading = true; error = nil
-        APIClient.shared.request("gamification/me", authorized: true)
+        APIClient.shared.requestPublisher("gamification/me", authorized: true)
             .sink { [weak self] completion in
                 self?.loading = false
                 if case .failure(let e) = completion { self?.error = e.localizedDescription }
@@ -28,7 +28,7 @@ final class GamificationViewModel: ObservableObject {
 
     func loadRanking() {
         let q = [URLQueryItem(name: "type", value: rankingType)]
-        APIClient.shared.request("gamification/ranking", authorized: true, query: q)
+        APIClient.shared.requestPublisher("gamification/ranking", authorized: true, query: q)
             .sink { _ in }
             receiveValue: { [weak self] (resp: PagedGamification<RankingUser>) in
                 self?.ranking = resp.items
@@ -37,7 +37,7 @@ final class GamificationViewModel: ObservableObject {
     }
 
     func loadBadges() {
-        APIClient.shared.request("gamification/badges", authorized: true)
+        APIClient.shared.requestPublisher("gamification/badges", authorized: true)
             .sink { _ in }
             receiveValue: { [weak self] (badges: [BadgeItem]) in
                 self?.allBadges = badges
@@ -46,7 +46,7 @@ final class GamificationViewModel: ObservableObject {
     }
 
     func loadXpHistory() {
-        APIClient.shared.request("gamification/me/history", authorized: true)
+        APIClient.shared.requestPublisher("gamification/me/history", authorized: true)
             .sink { _ in }
             receiveValue: { [weak self] (resp: PagedGamification<XpLogEntry>) in
                 self?.xpHistory = resp.items
