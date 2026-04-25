@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import EventKit
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MARK: - EnrollmentDetailView
@@ -82,6 +83,8 @@ struct EnrollmentDetailView: View {
     @State private var showCancelConfirm = false
     @State private var showRefund = false
     @State private var appeared = false
+    @State private var calendarAdded = false
+    @State private var calendarError: String?
 
     private var kind: String { enrollment.activity_kind ?? "" }
     private var typeInfo: ActivityTypeInfo { ActivityTypeInfo.from(kind: kind) }
@@ -155,6 +158,12 @@ struct EnrollmentDetailView: View {
                 Text(err)
                     .font(.system(size: 13))
                     .foregroundColor(.fnSecondary)
+                    .padding(.horizontal, 20)
+            }
+
+            // Add to Calendar
+            if enrollment.date_start != nil {
+                addToCalendarButton
                     .padding(.horizontal, 20)
             }
 
@@ -484,6 +493,65 @@ struct EnrollmentDetailView: View {
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.fnCyan.opacity(0.25), lineWidth: 1))
         }
         .buttonStyle(ScaleButtonStyle())
+    }
+
+    // MARK: - Add to Calendar
+
+    private var addToCalendarButton: some View {
+        VStack(spacing: 6) {
+            Button {
+                addEventToCalendar()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: calendarAdded ? "calendar.badge.checkmark" : "calendar.badge.plus")
+                        .font(.system(size: 15, weight: .semibold))
+                    Text(calendarAdded ? "Agregado al calendario" : "Agregar al calendario")
+                        .font(.system(size: 15, weight: .semibold))
+                }
+                .foregroundColor(calendarAdded ? .fnGreen : .fnBlue)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke((calendarAdded ? Color.fnGreen : Color.fnBlue).opacity(0.4), lineWidth: 1.5)
+                )
+            }
+            .disabled(calendarAdded)
+
+            if let err = calendarError {
+                Text(err).font(.system(size: 11)).foregroundColor(.fnCrimson)
+            }
+        }
+    }
+
+    private func addEventToCalendar() {
+        guard let dateStr = enrollment.date_start else { return }
+        let fracF  = ISO8601DateFormatter(); fracF.formatOptions  = [.withInternetDateTime, .withFractionalSeconds]
+        let basicF = ISO8601DateFormatter(); basicF.formatOptions = [.withInternetDateTime]
+        guard let start = fracF.date(from: dateStr) ?? basicF.date(from: dateStr) else { return }
+
+        let store = EKEventStore()
+        store.requestFullAccessToEvents { granted, error in
+            DispatchQueue.main.async {
+                guard granted, error == nil else {
+                    calendarError = "Permiso de calendario denegado."
+                    return
+                }
+                let event = EKEvent(eventStore: store)
+                event.title    = enrollment.title
+                event.startDate = start
+                event.endDate   = start.addingTimeInterval(3600)
+                event.location  = enrollment.location
+                event.notes     = "Inscripción FitNow #\(enrollment.id)"
+                event.calendar  = store.defaultCalendarForNewEvents
+                do {
+                    try store.save(event, span: .thisEvent)
+                    calendarAdded = true
+                } catch {
+                    calendarError = "No se pudo guardar el evento."
+                }
+            }
+        }
     }
 
     // MARK: - Cancel Section

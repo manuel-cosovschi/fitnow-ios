@@ -11,6 +11,27 @@ final class NotificationsService {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { _, _ in }
     }
 
+    // MARK: - APNs device token
+
+    func registerDeviceToken(_ tokenData: Data) {
+        let token = tokenData.map { String(format: "%02x", $0) }.joined()
+        Task {
+            struct Payload: Encodable { let token: String; let platform = "ios" }
+            guard let body = try? JSONEncoder().encode(Payload(token: token)) else { return }
+            let _: SimpleOK? = try? await APIClient.shared.request(
+                "users/me/push-token", method: "POST", body: body, authorized: true
+            )
+        }
+    }
+
+    func unregisterDeviceToken() {
+        Task {
+            let _: SimpleOK? = try? await APIClient.shared.request(
+                "users/me/push-token", method: "DELETE", authorized: true
+            )
+        }
+    }
+
     // MARK: - Schedule reminders for an enrolled activity
 
     /// Call after a successful enrollment to schedule 24h and 1h reminders.
