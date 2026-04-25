@@ -67,6 +67,8 @@ struct ActivityDetailView: View {
     @State private var appeared = false
     @State private var showEnrollmentFlow = false
     @ObservedObject private var favorites = FavoritesService.shared
+    @State private var reviews: [ActivityReview] = []
+    @State private var loadingReviews = false
 
     init(activity: Activity, previousTitle: String? = nil) {
         self.activity = activity
@@ -181,41 +183,59 @@ struct ActivityDetailView: View {
 
     // MARK: - Hero Section
 
+    @State private var heroImageIndex = 0
+
     private var heroSection: some View {
         ZStack(alignment: .bottomLeading) {
-            typeInfo.gradient
-                .frame(maxWidth: .infinity)
+            // Background: image carousel or gradient fallback
+            if let urls = activity.image_urls, !urls.isEmpty {
+                TabView(selection: $heroImageIndex) {
+                    ForEach(Array(urls.enumerated()), id: \.offset) { i, urlStr in
+                        if let url = URL(string: urlStr) {
+                            AsyncImage(url: url) { phase in
+                                switch phase {
+                                case .success(let img):
+                                    img.resizable().scaledToFill()
+                                default:
+                                    typeInfo.color.opacity(0.5)
+                                }
+                            }
+                            .clipped()
+                            .tag(i)
+                        }
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: urls.count > 1 ? .always : .never))
                 .frame(height: 280)
+                // Dark gradient overlay so text is readable
+                .overlay(
+                    LinearGradient(colors: [.clear, .black.opacity(0.65)],
+                                   startPoint: .top, endPoint: .bottom)
+                )
+            } else {
+                typeInfo.color.opacity(0.25)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 280)
+            }
 
-            // Decorative shapes
-            Circle()
-                .fill(Color.white.opacity(0.06))
-                .frame(width: 180)
-                .offset(x: 180, y: -40)
-            Circle()
-                .fill(Color.white.opacity(0.04))
-                .frame(width: 100)
-                .offset(x: 240, y: 20)
-
-            // Content
+            // Content overlay
             VStack(alignment: .leading, spacing: 12) {
-                // Type icon
-                ZStack {
-                    Circle()
-                        .fill(Color.white.opacity(0.18))
-                        .frame(width: 60, height: 60)
-                    Image(systemName: typeInfo.icon)
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.white)
+                if activity.image_urls == nil || activity.image_urls!.isEmpty {
+                    ZStack {
+                        Circle()
+                            .fill(typeInfo.color.opacity(0.2))
+                            .frame(width: 60, height: 60)
+                        Image(systemName: typeInfo.icon)
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(typeInfo.color)
+                    }
                 }
 
-                // Title
                 Text(activity.title)
                     .font(.custom("DM Serif Display", size: 30))
-                    .foregroundColor(.white)
+                    .foregroundColor(.fnWhite)
                     .lineLimit(3)
 
-                // Badges row
                 HStack(spacing: 8) {
                     HStack(spacing: 5) {
                         Image(systemName: typeInfo.icon)
@@ -224,17 +244,31 @@ struct ActivityDetailView: View {
                             .font(.system(size: 11, weight: .bold))
                     }
                     .foregroundColor(.white)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
+                    .padding(.horizontal, 10).padding(.vertical, 5)
                     .background(Capsule().fill(Color.white.opacity(0.22)))
 
                     if let diff = activity.difficulty, !diff.isEmpty {
                         Text(diffLabel(diff))
                             .font(.system(size: 11, weight: .bold))
                             .foregroundColor(.white)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
+                            .padding(.horizontal, 10).padding(.vertical, 5)
                             .background(Capsule().fill(Color.white.opacity(0.22)))
+                    }
+
+                    if let r = activity.rating, r > 0 {
+                        HStack(spacing: 3) {
+                            Image(systemName: "star.fill")
+                                .font(.system(size: 10, weight: .bold))
+                            Text(String(format: "%.1f", r))
+                                .font(.system(size: 11, weight: .bold))
+                            if let rc = activity.review_count, rc > 0 {
+                                Text("(\(rc))")
+                                    .font(.system(size: 10))
+                            }
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 10).padding(.vertical, 5)
+                        .background(Capsule().fill(Color.fnAmber.opacity(0.8)))
                     }
                 }
             }
@@ -242,6 +276,7 @@ struct ActivityDetailView: View {
             .padding(.bottom, 28)
             .padding(.top, 80)
         }
+        .frame(height: 280)
     }
 
     private func diffLabel(_ d: String) -> String {
@@ -301,6 +336,14 @@ struct ActivityDetailView: View {
             // Promos
             promosCard
 
+            // Cancellation policy
+            if let policy = activity.cancellation_policy, !policy.isEmpty {
+                cancellationPolicyCard(policy)
+            }
+
+            // Reviews
+            reviewsSection
+
             // Cancel enrollment button
             if enrolled {
                 cancelButton
@@ -308,6 +351,99 @@ struct ActivityDetailView: View {
         }
         .padding(.horizontal, 20)
         .padding(.top, 20)
+    }
+
+    private func cancellationPolicyCard(_ policy: String) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Política de cancelación", systemImage: "doc.text.fill")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundColor(.fnSlate)
+            Text(policy)
+                .font(.system(size: 13))
+                .foregroundColor(.fnSlate)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 14))
+    }
+
+    private var reviewsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label("Reseñas", systemImage: "star.bubble.fill")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(.fnWhite)
+                Spacer()
+                if let r = activity.rating, r > 0 {
+                    HStack(spacing: 4) {
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(.fnAmber)
+                        Text(String(format: "%.1f", r))
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.fnAmber)
+                        if let rc = activity.review_count, rc > 0 {
+                            Text("· \(rc) reseñas")
+                                .font(.system(size: 12))
+                                .foregroundColor(.fnSlate)
+                        }
+                    }
+                }
+            }
+
+            if loadingReviews {
+                SkeletonView(cornerRadius: 12).frame(height: 70)
+                SkeletonView(cornerRadius: 12).frame(height: 70)
+            } else if reviews.isEmpty {
+                Text("Sé el primero en dejar una reseña.")
+                    .font(.system(size: 13))
+                    .foregroundColor(.fnSlate)
+                    .padding(.vertical, 4)
+            } else {
+                ForEach(reviews.prefix(3)) { rev in
+                    reviewCard(rev)
+                }
+            }
+        }
+        .task { await loadReviews() }
+    }
+
+    private func reviewCard(_ review: ActivityReview) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(review.user_name)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.fnWhite)
+                Spacer()
+                HStack(spacing: 2) {
+                    ForEach(1...5, id: \.self) { star in
+                        Image(systemName: star <= review.rating ? "star.fill" : "star")
+                            .font(.system(size: 10))
+                            .foregroundColor(star <= review.rating ? .fnAmber : .fnAsh)
+                    }
+                }
+            }
+            if let comment = review.comment, !comment.isEmpty {
+                Text(comment)
+                    .font(.system(size: 13))
+                    .foregroundColor(.fnSlate)
+                    .lineLimit(3)
+            }
+        }
+        .padding(12)
+        .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func loadReviews() async {
+        loadingReviews = true
+        let resp: ReviewsResponse? = try? await APIClient.shared.request(
+            "activities/\(activity.id)/reviews",
+            query: [URLQueryItem(name: "limit", value: "5")],
+            authorized: false
+        )
+        reviews = resp?.items ?? []
+        loadingReviews = false
     }
 
     // MARK: - Subviews
