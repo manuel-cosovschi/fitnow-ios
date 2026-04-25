@@ -32,6 +32,8 @@
 		M8BB0001M8CC0001M8DD0001 /* StoreKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M8AA0001M8BB0001M8CC0001 /* StoreKitService.swift */; };
 		M8BB0002M8CC0002M8DD0002 /* ATTService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M8AA0002M8BB0002M8CC0002 /* ATTService.swift */; };
 		M8BB0003M8CC0003M8DD0003 /* FitNowPlusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = M8AA0003M8BB0003M8CC0003 /* FitNowPlusView.swift */; };
+		M9BB0001M9CC0001M9DD0001 /* WidgetDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M9AA0001M9BB0001M9CC0001 /* WidgetDataService.swift */; };
+		M9BB0002M9CC0002M9DD0002 /* FitNowAppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = M9AA0002M9BB0002M9CC0002 /* FitNowAppIntents.swift */; };
 		36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F082E82144200B51DAF /* FitNowApp.swift */; };
 		36820F1C2E82144200B51DAF /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0C2E82144200B51DAF /* KeychainService.swift */; };
 		36820F1D2E82144200B51DAF /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F0E2E82144200B51DAF /* LoginView.swift */; };
@@ -128,6 +130,8 @@
 		M8AA0001M8BB0001M8CC0001 /* StoreKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitService.swift; sourceTree = "<group>"; };
 		M8AA0002M8BB0002M8CC0002 /* ATTService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ATTService.swift; sourceTree = "<group>"; };
 		M8AA0003M8BB0003M8CC0003 /* FitNowPlusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitNowPlusView.swift; sourceTree = "<group>"; };
+		M9AA0001M9BB0001M9CC0001 /* WidgetDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetDataService.swift; sourceTree = "<group>"; };
+		M9AA0002M9BB0002M9CC0002 /* FitNowAppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitNowAppIntents.swift; sourceTree = "<group>"; };
 		36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnrollmentsViewModel.swift; sourceTree = "<group>"; };
 		36820F072E82144200B51DAF /* FitNow.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FitNow.entitlements; sourceTree = "<group>"; };
 		36820F082E82144200B51DAF /* FitNowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitNowApp.swift; sourceTree = "<group>"; };
@@ -262,6 +266,8 @@
 				M8AA0001M8BB0001M8CC0001 /* StoreKitService.swift */,
 				M8AA0002M8BB0002M8CC0002 /* ATTService.swift */,
 				M8AA0003M8BB0003M8CC0003 /* FitNowPlusView.swift */,
+				M9AA0001M9BB0001M9CC0001 /* WidgetDataService.swift */,
+				M9AA0002M9BB0002M9CC0002 /* FitNowAppIntents.swift */,
 				36820F062E82144200B51DAF /* EnrollmentsViewModel.swift */,
 				36820F072E82144200B51DAF /* FitNow.entitlements */,
 				36820F082E82144200B51DAF /* FitNowApp.swift */,
@@ -487,6 +493,8 @@
 				M8BB0001M8CC0001M8DD0001 /* StoreKitService.swift in Sources */,
 				M8BB0002M8CC0002M8DD0002 /* ATTService.swift in Sources */,
 				M8BB0003M8CC0003M8DD0003 /* FitNowPlusView.swift in Sources */,
+				M9BB0001M9CC0001M9DD0001 /* WidgetDataService.swift in Sources */,
+				M9BB0002M9CC0002M9DD0002 /* FitNowAppIntents.swift in Sources */,
 				36820F1B2E82144200B51DAF /* FitNowApp.swift in Sources */,
 				36820F1C2E82144200B51DAF /* KeychainService.swift in Sources */,
 				36820F1D2E82144200B51DAF /* LoginView.swift in Sources */,
