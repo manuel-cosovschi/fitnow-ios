@@ -140,6 +140,13 @@ struct ProfileView: View {
                     }
                 }
 
+                // ── Pagos ──
+                Section("Pagos") {
+                    NavigationLink { SavedPaymentsView() } label: {
+                        Label("Métodos de pago guardados", systemImage: "creditcard.fill")
+                    }
+                }
+
                 // ── Seguridad ──
                 Section("Seguridad") {
                     NavigationLink {

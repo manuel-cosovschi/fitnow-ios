@@ -320,3 +320,47 @@ struct AdminUserItem: Identifiable, Decodable {
 }
 
 
+
+// MARK: - M3: Payment Methods & MercadoPago
+
+struct SavedPaymentMethod: Identifiable, Decodable {
+    let id: Int
+    let provider: String          // "stripe" | "mercadopago"
+    let brand: String?            // "visa", "mastercard", etc.
+    let last4: String?
+    let expiryMonth: Int?
+    let expiryYear: Int?
+    let holderName: String?
+    let isDefault: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case id, provider, brand, last4, holderName = "holder_name"
+        case expiryMonth = "expiry_month", expiryYear = "expiry_year"
+        case isDefault = "is_default"
+    }
+}
+
+struct MercadoPagoPreference: Decodable {
+    let preferenceId: String
+    let initPoint: String        // URL to open in browser/WebView
+    let enrollmentId: Int
+
+    enum CodingKeys: String, CodingKey {
+        case preferenceId = "preference_id"
+        case initPoint    = "init_point"
+        case enrollmentId = "enrollment_id"
+    }
+}
+
+struct RefundRequest: Decodable {
+    let id: Int
+    let enrollmentId: Int
+    let status: String           // "pending" | "approved" | "rejected"
+    let amount: Double?
+    let reason: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, status, amount, reason
+        case enrollmentId = "enrollment_id"
+    }
+}

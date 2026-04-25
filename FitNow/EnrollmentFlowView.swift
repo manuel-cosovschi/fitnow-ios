@@ -25,14 +25,20 @@ struct EnrollmentFlowView: View {
     @State private var couponError: String? = nil
     @State private var validatingCoupon = false
 
+    // Payment provider selection
+    @State private var paymentProvider: PaymentProvider = .stripe
+
     // Stripe payment intent
     @State private var isCreatingIntent = false
     @State private var clientSecret: String? = nil
+    @State private var mpPreference: MercadoPagoPreference? = nil
     @State private var pendingEnrollmentId: Int? = nil
     @State private var confirmedEnrollmentId: Int? = nil
     @State private var intentError: String? = nil
 
     // MARK: - Types
+
+    enum PaymentProvider { case stripe, mercadoPago }
 
     enum FlowStep: Int {
         case confirm, selectPlan, coupon, stripePayment, success
@@ -293,7 +299,58 @@ struct EnrollmentFlowView: View {
                 }
             }
             .padding(.horizontal, 20)
+
+            // Payment provider selector
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Proveedor de pago")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.fnSlate)
+                    .textCase(.uppercase)
+                    .tracking(0.5)
+                    .padding(.horizontal, 20)
+
+                HStack(spacing: 10) {
+                    providerButton(.stripe,
+                        icon: "creditcard.fill",
+                        label: "Tarjeta / Apple Pay",
+                        color: .fnBlue)
+                    providerButton(.mercadoPago,
+                        icon: "m.circle.fill",
+                        label: "MercadoPago",
+                        color: Color(red: 0.00, green: 0.48, blue: 1.00))
+                }
+                .padding(.horizontal, 20)
+            }
         }
+    }
+
+    private func providerButton(_ p: PaymentProvider, icon: String, label: String, color: Color) -> some View {
+        let isSelected = paymentProvider == p
+        return Button {
+            withAnimation(.spring(response: 0.25)) {
+                paymentProvider = p
+                // Reset intent so it's re-created for the new provider
+                clientSecret = nil
+                mpPreference = nil
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 15, weight: .semibold))
+                Text(label)
+                    .font(.system(size: 13, weight: .semibold))
+            }
+            .foregroundColor(isSelected ? .white : .fnSlate)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(isSelected ? color : Color.fnSurface)
+                    .overlay(RoundedRectangle(cornerRadius: 12)
+                                .stroke(isSelected ? color : Color.fnBorder, lineWidth: 1))
+            )
+        }
+        .buttonStyle(ScaleButtonStyle())
     }
 
     // MARK: - Step: Stripe Payment
@@ -343,12 +400,24 @@ struct EnrollmentFlowView: View {
                         .foregroundColor(.fnSlate)
                 }
                 .padding(.top, 30)
-            } else if let secret = clientSecret {
+            } else if paymentProvider == .stripe, let secret = clientSecret {
                 StripePaymentView(
                     clientSecret: secret,
                     merchantName: activity.provider_name ?? "FitNow"
                 ) { _ in
                     handlePaymentSuccess()
+                } onCancel: {
+                    withAnimation { step = .coupon }
+                }
+                .padding(.horizontal, 20)
+            } else if paymentProvider == .mercadoPago, let pref = mpPreference {
+                MercadoPagoWebView(
+                    initPoint: pref.initPoint
+                ) { _ in
+                    pendingEnrollmentId = pref.enrollmentId
+                    handlePaymentSuccess()
+                } onFailure: { err in
+                    intentError = err
                 } onCancel: {
                     withAnimation { step = .coupon }
                 }
@@ -772,17 +841,26 @@ struct EnrollmentFlowView: View {
     }
 
     private func createIntent() async {
-        guard clientSecret == nil else { return }
+        guard clientSecret == nil && mpPreference == nil else { return }
         isCreatingIntent = true
         intentError = nil
+        let coupon = couponResult?.valid == true ? couponCode : nil
+        let planName = selectedPlan?.name ?? "Inscripción"
         do {
-            let response = try await PaymentService.shared.createPaymentIntent(
-                activityId: activity.id,
-                planName: selectedPlan?.name ?? "Inscripción",
-                couponCode: couponResult?.valid == true ? couponCode : nil
-            )
-            clientSecret = response.clientSecret
-            pendingEnrollmentId = response.enrollmentId
+            switch paymentProvider {
+            case .stripe:
+                let response = try await PaymentService.shared.createPaymentIntent(
+                    activityId: activity.id, planName: planName, couponCode: coupon
+                )
+                clientSecret = response.clientSecret
+                pendingEnrollmentId = response.enrollmentId
+            case .mercadoPago:
+                let response = try await MercadoPagoService.shared.createPreference(
+                    activityId: activity.id, planName: planName, couponCode: coupon
+                )
+                mpPreference = response
+                pendingEnrollmentId = response.enrollmentId
+            }
         } catch {
             intentError = error.localizedDescription
         }
