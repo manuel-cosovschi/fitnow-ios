@@ -3,6 +3,7 @@ import SwiftUI
 struct MainTabView: View {
     @EnvironmentObject private var auth: AuthViewModel
     @State private var selectedTab = 0
+    @State private var messagesVM  = MessagesViewModel()
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -33,13 +34,22 @@ struct MainTabView: View {
                 }
                 .tag(3)
 
+            NavigationStack { MessagesView() }
+                .tabItem {
+                    Label("Mensajes",
+                          systemImage: selectedTab == 4 ? "bell.fill" : "bell")
+                }
+                .badge(messagesVM.unreadCount > 0 ? messagesVM.unreadCount : 0)
+                .tag(4)
+
             ProfileView()
                 .tabItem {
                     Label("Perfil",
-                          systemImage: selectedTab == 4 ? "person.circle.fill" : "person.circle")
+                          systemImage: selectedTab == 5 ? "person.circle.fill" : "person.circle")
                 }
-                .tag(4)
+                .tag(5)
         }
         .tint(.fnBlue)
+        .task { await messagesVM.load() }
     }
 }
