@@ -22,6 +22,12 @@ final class GamificationViewModel: ObservableObject {
                 if case .failure(let e) = completion { self?.error = e.localizedDescription }
             } receiveValue: { [weak self] (resp: GamificationProfile) in
                 self?.profile = resp
+                WidgetDataService.shared.write(
+                    level: resp.level,
+                    totalXP: resp.total_xp,
+                    streakDays: resp.streak_days,
+                    userName: ""
+                )
             }
             .store(in: &bag)
     }
