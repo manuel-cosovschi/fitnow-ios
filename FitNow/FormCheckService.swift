@@ -36,28 +36,30 @@ final class FormCheckService: ObservableObject {
     @Published private(set) var result: FormCheckResult?
     @Published private(set) var isAnalyzing = false
 
-    private let bodyPoseRequest = VNDetectHumanBodyPoseRequest()
-
     var currentExercise: FormExercise = .squat
 
     // MARK: - Analyse a single pixel buffer
 
     func analyse(pixelBuffer: CVPixelBuffer) {
+        guard !isAnalyzing else { return }
         isAnalyzing = true
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, options: [:])
+        let exercise = currentExercise   // capture on MainActor before hop
         Task.detached(priority: .userInitiated) { [weak self] in
-            guard let self else { return }
+            let request = VNDetectHumanBodyPoseRequest()   // local — thread-safe
             do {
-                try handler.perform([self.bodyPoseRequest])
-                if let obs = self.bodyPoseRequest.results?.first {
-                    let result = await self.score(observation: obs, exercise: self.currentExercise)
+                try handler.perform([request])
+                if let obs = request.results?.first {
+                    let scored = await self?.score(observation: obs, exercise: exercise)
                     await MainActor.run {
-                        self.result = result
-                        self.isAnalyzing = false
+                        self?.result = scored
+                        self?.isAnalyzing = false
                     }
+                } else {
+                    await MainActor.run { self?.isAnalyzing = false }
                 }
             } catch {
-                await MainActor.run { self.isAnalyzing = false }
+                await MainActor.run { self?.isAnalyzing = false }
             }
         }
     }
