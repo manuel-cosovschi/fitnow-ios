@@ -18,6 +18,7 @@ final class CoachIAService {
 
     /// Streams the AI coach response token by token.
     /// The returned AsyncStream yields partial text chunks as they arrive.
+    /// On network loss it yields "[NETWORK_ERROR]" so the UI can react.
     func stream(userMessage: String, context: CoachContext? = nil) -> AsyncStream<String> {
         AsyncStream { continuation in
             Task {
@@ -36,7 +37,8 @@ final class CoachIAService {
                     )
                     request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
 
-                    let (bytes, response) = try await URLSession.shared.bytes(for: request)
+                    // Use the configured session (15s/30s timeouts) instead of URLSession.shared
+                    let (bytes, response) = try await APIClient.shared.bytesRequest(request)
                     guard (response as? HTTPURLResponse)?.statusCode == 200 else {
                         continuation.finish()
                         return
@@ -51,9 +53,11 @@ final class CoachIAService {
                             }
                         }
                     }
-                } catch {
-                    // silently close stream on network error
-                }
+                } catch let error as URLError
+                    where [.networkConnectionLost, .notConnectedToInternet, .timedOut]
+                        .contains(error.code) {
+                    continuation.yield("[NETWORK_ERROR]")
+                } catch { }
                 continuation.finish()
             }
         }
@@ -92,7 +96,7 @@ struct CoachContext {
         if let s = streakDays    { d["streak_days"]    = s }
         if let r = recentRunKm   { d["recent_run_km"]  = r }
         if let g = recentGymSets { d["recent_gym_sets"] = g }
-        if let l = level         { d["level"]          = l }
+        if let l = level          { d["level"]          = l }
         return d
     }
 }
