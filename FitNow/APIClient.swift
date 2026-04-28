@@ -55,6 +55,26 @@ extension Notification.Name {
 
 private let log = Logger(subsystem: "com.fitnow.app", category: "Network")
 
+// MARK: - Refresh coordinator
+// Serializes concurrent token-refresh attempts inside a Swift actor so that
+// only one refresh runs at a time; all latecomers await the same task.
+
+private actor RefreshCoordinator {
+    private var task: Task<Void, Error>?
+
+    func coalesce(_ body: @escaping () async throws -> Void) async throws {
+        if let existing = task {
+            // A refresh is already in flight — piggyback on it.
+            try await existing.value
+            return
+        }
+        let t = Task { try await body() }
+        task = t
+        defer { task = nil }
+        try await t.value
+    }
+}
+
 // MARK: - Client
 
 final class APIClient: APIClientProtocol {
@@ -63,15 +83,14 @@ final class APIClient: APIClientProtocol {
 
     private let tokenStore = TokenStore.shared
 
-    private let session: URLSession = {
+    let session: URLSession = {
         let cfg = URLSessionConfiguration.default
         cfg.timeoutIntervalForRequest  = 15
         cfg.timeoutIntervalForResource = 30
         return URLSession(configuration: cfg)
     }()
 
-    // Serializes concurrent refresh attempts
-    private var refreshTask: Task<Void, Error>?
+    private let refreshCoordinator = RefreshCoordinator()
 
     // MARK: - Primary API (async/await)
 
@@ -95,6 +114,13 @@ final class APIClient: APIClientProtocol {
                 authorized: true, query: query, headers: headers
             )
         }
+    }
+
+    // MARK: - SSE helper
+    // Exposes the configured session (with timeouts) for streaming callers.
+
+    func bytesRequest(_ request: URLRequest) async throws -> (URLSession.AsyncBytes, URLResponse) {
+        try await session.bytes(for: request)
     }
 
     // MARK: - Combine bridge (legacy ViewModels)
@@ -203,15 +229,8 @@ final class APIClient: APIClientProtocol {
     // MARK: - Refresh
 
     private func refreshAccessToken() async throws {
-        // Coalesce concurrent refresh attempts into a single task
-        if let existing = refreshTask {
-            try await existing.value
-            return
-        }
-
-        let task = Task<Void, Error> { [weak self] in
+        try await refreshCoordinator.coalesce { [weak self] in
             guard let self else { return }
-            defer { self.refreshTask = nil }
 
             guard let refreshToken = self.tokenStore.refreshToken else {
                 self.expireSession()
@@ -234,9 +253,6 @@ final class APIClient: APIClientProtocol {
                 throw APIError.unauthorized
             }
         }
-
-        refreshTask = task
-        try await task.value
     }
 
     private func expireSession() {
