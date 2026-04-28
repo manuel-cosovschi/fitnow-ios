@@ -214,6 +214,10 @@ private struct CameraPreviewRepresentable: UIViewRepresentable {
         device.unlockForConfiguration()
     }
 
+    static func dismantleUIView(_ uiView: UIView, coordinator: Coordinator) {
+        coordinator.session.stopRunning()
+    }
+
     final class Coordinator: NSObject, AVCaptureMetadataOutputObjectsDelegate {
         let session = AVCaptureSession()
         let onScan: (String) -> Void
