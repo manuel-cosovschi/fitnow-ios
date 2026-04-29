@@ -305,7 +305,7 @@ struct OnboardingView: View {
                             Spacer()
                         }
                         .padding(.vertical, 16)
-                        .background(startTrial ? Color.fnGreen : FNGradient.provider,
+                        .background(startTrial ? FNGradient.success : FNGradient.provider,
                                     in: RoundedRectangle(cornerRadius: 14))
                     }
                     .buttonStyle(ScaleButtonStyle())
