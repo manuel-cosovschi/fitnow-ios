@@ -25,6 +25,15 @@ final class GymHubViewModel: ObservableObject {
     }
 }
 
+// MARK: - Friendly error mapping for AI-gated endpoints
+
+private func friendlyAIErrorMessage(_ error: Error) -> String {
+    if case APIError.http(let code, _) = error, code == 429 {
+        return "Estás haciendo muchas solicitudes a la IA. Esperá unos segundos e intentá de nuevo."
+    }
+    return error.localizedDescription
+}
+
 // MARK: - Gym Hub View
 
 struct GymHubView: View {
@@ -293,20 +302,18 @@ struct StartGymSessionView: View {
             "muscle_groups": muscleGroups
         ]
         guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
-
-        var bag = Set<AnyCancellable>()
-        APIClient.shared.requestPublisher("gym/sessions", method: "POST", body: data, authorized: true)
-            .sink { [self] completion in
-                loading = false
-                if case .failure(let e) = completion { error = e.localizedDescription }
-            } receiveValue: { [self] (session: GymSession) in
+        Task { @MainActor in
+            do {
+                let session: GymSession = try await APIClient.shared.request(
+                    "gym/sessions", method: "POST", body: data, authorized: true)
                 loading = false
                 onComplete()
                 createdSessionId = session.id
+            } catch {
+                loading = false
+                self.error = friendlyAIErrorMessage(error)
             }
-            .store(in: &bag)
-        // Keep bag alive
-        DispatchQueue.main.asyncAfter(deadline: .now() + 30) { _ = bag }
+        }
     }
 }
 
@@ -465,25 +472,23 @@ struct GymActiveSessionView: View {
 
     private func loadSession() {
         loading = true
-        var bag = Set<AnyCancellable>()
-        APIClient.shared.requestPublisher("gym/sessions/\(sessionId)", authorized: true)
-            .sink { _ in loading = false }
-            receiveValue: { [self] (s: GymSession) in
+        Task { @MainActor in
+            defer { loading = false }
+            do {
+                let s: GymSession = try await APIClient.shared.request(
+                    "gym/sessions/\(sessionId)", authorized: true)
                 session = s
                 sets = s.sets ?? []
-                loading = false
-            }
-            .store(in: &bag)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 30) { _ = bag }
+            } catch { }
+        }
     }
 
     private func finishSession() {
-        var bag = Set<AnyCancellable>()
-        APIClient.shared.requestPublisher("gym/sessions/\(sessionId)/finish", method: "POST", authorized: true)
-            .sink { _ in }
-            receiveValue: { [self] (_: GymSession) in dismiss() }
-            .store(in: &bag)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 30) { _ = bag }
+        Task { @MainActor in
+            _ = try? await APIClient.shared.request(
+                "gym/sessions/\(sessionId)/finish", method: "POST", authorized: true) as GymSession
+            dismiss()
+        }
     }
 }
 
@@ -541,15 +546,15 @@ struct LogSetView: View {
             "rpe": rpe
         ]
         guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
-        var bag = Set<AnyCancellable>()
-        APIClient.shared.requestPublisher("gym/sessions/\(sessionId)/sets", method: "POST", body: data, authorized: true)
-            .sink { _ in loading = false }
-            receiveValue: { [self] (_: GymSet) in
+        Task { @MainActor in
+            defer { loading = false }
+            do {
+                let _: GymSet = try await APIClient.shared.request(
+                    "gym/sessions/\(sessionId)/sets", method: "POST", body: data, authorized: true)
                 onDone()
                 dismiss()
-            }
-            .store(in: &bag)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 30) { _ = bag }
+            } catch { }
+        }
     }
 }
 
@@ -562,6 +567,7 @@ struct RerouteSheet: View {
 
     @State private var instruction = ""
     @State private var loading = false
+    @State private var error: String?
     @State private var result: RerouteResponse?
 
     var body: some View {
@@ -576,6 +582,10 @@ struct RerouteSheet: View {
                     if let r = result.reasoning { Text(r).font(.system(size: 13)).foregroundColor(.secondary) }
                     if let a = result.adjustments_made { Text(a).font(.system(size: 13, weight: .semibold)) }
                 }
+            }
+
+            if let error {
+                Section { Text(error).foregroundColor(.fnSecondary).font(.system(size: 13)) }
             }
 
             Section {
@@ -596,14 +606,17 @@ struct RerouteSheet: View {
     }
 
     private func reroute() {
-        loading = true
+        loading = true; error = nil
         let payload = ["instruction": instruction]
         guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
-        var bag = Set<AnyCancellable>()
-        APIClient.shared.requestPublisher("gym/sessions/\(sessionId)/reroute", method: "POST", body: data, authorized: true)
-            .sink { _ in loading = false }
-            receiveValue: { [self] (resp: RerouteResponse) in result = resp }
-            .store(in: &bag)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 30) { _ = bag }
+        Task { @MainActor in
+            defer { loading = false }
+            do {
+                result = try await APIClient.shared.request(
+                    "gym/sessions/\(sessionId)/reroute", method: "POST", body: data, authorized: true)
+            } catch {
+                self.error = friendlyAIErrorMessage(error)
+            }
+        }
     }
 }
