@@ -245,6 +245,7 @@ struct ActivitiesListView: View {
             .padding(.horizontal, 60)
             Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var emptyState: some View {
@@ -270,6 +271,7 @@ struct ActivitiesListView: View {
             .padding(.horizontal, 80)
             Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

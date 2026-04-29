@@ -27,8 +27,8 @@ final class TrainingPlanViewModel: ObservableObject {
     func loadActive() {
         APIClient.shared.requestPublisher("training-plans/active", authorized: true)
             .sink { _ in }
-            receiveValue: { [weak self] (plan: TrainingPlan) in
-                self?.activePlan = plan
+            receiveValue: { [weak self] (resp: TrainingPlansList) in
+                self?.activePlan = resp.items.first
             }
             .store(in: &bag)
     }

@@ -130,12 +130,12 @@ struct HomeView: View {
     // MARK: - Hero Header
 
     private var heroHeader: some View {
-        ZStack(alignment: .bottomLeading) {
+        ZStack(alignment: .topLeading) {
             LinearGradient(
                 colors: [Color.fnBlue.opacity(0.22), Color.fnBg],
                 startPoint: .top, endPoint: .bottom
             )
-            .frame(height: 230)
+            .frame(height: 190)
 
             Circle()
                 .fill(Color.fnBlue.opacity(0.18))
@@ -181,8 +181,8 @@ struct HomeView: View {
                 .animation(.spring(response: 0.6, dampingFraction: 0.65).delay(0.25), value: appeared)
             }
             .padding(.horizontal, 20)
-            .padding(.bottom, 24)
             .padding(.top, 60)
+            .padding(.bottom, 20)
         }
     }
 
@@ -415,7 +415,7 @@ struct HomeView: View {
         ZStack(alignment: .trailing) {
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(vm.featuredOffer?.discount_label ?? "NUEVO")
+                    Text(vm.featuredOffer.flatMap(\.discount_label) ?? "NUEVO")
                         .font(.system(size: 11, weight: .bold))
                         .foregroundColor(.white.opacity(0.95))
                         .padding(.horizontal, 10)

@@ -181,7 +181,7 @@ struct SavedPaymentsView: View {
     private var emptyView: some View {
         VStack(spacing: 20) {
             Spacer()
-            Image(systemName: "creditcard.slash")
+            Image(systemName: "creditcard.trianglebadge.exclamationmark")
                 .font(.system(size: 48))
                 .foregroundColor(.fnAsh)
             Text("Sin métodos guardados")

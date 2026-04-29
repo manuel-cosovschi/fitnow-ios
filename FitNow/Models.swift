@@ -145,7 +145,11 @@ struct Activity: Identifiable, Codable {
         status              = try c.decodeIfPresent(String.self, forKey: .status)
         lat                 = try c.decodeIfPresent(Double.self,   forKey: .lat)
         lng                 = try c.decodeIfPresent(Double.self,   forKey: .lng)
-        rating              = try c.decodeIfPresent(Double.self,   forKey: .rating)
+        if let r = try? c.decode(Double.self, forKey: .rating) {
+            rating = r
+        } else if let s = try? c.decode(String.self, forKey: .rating), let r = Double(s) {
+            rating = r
+        } else { rating = nil }
         review_count        = try c.decodeIfPresent(Int.self,      forKey: .review_count)
         image_urls          = try c.decodeIfPresent([String].self,  forKey: .image_urls)
         cancellation_policy = try c.decodeIfPresent(String.self,   forKey: .cancellation_policy)
@@ -285,7 +289,7 @@ struct SpecialOffer: Identifiable, Codable {
     let id: Int
     let title: String
     let description: String?
-    let discount_label: String      // e.g. "2×1", "20% OFF", "-$500"
+    let discount_label: String?     // e.g. "2×1", "20% OFF", "-$500" — nullable in DB
     let activity_kind: String?      // nil = applies to all kinds
     let provider_id: Int?
     let provider_name: String?

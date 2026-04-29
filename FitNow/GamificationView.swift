@@ -45,8 +45,8 @@ final class GamificationViewModel: ObservableObject {
     func loadBadges() {
         APIClient.shared.requestPublisher("gamification/badges", authorized: true)
             .sink { _ in }
-            receiveValue: { [weak self] (badges: [BadgeItem]) in
-                self?.allBadges = badges
+            receiveValue: { [weak self] (resp: ListResponse<BadgeItem>) in
+                self?.allBadges = resp.items
             }
             .store(in: &bag)
     }
