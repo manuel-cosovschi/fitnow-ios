@@ -10,14 +10,28 @@ struct CoachMessage: Identifiable {
     enum Role { case user, coach }
 }
 
-// MARK: - CoachIAService (SSE streaming)
+// MARK: - History DTOs
+
+struct CoachHistoryItem: Decodable, Identifiable {
+    let id: Int
+    let role: String           // "user" | "coach"
+    let content: String
+    let ai_mode: String?       // "real" | "stub"
+    let created_at: String?
+}
+
+struct CoachHistoryResponse: Decodable {
+    let items: [CoachHistoryItem]
+}
+
+// MARK: - CoachIAService (SSE streaming + history)
 
 final class CoachIAService {
     static let shared = CoachIAService()
     private init() {}
 
     /// Streams the AI coach response token by token.
-    /// The returned AsyncStream yields partial text chunks as they arrive.
+    /// On network loss yields "[NETWORK_ERROR]"; on rate-limit yields "[RATE_LIMITED]".
     func stream(userMessage: String, context: CoachContext? = nil) -> AsyncStream<String> {
         AsyncStream { continuation in
             Task {
@@ -36,8 +50,14 @@ final class CoachIAService {
                     )
                     request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
 
-                    let (bytes, response) = try await URLSession.shared.bytes(for: request)
-                    guard (response as? HTTPURLResponse)?.statusCode == 200 else {
+                    let (bytes, response) = try await APIClient.shared.bytesRequest(request)
+                    let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+                    if status == 429 {
+                        continuation.yield("[RATE_LIMITED]")
+                        continuation.finish()
+                        return
+                    }
+                    guard status == 200 else {
                         continuation.finish()
                         return
                     }
@@ -51,12 +71,25 @@ final class CoachIAService {
                             }
                         }
                     }
-                } catch {
-                    // silently close stream on network error
-                }
+                } catch let error as URLError
+                    where [.networkConnectionLost, .notConnectedToInternet, .timedOut]
+                        .contains(error.code) {
+                    continuation.yield("[NETWORK_ERROR]")
+                } catch { }
                 continuation.finish()
             }
         }
+    }
+
+    /// Loads the user's recent conversation history from the server.
+    /// Returns items oldest-first (server returns DESC; we reverse for display).
+    func loadHistory(limit: Int = 50, before: Int? = nil) async throws -> [CoachHistoryItem] {
+        var query = [URLQueryItem(name: "limit", value: "\(limit)")]
+        if let before { query.append(URLQueryItem(name: "before", value: "\(before)")) }
+        let resp: CoachHistoryResponse = try await APIClient.shared.request(
+            "ai/coach/history", authorized: true, query: query
+        )
+        return resp.items.reversed()
     }
 
     // MARK: - SSE chunk parsing
@@ -92,7 +125,7 @@ struct CoachContext {
         if let s = streakDays    { d["streak_days"]    = s }
         if let r = recentRunKm   { d["recent_run_km"]  = r }
         if let g = recentGymSets { d["recent_gym_sets"] = g }
-        if let l = level         { d["level"]          = l }
+        if let l = level          { d["level"]          = l }
         return d
     }
 }

@@ -1,6 +1,19 @@
 import SwiftUI
 import Combine
 
+// MARK: - Shared date formatters (avoid per-call / per-item alloc)
+
+private let hmIsoFrac: ISO8601DateFormatter = {
+    let f = ISO8601DateFormatter()
+    f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return f
+}()
+private let hmIsoBasic: ISO8601DateFormatter = {
+    let f = ISO8601DateFormatter()
+    f.formatOptions = [.withInternetDateTime]
+    return f
+}()
+
 // MARK: - HomeViewModel (unchanged business logic)
 
 final class HomeViewModel: ObservableObject {
@@ -41,11 +54,9 @@ final class HomeViewModel: ObservableObject {
             .sink { _ in }
             receiveValue: { [weak self] (resp: RunSessionsResponse) in
                 let weekAgo = Date().addingTimeInterval(-7 * 86_400)
-                let fracF = ISO8601DateFormatter(); fracF.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-                let basicF = ISO8601DateFormatter(); basicF.formatOptions = [.withInternetDateTime]
                 let recent = resp.items.filter { s in
                     guard let ds = s.started_at else { return false }
-                    let d = fracF.date(from: ds) ?? basicF.date(from: ds)
+                    let d = hmIsoFrac.date(from: ds) ?? hmIsoBasic.date(from: ds)
                     return (d ?? .distantPast) >= weekAgo
                 }
                 self?.weeklyRunKm = recent.compactMap { $0.distance_m }.reduce(0, +) / 1000
@@ -59,9 +70,7 @@ final class HomeViewModel: ObservableObject {
         var days = Set<Date>()
         for item in items {
             guard let ds = item.date_start else { continue }
-            let fracF = ISO8601DateFormatter(); fracF.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-            let basicF = ISO8601DateFormatter(); basicF.formatOptions = [.withInternetDateTime]
-            if let d = fracF.date(from: ds) ?? basicF.date(from: ds) {
+            if let d = hmIsoFrac.date(from: ds) ?? hmIsoBasic.date(from: ds) {
                 days.insert(cal.startOfDay(for: d))
             }
         }
@@ -266,17 +275,13 @@ struct HomeView: View {
     }
 
     private func formatEnrollmentDate(_ iso: String) -> String? {
-        let fracF = ISO8601DateFormatter()
-        fracF.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let basicF = ISO8601DateFormatter()
-        basicF.formatOptions = [.withInternetDateTime]
-        guard let date = fracF.date(from: iso) ?? basicF.date(from: iso) else { return nil }
+        guard let date = hmIsoFrac.date(from: iso) ?? hmIsoBasic.date(from: iso) else { return nil }
         let f = DateFormatter()
         f.locale = Locale(identifier: "es_AR")
         let cal = Calendar.current
-        if cal.isDateInToday(date)    { f.dateFormat = "'Hoy' · HH:mm" }
+        if cal.isDateInToday(date)         { f.dateFormat = "'Hoy' · HH:mm" }
         else if cal.isDateInTomorrow(date) { f.dateFormat = "'Mañana' · HH:mm" }
-        else { f.dateFormat = "EEEE d MMM · HH:mm" }
+        else                               { f.dateFormat = "EEEE d MMM · HH:mm" }
         return f.string(from: date).capitalized
     }
 
