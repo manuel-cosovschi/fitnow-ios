@@ -27,7 +27,32 @@ enum FormExercise: String, CaseIterable, Identifiable {
         case .deadlift: return "figure.strengthtraining.functional"
         }
     }
+    /// API enum value for POST /ai/form-check.
+    var apiCode: String {
+        switch self {
+        case .squat:    return "squat"
+        case .pushUp:   return "pushup"
+        case .plank:    return "plank"
+        case .deadlift: return "deadlift"
+        }
+    }
 }
+
+// MARK: - Persisted history DTOs
+
+struct FormCheckHistoryItem: Decodable, Identifiable {
+    let id: Int
+    let exercise: String
+    let score: Int
+    let feedback: String
+    let created_at: String?
+}
+
+struct FormCheckHistoryResponse: Decodable {
+    let items: [FormCheckHistoryItem]
+}
+
+private struct EmptyResponse: Decodable {}
 
 // MARK: - FormCheckService
 
@@ -36,30 +61,69 @@ final class FormCheckService: ObservableObject {
     @Published private(set) var result: FormCheckResult?
     @Published private(set) var isAnalyzing = false
 
-    private let bodyPoseRequest = VNDetectHumanBodyPoseRequest()
-
     var currentExercise: FormExercise = .squat
 
     // MARK: - Analyse a single pixel buffer
 
     func analyse(pixelBuffer: CVPixelBuffer) {
+        guard !isAnalyzing else { return }
         isAnalyzing = true
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, options: [:])
+        let exercise = currentExercise   // capture on MainActor before hop
         Task.detached(priority: .userInitiated) { [weak self] in
-            guard let self else { return }
+            let request = VNDetectHumanBodyPoseRequest()   // local — thread-safe
             do {
-                try handler.perform([self.bodyPoseRequest])
-                if let obs = self.bodyPoseRequest.results?.first {
-                    let result = await self.score(observation: obs, exercise: self.currentExercise)
+                try handler.perform([request])
+                if let obs = request.results?.first {
+                    let scored = await self?.score(observation: obs, exercise: exercise)
                     await MainActor.run {
-                        self.result = result
-                        self.isAnalyzing = false
+                        self?.result = scored
+                        self?.isAnalyzing = false
                     }
+                    // Best-effort persistence: don't await, don't surface failures.
+                    if let scored {
+                        Task { await self?.persist(result: scored, exercise: exercise) }
+                    }
+                } else {
+                    await MainActor.run { self?.isAnalyzing = false }
                 }
             } catch {
-                await MainActor.run { self.isAnalyzing = false }
+                await MainActor.run { self?.isAnalyzing = false }
             }
         }
+    }
+
+    // MARK: - Persistence (POST /api/ai/form-check)
+
+    private func persist(result: FormCheckResult, exercise: FormExercise) async {
+        var jointsDict: [String: [String: Double]] = [:]
+        for (name, point) in result.joints {
+            jointsDict[name.rawValue.rawValue] = ["x": Double(point.x), "y": Double(point.y)]
+        }
+        let payload: [String: Any] = [
+            "exercise": exercise.apiCode,
+            "score":    result.score,
+            "feedback": result.feedback,
+            "joints":   jointsDict,
+        ]
+        guard let body = try? JSONSerialization.data(withJSONObject: payload) else { return }
+        do {
+            let _: EmptyResponse = try await APIClient.shared.request(
+                "ai/form-check", method: "POST", body: body, authorized: true
+            )
+        } catch {
+            // Silent: persistence is non-critical for the in-session UX.
+        }
+    }
+
+    /// Loads the user's recent form-check history from the server.
+    func loadHistory(exercise: FormExercise? = nil, limit: Int = 20) async throws -> [FormCheckHistoryItem] {
+        var query = [URLQueryItem(name: "limit", value: "\(limit)")]
+        if let exercise { query.append(URLQueryItem(name: "exercise", value: exercise.apiCode)) }
+        let resp: FormCheckHistoryResponse = try await APIClient.shared.request(
+            "ai/form-check/mine", authorized: true, query: query
+        )
+        return resp.items
     }
 
     // MARK: - Scoring per exercise
