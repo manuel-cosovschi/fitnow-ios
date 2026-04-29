@@ -54,9 +54,9 @@ struct FitNowPlusView: View {
         }
         .alert("Error", isPresented: Binding(
             get: { sk.purchaseError != nil },
-            set: { if !$0 { sk.purchaseError = nil } }
+            set: { if !$0 { sk.clearError() } }
         )) {
-            Button("OK", role: .cancel) { sk.purchaseError = nil }
+            Button("OK", role: .cancel) { sk.clearError() }
         } message: {
             Text(sk.purchaseError ?? "")
         }

@@ -28,6 +28,8 @@ final class StoreKitService {
 
     deinit { transactionUpdatesTask?.cancel() }
 
+    func clearError() { purchaseError = nil }
+
     // MARK: - Load products
 
     func load() async {
