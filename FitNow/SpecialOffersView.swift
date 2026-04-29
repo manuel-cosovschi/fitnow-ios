@@ -124,12 +124,14 @@ struct SpecialOffersView: View {
                     }
                 }
                 Spacer()
-                Text(offer.discount_label)
-                    .font(.custom("DM Serif Display", size: 18))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.white.opacity(0.22), in: Capsule())
+                if let label = offer.discount_label, !label.isEmpty {
+                    Text(label)
+                        .font(.custom("DM Serif Display", size: 18))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.white.opacity(0.22), in: Capsule())
+                }
             }
             .padding(18)
             .background(offer.activity_kind == nil ? FNGradient.primary : kindInfo.gradient)
@@ -430,20 +432,27 @@ struct ProviderMyOffersView: View {
     }
 
     private var providerOffersList: some View {
-        List {
-            ForEach(vm.offers) { offer in
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text(offer.title)
-                            .font(.system(size: 15, weight: .semibold))
-                        Spacer()
-                        statusBadge(offer.status)
+        ScrollView(showsIndicators: false) {
+            LazyVStack(spacing: 0) {
+                ForEach(vm.offers) { offer in
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text(offer.title)
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(.fnWhite)
+                            Spacer()
+                            statusBadge(offer.status)
+                        }
+                        if let label = offer.discount_label, !label.isEmpty {
+                            Text(label)
+                                .font(.system(size: 13))
+                                .foregroundColor(.fnSlate)
+                        }
                     }
-                    Text(offer.discount_label)
-                        .font(.system(size: 13))
-                        .foregroundColor(.fnSlate)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    Divider().background(Color.fnBorder)
                 }
-                .padding(.vertical, 4)
             }
         }
     }
