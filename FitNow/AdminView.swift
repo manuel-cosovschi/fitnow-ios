@@ -253,11 +253,13 @@ struct AdminOffersTab: View {
                     }
                 }
                 Spacer()
-                Text(offer.discount_label)
-                    .font(.custom("DM Serif Display", size: 14))
-                    .foregroundColor(.fnPrimary)
-                    .padding(.horizontal, 10).padding(.vertical, 5)
-                    .background(Color.fnPrimary.opacity(0.10), in: Capsule())
+                if let label = offer.discount_label, !label.isEmpty {
+                    Text(label)
+                        .font(.custom("DM Serif Display", size: 14))
+                        .foregroundColor(.fnPrimary)
+                        .padding(.horizontal, 10).padding(.vertical, 5)
+                        .background(Color.fnPrimary.opacity(0.10), in: Capsule())
+                }
             }
 
             if let desc = offer.description, !desc.isEmpty {
