@@ -294,19 +294,15 @@ struct StartGymSessionView: View {
         ]
         guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
 
-        var bag = Set<AnyCancellable>()
-        APIClient.shared.request("gym/sessions", method: "POST", body: data, authorized: true)
-            .sink { [self] completion in
-                loading = false
-                if case .failure(let e) = completion { error = e.localizedDescription }
-            } receiveValue: { [self] (session: GymSession) in
-                loading = false
-                onComplete()
-                createdSessionId = session.id
+        Task { @MainActor in
+            do {
+                let session: GymSession = try await APIClient.shared.request(
+                    "gym/sessions", method: "POST", body: data, authorized: true)
+                loading = false; onComplete(); createdSessionId = session.id
+            } catch {
+                loading = false; self.error = error.localizedDescription
             }
-            .store(in: &bag)
-        // Keep bag alive
-        DispatchQueue.main.asyncAfter(deadline: .now() + 30) { _ = bag }
+        }
     }
 }
 
@@ -465,25 +461,22 @@ struct GymActiveSessionView: View {
 
     private func loadSession() {
         loading = true
-        var bag = Set<AnyCancellable>()
-        APIClient.shared.request("gym/sessions/\(sessionId)", authorized: true)
-            .sink { _ in loading = false }
-            receiveValue: { [self] (s: GymSession) in
-                session = s
-                sets = s.sets ?? []
-                loading = false
-            }
-            .store(in: &bag)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 30) { _ = bag }
+        Task { @MainActor in
+            defer { loading = false }
+            do {
+                let s: GymSession = try await APIClient.shared.request(
+                    "gym/sessions/\(sessionId)", authorized: true)
+                session = s; sets = s.sets ?? []
+            } catch { }
+        }
     }
 
     private func finishSession() {
-        var bag = Set<AnyCancellable>()
-        APIClient.shared.request("gym/sessions/\(sessionId)/finish", method: "POST", authorized: true)
-            .sink { _ in }
-            receiveValue: { [self] (_: GymSession) in dismiss() }
-            .store(in: &bag)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 30) { _ = bag }
+        Task { @MainActor in
+            _ = try? await APIClient.shared.request(
+                "gym/sessions/\(sessionId)/finish", method: "POST", authorized: true) as GymSession
+            dismiss()
+        }
     }
 }
 
@@ -541,15 +534,14 @@ struct LogSetView: View {
             "rpe": rpe
         ]
         guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
-        var bag = Set<AnyCancellable>()
-        APIClient.shared.request("gym/sessions/\(sessionId)/sets", method: "POST", body: data, authorized: true)
-            .sink { _ in loading = false }
-            receiveValue: { [self] (_: GymSet) in
-                onDone()
-                dismiss()
-            }
-            .store(in: &bag)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 30) { _ = bag }
+        Task { @MainActor in
+            defer { loading = false }
+            do {
+                let _: GymSet = try await APIClient.shared.request(
+                    "gym/sessions/\(sessionId)/sets", method: "POST", body: data, authorized: true)
+                onDone(); dismiss()
+            } catch { }
+        }
     }
 }
 
@@ -599,11 +591,12 @@ struct RerouteSheet: View {
         loading = true
         let payload = ["instruction": instruction]
         guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
-        var bag = Set<AnyCancellable>()
-        APIClient.shared.request("gym/sessions/\(sessionId)/reroute", method: "POST", body: data, authorized: true)
-            .sink { _ in loading = false }
-            receiveValue: { [self] (resp: RerouteResponse) in result = resp }
-            .store(in: &bag)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 30) { _ = bag }
+        Task { @MainActor in
+            defer { loading = false }
+            do {
+                result = try await APIClient.shared.request(
+                    "gym/sessions/\(sessionId)/reroute", method: "POST", body: data, authorized: true)
+            } catch { }
+        }
     }
 }

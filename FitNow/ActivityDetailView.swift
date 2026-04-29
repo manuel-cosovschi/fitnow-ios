@@ -768,8 +768,11 @@ struct ActivityDetailView: View {
     }
 
     private func checkEnrollment() {
-        APIClient.shared.request("enrollments/mine", authorized: true,
-                                 query: [URLQueryItem(name: "when", value: "all")])
+        let query = [
+            URLQueryItem(name: "when", value: "all"),
+            URLQueryItem(name: "activity_id", value: "\(activity.id)")
+        ]
+        APIClient.shared.request("enrollments/mine", authorized: true, query: query)
             .sink { _ in }
             receiveValue: { (resp: ListResponse<EnrollmentItem>) in
                 if let match = resp.items.first(where: { $0.activity_id == activity.id && $0.session_id == nil }) {
