@@ -27,7 +27,32 @@ enum FormExercise: String, CaseIterable, Identifiable {
         case .deadlift: return "figure.strengthtraining.functional"
         }
     }
+    /// API enum value for POST /ai/form-check.
+    var apiCode: String {
+        switch self {
+        case .squat:    return "squat"
+        case .pushUp:   return "pushup"
+        case .plank:    return "plank"
+        case .deadlift: return "deadlift"
+        }
+    }
 }
+
+// MARK: - Persisted history DTOs
+
+struct FormCheckHistoryItem: Decodable, Identifiable {
+    let id: Int
+    let exercise: String
+    let score: Int
+    let feedback: String
+    let created_at: String?
+}
+
+struct FormCheckHistoryResponse: Decodable {
+    let items: [FormCheckHistoryItem]
+}
+
+private struct EmptyResponse: Decodable {}
 
 // MARK: - FormCheckService
 
@@ -55,6 +80,10 @@ final class FormCheckService: ObservableObject {
                         self?.result = scored
                         self?.isAnalyzing = false
                     }
+                    // Best-effort persistence: don't await, don't surface failures.
+                    if let scored {
+                        Task { await self?.persist(result: scored, exercise: exercise) }
+                    }
                 } else {
                     await MainActor.run { self?.isAnalyzing = false }
                 }
@@ -62,6 +91,39 @@ final class FormCheckService: ObservableObject {
                 await MainActor.run { self?.isAnalyzing = false }
             }
         }
+    }
+
+    // MARK: - Persistence (POST /api/ai/form-check)
+
+    private func persist(result: FormCheckResult, exercise: FormExercise) async {
+        var jointsDict: [String: [String: Double]] = [:]
+        for (name, point) in result.joints {
+            jointsDict[name.rawValue.rawValue] = ["x": Double(point.x), "y": Double(point.y)]
+        }
+        let payload: [String: Any] = [
+            "exercise": exercise.apiCode,
+            "score":    result.score,
+            "feedback": result.feedback,
+            "joints":   jointsDict,
+        ]
+        guard let body = try? JSONSerialization.data(withJSONObject: payload) else { return }
+        do {
+            let _: EmptyResponse = try await APIClient.shared.request(
+                "ai/form-check", method: "POST", body: body, authorized: true
+            )
+        } catch {
+            // Silent: persistence is non-critical for the in-session UX.
+        }
+    }
+
+    /// Loads the user's recent form-check history from the server.
+    func loadHistory(exercise: FormExercise? = nil, limit: Int = 20) async throws -> [FormCheckHistoryItem] {
+        var query = [URLQueryItem(name: "limit", value: "\(limit)")]
+        if let exercise { query.append(URLQueryItem(name: "exercise", value: exercise.apiCode)) }
+        let resp: FormCheckHistoryResponse = try await APIClient.shared.request(
+            "ai/form-check/mine", authorized: true, query: query
+        )
+        return resp.items
     }
 
     // MARK: - Scoring per exercise
