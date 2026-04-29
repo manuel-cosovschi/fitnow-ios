@@ -7,6 +7,7 @@ struct CoachIAView: View {
     @State private var inputText = ""
     @State private var isStreaming = false
     @State private var streamingId: UUID?
+    @State private var isLoadingHistory = true
     @FocusState private var inputFocused: Bool
 
     private let quickPrompts = [
@@ -23,13 +24,37 @@ struct CoachIAView: View {
 
             VStack(spacing: 0) {
                 messageList
-                if messages.isEmpty { quickPromptsBar }
+                if messages.isEmpty && !isLoadingHistory { quickPromptsBar }
                 inputBar
             }
         }
         .navigationTitle("Coach IA")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.fnBg, for: .navigationBar)
+        .task {
+            await loadHistory()
+        }
+    }
+
+    // MARK: - History
+
+    private func loadHistory() async {
+        defer { isLoadingHistory = false }
+        do {
+            let items = try await CoachIAService.shared.loadHistory(limit: 50)
+            let restored = items.map { item in
+                CoachMessage(
+                    role: item.role == "user" ? .user : .coach,
+                    text: item.content
+                )
+            }
+            // Only adopt history if the user hasn't started typing in the meantime.
+            if messages.isEmpty {
+                messages = restored
+            }
+        } catch {
+            // Silent: empty history is a fine default for first-time users.
+        }
     }
 
     // MARK: - Message list
@@ -38,7 +63,7 @@ struct CoachIAView: View {
         ScrollViewReader { proxy in
             ScrollView(showsIndicators: false) {
                 LazyVStack(spacing: 12) {
-                    if messages.isEmpty {
+                    if messages.isEmpty && !isLoadingHistory {
                         welcomeCard
                             .padding(.top, 24)
                     }
@@ -185,6 +210,19 @@ struct CoachIAView: View {
 
         Task {
             for await chunk in CoachIAService.shared.stream(userMessage: trimmed, context: context) {
+                // Sentinels emitted by CoachIAService for terminal error states.
+                if chunk == "[RATE_LIMITED]" {
+                    if let idx = messages.firstIndex(where: { $0.id == coachMsg.id }) {
+                        messages[idx].text = "Estás enviando muchos mensajes seguidos. Esperá unos segundos y volvé a intentar."
+                    }
+                    break
+                }
+                if chunk == "[NETWORK_ERROR]" {
+                    if let idx = messages.firstIndex(where: { $0.id == coachMsg.id }) {
+                        messages[idx].text = "Hubo un problema de conexión. Revisá tu internet e intentá de nuevo."
+                    }
+                    break
+                }
                 if let idx = messages.firstIndex(where: { $0.id == coachMsg.id }) {
                     messages[idx].text += chunk
                 }
