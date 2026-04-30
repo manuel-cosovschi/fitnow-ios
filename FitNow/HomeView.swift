@@ -142,6 +142,7 @@ struct HomeView: View {
                 .frame(width: 280, height: 280)
                 .blur(radius: 50)
                 .offset(x: 120, y: -60)
+                .frame(width: 0, height: 0)  // remove from layout so it doesn't inflate ZStack height
 
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 6) {
