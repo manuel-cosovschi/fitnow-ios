@@ -20,6 +20,8 @@ struct RunNavigatorView: View {
     let origin: CLLocationCoordinate2D
     let userPrefs: RunUserPrefs
 
+    @Environment(\.dismiss) private var dismiss
+
     @StateObject private var tracker = RunSessionTracker()
     @State private var statusText: String  = "Preparando navegación…"
     @State private var nextInstruction: String = "—"
@@ -28,6 +30,7 @@ struct RunNavigatorView: View {
     @State private var showFinishAlert = false
     @State private var elapsed: TimeInterval = 0
     @State private var timer: Timer?
+    @State private var sessionEnded = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -71,10 +74,14 @@ struct RunNavigatorView: View {
         }
         .onDisappear {
             timer?.invalidate()
-            tracker.abandon()
+            if !sessionEnded { tracker.abandon() }
         }
         .alert("¿Finalizar carrera?", isPresented: $showFinishAlert) {
-            Button("Finalizar", role: .destructive) { tracker.finish() }
+            Button("Finalizar", role: .destructive) {
+                sessionEnded = true
+                tracker.finish()
+                dismiss()
+            }
             Button("Continuar", role: .cancel) { }
         } message: {
             Text("Se guardará tu sesión con los datos recorridos.")
@@ -180,8 +187,10 @@ struct RunNavigatorView: View {
             HStack(spacing: 12) {
                 // Abandon
                 Button {
+                    sessionEnded = true
                     timer?.invalidate()
                     tracker.abandon()
+                    dismiss()
                 } label: {
                     Label("Abandonar", systemImage: "xmark")
                         .font(.system(size: 14, weight: .bold))
