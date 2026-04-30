@@ -97,7 +97,7 @@ final class CoachIAService {
     private func parseSSEChunk(_ payload: String) -> String? {
         guard let data = payload.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
-        else { return payload }
+        else { return nil }
 
         // OpenAI-style: choices[0].delta.content
         if let choices = json["choices"] as? [[String: Any]],
@@ -107,8 +107,8 @@ final class CoachIAService {
         }
         // Simple flat: { "token": "..." }
         if let token = json["token"] as? String { return token }
-        // Fallback: treat raw string
-        return payload
+        // Parsed JSON but no content field (e.g. finish_reason chunk) → skip
+        return nil
     }
 }
 
