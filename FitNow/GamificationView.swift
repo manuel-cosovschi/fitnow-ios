@@ -84,13 +84,26 @@ struct GamificationView: View {
                     badgesSection(profile.badges)
                     segmentedSection
                 } else if let error = vm.error {
-                    VStack(spacing: 8) {
-                        Image(systemName: "wifi.slash").font(.title).foregroundColor(.secondary)
-                        Text(error).font(.caption).foregroundColor(.secondary)
+                    VStack(spacing: 16) {
+                        Image(systemName: "wifi.exclamationmark")
+                            .font(.system(size: 48))
+                            .foregroundColor(.fnAsh)
+                        Text("No se pudo cargar")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.fnWhite)
+                        Text(error)
+                            .font(.system(size: 14))
+                            .foregroundColor(.fnSlate)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 40)
                         Button("Reintentar") { vm.loadProfile() }
-                            .font(.system(size: 13, weight: .semibold)).foregroundColor(.fnPrimary)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.fnPrimary)
+                            .padding(.horizontal, 32).padding(.vertical, 12)
+                            .background(Color.fnPrimary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
                     }
-                    .padding(40)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 80)
                 }
             }
             .padding(.bottom, 30)
@@ -252,11 +265,13 @@ struct GamificationView: View {
             Text(badge.name)
                 .font(.system(size: 11, weight: .bold))
                 .lineLimit(1)
-            Text(badge.description)
-                .font(.system(size: 9))
-                .foregroundColor(.secondary)
-                .lineLimit(2)
-                .multilineTextAlignment(.center)
+            if let desc = badge.description {
+                Text(desc)
+                    .font(.system(size: 9))
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+            }
         }
         .frame(width: 90)
         .padding(10)
@@ -264,7 +279,7 @@ struct GamificationView: View {
         .fnShadow(radius: 6, y: 2)
     }
 
-    private func badgeColor(_ category: String) -> Color {
+    private func badgeColor(_ category: String?) -> Color {
         switch category {
         case "running": return .fnCyan
         case "gym":     return .fnPurple
