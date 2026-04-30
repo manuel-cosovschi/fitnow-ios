@@ -85,10 +85,25 @@ struct AnalyticsView: View {
                 .pickerStyle(.segmented)
                 .padding(.horizontal, 16)
 
-                if selectedTab == 0 {
-                    runningSection
+                if vm.loading {
+                    VStack(spacing: 12) {
+                        ForEach(0..<4, id: \.self) { _ in
+                            SkeletonView(cornerRadius: 16).frame(height: 80)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                } else if selectedTab == 0 {
+                    if vm.runningSummary == nil && vm.runWeekly.isEmpty {
+                        emptyDataState
+                    } else {
+                        runningSection
+                    }
                 } else {
-                    gymSection
+                    if vm.gymSummary == nil && vm.gymWeekly.isEmpty {
+                        emptyDataState
+                    } else {
+                        gymSection
+                    }
                 }
             }
             .padding(.bottom, 30)
@@ -100,6 +115,24 @@ struct AnalyticsView: View {
             vm.loadAll()
             withAnimation(.spring(response: 0.55).delay(0.1)) { appeared = true }
         }
+    }
+
+    private var emptyDataState: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "chart.bar.xaxis")
+                .font(.system(size: 44))
+                .foregroundColor(.fnAsh)
+            Text("Sin datos aún")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(.fnWhite)
+            Text("Completá sesiones de entrenamiento para ver tu rendimiento acá.")
+                .font(.system(size: 14))
+                .foregroundColor(.fnSlate)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 60)
     }
 
     // MARK: - Streak Banner

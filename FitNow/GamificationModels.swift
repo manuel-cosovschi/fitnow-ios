@@ -15,14 +15,14 @@ struct UserBadge: Identifiable, Decodable {
     let id: Int?
     let code: String
     let name: String
-    let description: String
-    let icon: String
-    let category: String
+    let description: String?
+    let icon: String?
+    let category: String?
     let threshold: Int?
     let earned_at: String?
 
     var sfSymbol: String {
-        switch icon {
+        switch icon ?? "" {
         case "footprints":   return "figure.walk"
         case "trophy":       return "trophy.fill"
         case "shield":       return "shield.fill"
@@ -67,10 +67,10 @@ struct BadgeItem: Identifiable, Decodable {
     let id: Int
     let code: String
     let name: String
-    let description: String
-    let icon: String
-    let category: String
-    let threshold: Int
+    let description: String?
+    let icon: String?
+    let category: String?
+    let threshold: Int?
     let earned: Bool?
 }
 

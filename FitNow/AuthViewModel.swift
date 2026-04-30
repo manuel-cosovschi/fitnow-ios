@@ -254,12 +254,18 @@ final class AuthViewModel: ObservableObject {
     }
 
     private func humanError(_ error: Error) -> String {
-        if let api = error as? APIError, case .http(let code, _) = api {
-            switch code {
-            case 401: return "Email o contraseña incorrectos."
-            case 404: return "No existe una cuenta con ese email."
-            case 409: return "Ya existe una cuenta con ese email."
-            default:  return "Error del servidor (\(code)). Intentá de nuevo."
+        if let api = error as? APIError {
+            switch api {
+            case .unauthorized:
+                return "Email o contraseña incorrectos."
+            case .http(let code, _):
+                switch code {
+                case 401: return "Email o contraseña incorrectos."
+                case 404: return "No existe una cuenta con ese email."
+                case 409: return "Ya existe una cuenta con ese email."
+                default:  return "Error del servidor (\(code)). Intentá de nuevo."
+                }
+            default: break
             }
         }
         return "Sin conexión. Verificá tu red."
