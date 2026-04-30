@@ -31,7 +31,7 @@ final class ProviderDashboardViewModel: ObservableObject {
 
     func createActivity(_ payload: [String: Any], completion: @escaping (Bool) -> Void) {
         guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
-        APIClient.shared.requestPublisher("activities", method: "POST", body: data)
+        APIClient.shared.requestPublisher("activities", method: "POST", body: data, authorized: true)
             .sink { result in
                 if case .failure = result { completion(false) }
             } receiveValue: { [weak self] (a: Activity) in
@@ -407,6 +407,7 @@ private struct CreateActivitySheet: View {
     @State private var enableRunning = false
     @State private var enableFiles = false
     @State private var saving = false
+    @State private var submitted = false
     @State private var errorMsg: String?
 
     private let kinds      = [("membership","Membresía"), ("class","Clase"), ("event","Evento"), ("course","Curso")]
@@ -415,7 +416,40 @@ private struct CreateActivitySheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
+            if submitted {
+                submittedView
+            } else {
+                formView
+            }
+        }
+    }
+
+    private var submittedView: some View {
+        VStack(spacing: 28) {
+            Spacer(minLength: 60)
+            ZStack {
+                Circle().fill(FNGradient.success).frame(width: 100, height: 100).fnShadowColored(.fnGreen)
+                Image(systemName: "checkmark").font(.system(size: 44, weight: .bold)).foregroundColor(.white)
+            }
+            VStack(spacing: 10) {
+                Text("¡Actividad enviada!")
+                    .font(.custom("DM Serif Display", size: 26))
+                Text("Tu actividad fue enviada para revisión. El admin la aprobará antes de que aparezca pública.")
+                    .font(.system(size: 14))
+                    .foregroundColor(.fnSlate)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+            }
+            FitNowButton(title: "Listo", icon: "checkmark.circle.fill") { dismiss() }
+                .padding(.horizontal, 40)
+            Spacer()
+        }
+        .navigationTitle("Nueva actividad")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private var formView: some View {
+        Form {
                 Section("Información básica") {
                     TextField("Título de la actividad *", text: $title)
                     TextField("Descripción (opcional)", text: $descriptionText, axis: .vertical)
@@ -484,7 +518,7 @@ private struct CreateActivitySheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button { saveActivity() } label: {
                         if saving { ProgressView().tint(.fnPurple) }
-                        else { Text("Publicar").bold().foregroundColor(.fnPurple) }
+                        else { Text("Enviar").bold().foregroundColor(.fnPurple) }
                     }
                     .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || saving)
                 }
@@ -496,7 +530,8 @@ private struct CreateActivitySheet: View {
         saving = true; errorMsg = nil
         var payload: [String: Any] = [
             "title": title.trimmingCharacters(in: .whitespaces),
-            "kind": kind, "modality": modality, "difficulty": difficulty
+            "kind": kind, "modality": modality, "difficulty": difficulty,
+            "status": "draft"
         ]
         if !descriptionText.isEmpty { payload["description"] = descriptionText }
         if !location.isEmpty        { payload["location"] = location }
@@ -507,8 +542,8 @@ private struct CreateActivitySheet: View {
 
         vm.createActivity(payload) { success in
             saving = false
-            if success { dismiss() }
-            else { errorMsg = "No se pudo crear la actividad. Intentá de nuevo." }
+            if success { submitted = true }
+            else { errorMsg = "No se pudo enviar la actividad. Intentá de nuevo." }
         }
     }
 }

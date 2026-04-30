@@ -59,6 +59,7 @@ struct AdminLockedView: View {
 // ─────────────────────────────────────────────────────────────────────────────
 
 struct AdminDashboardView: View {
+    @EnvironmentObject private var auth: AuthViewModel
     @State private var selectedTab = 0
 
     var body: some View {
@@ -86,8 +87,56 @@ struct AdminDashboardView: View {
             }
             .tabItem { Label("Ofertas", systemImage: selectedTab == 3 ? "tag.fill" : "tag") }
             .tag(3)
+
+            NavigationStack {
+                AdminActivitiesTab()
+            }
+            .tabItem { Label("Actividades", systemImage: selectedTab == 4 ? "list.bullet.rectangle.fill" : "list.bullet.rectangle") }
+            .tag(4)
+
+            NavigationStack {
+                adminProfileTab
+            }
+            .tabItem { Label("Perfil", systemImage: selectedTab == 5 ? "person.circle.fill" : "person.circle") }
+            .tag(5)
         }
         .tint(.fnPurple)
+    }
+
+    private var adminProfileTab: some View {
+        VStack(spacing: 24) {
+            Spacer(minLength: 40)
+            ZStack {
+                Circle().fill(FNGradient.primary).frame(width: 80, height: 80)
+                Text(String((auth.user?.name ?? "A").prefix(1)).uppercased())
+                    .font(.system(size: 32, weight: .bold)).foregroundColor(.white)
+            }
+            VStack(spacing: 6) {
+                Text(auth.user?.name ?? "Admin")
+                    .font(.system(size: 20, weight: .bold))
+                Text(auth.user?.email ?? "")
+                    .font(.system(size: 14)).foregroundColor(.secondary)
+                Text("Administrador").font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.fnCrimson)
+                    .padding(.horizontal, 10).padding(.vertical, 4)
+                    .background(Color.fnCrimson.opacity(0.12), in: Capsule())
+            }
+            Spacer()
+            Button(role: .destructive) {
+                auth.logout()
+            } label: {
+                Label("Cerrar sesión", systemImage: "rectangle.portrait.and.arrow.right")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.fnSecondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(Color.fnSecondary.opacity(0.10), in: RoundedRectangle(cornerRadius: 14))
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 40)
+        }
+        .navigationTitle("Perfil")
+        .navigationBarTitleDisplayMode(.large)
     }
 }
 
@@ -699,6 +748,138 @@ final class AdminProvidersViewModel: ObservableObject {
         APIClient.shared.requestPublisher("admin/providers/\(providerId)", method: "PATCH", body: data, authorized: true)
             .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] (_: AdminProviderItem) in
                 self?.load()
+            })
+            .store(in: &bag)
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MARK: - Admin Activities Tab (approve/reject draft activities)
+// ─────────────────────────────────────────────────────────────────────────────
+
+struct AdminActivitiesTab: View {
+    @StateObject private var vm = AdminActivitiesViewModel()
+
+    var body: some View {
+        Group {
+            if vm.loading && vm.activities.isEmpty {
+                ProgressView("Cargando actividades…")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if vm.activities.isEmpty {
+                VStack(spacing: 16) {
+                    Spacer(minLength: 60)
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.system(size: 52)).foregroundColor(.fnGreen)
+                    Text("Sin actividades pendientes")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                    Text("Todas las actividades enviadas han sido revisadas.")
+                        .font(.system(size: 14)).foregroundColor(.fnSlate)
+                    Spacer()
+                }
+            } else {
+                ScrollView(showsIndicators: false) {
+                    LazyVStack(spacing: 12) {
+                        ForEach(vm.activities) { activity in
+                            activityCard(activity)
+                        }
+                    }
+                    .padding(.horizontal, 16).padding(.vertical, 14)
+                }
+            }
+        }
+        .background(Color.fnBg)
+        .navigationTitle("Actividades")
+        .navigationBarTitleDisplayMode(.large)
+        .onAppear { vm.load() }
+        .refreshable { vm.load() }
+    }
+
+    private func activityCard(_ a: Activity) -> some View {
+        let info = ActivityTypeInfo.from(kind: a.kind ?? "")
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 10) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10).fill(info.color.opacity(0.15)).frame(width: 42, height: 42)
+                    Image(systemName: info.icon).font(.system(size: 16, weight: .semibold)).foregroundColor(info.color)
+                }
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(a.title).font(.system(size: 15, weight: .bold)).foregroundColor(.fnWhite)
+                    if let provider = a.provider_name, !provider.isEmpty {
+                        Text("Por: \(provider)").font(.system(size: 12)).foregroundColor(.fnSlate)
+                    }
+                }
+                Spacer()
+                if let price = a.price, price > 0 {
+                    Text("$\(Int(price))").font(.system(size: 14, weight: .bold)).foregroundColor(.fnGreen)
+                }
+            }
+
+            if let desc = a.description, !desc.isEmpty {
+                Text(desc).font(.system(size: 13)).foregroundColor(.fnSlate).lineLimit(2)
+            }
+
+            HStack(spacing: 10) {
+                Button {
+                    withAnimation { vm.reject(activityId: a.id) }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "xmark.circle.fill")
+                        Text("Rechazar")
+                    }
+                    .font(.system(size: 13, weight: .semibold)).foregroundColor(.fnSecondary)
+                    .frame(maxWidth: .infinity).padding(.vertical, 10)
+                    .background(Color.fnSecondary.opacity(0.10), in: RoundedRectangle(cornerRadius: 10))
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.fnSecondary.opacity(0.3), lineWidth: 1))
+                }
+                .buttonStyle(ScaleButtonStyle())
+
+                Button {
+                    withAnimation { vm.approve(activityId: a.id) }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle.fill")
+                        Text("Aprobar")
+                    }
+                    .font(.system(size: 13, weight: .semibold)).foregroundColor(.white)
+                    .frame(maxWidth: .infinity).padding(.vertical, 10)
+                    .background(FNGradient.success, in: RoundedRectangle(cornerRadius: 10))
+                }
+                .buttonStyle(ScaleButtonStyle())
+            }
+        }
+        .padding(16)
+        .background(Color.fnSurface, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.fnBorder.opacity(0.3), lineWidth: 0.5))
+    }
+}
+
+final class AdminActivitiesViewModel: ObservableObject {
+    @Published var activities: [Activity] = []
+    @Published var loading = false
+    private var bag = Set<AnyCancellable>()
+
+    func load() {
+        loading = true
+        APIClient.shared.requestPublisher("admin/activities", authorized: true)
+            .sink { [weak self] _ in self?.loading = false }
+            receiveValue: { [weak self] (resp: ListResponse<Activity>) in
+                self?.activities = resp.items; self?.loading = false
+            }
+            .store(in: &bag)
+    }
+
+    func approve(activityId: Int) {
+        APIClient.shared.requestPublisher("admin/activities/\(activityId)/approve", method: "POST", authorized: true)
+            .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] (_: Activity) in
+                self?.activities.removeAll { $0.id == activityId }
+            })
+            .store(in: &bag)
+    }
+
+    func reject(activityId: Int) {
+        APIClient.shared.requestPublisher("admin/activities/\(activityId)/reject", method: "POST", authorized: true)
+            .sink(receiveCompletion: { _ in }, receiveValue: { [weak self] (_: Activity) in
+                self?.activities.removeAll { $0.id == activityId }
             })
             .store(in: &bag)
     }
