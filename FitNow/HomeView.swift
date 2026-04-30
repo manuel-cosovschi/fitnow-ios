@@ -112,7 +112,7 @@ struct HomeView: View {
                     heroHeader
                     contentBody.padding(.top, 20)
                 }
-                .padding(.bottom, 100)
+                .padding(.bottom, 80)
             }
             .background(Color.fnBg)
             .ignoresSafeArea(edges: .top)
@@ -201,15 +201,15 @@ struct HomeView: View {
                 .animation(.spring(response: 0.6, dampingFraction: 0.65).delay(0.25), value: appeared)
             }
             .padding(.horizontal, 20)
-            .padding(.top, 60)
-            .padding(.bottom, 20)
+            .padding(.top, 80)
+            .padding(.bottom, 16)
         }
     }
 
     // MARK: - Body
 
     private var contentBody: some View {
-        VStack(spacing: 28) {
+        VStack(spacing: 22) {
             if vm.nextEnrollment != nil {
                 nextClassSection
             }

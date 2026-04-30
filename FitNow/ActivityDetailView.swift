@@ -127,7 +127,9 @@ struct ActivityDetailView: View {
             bottomCTA
         }
         .background(Color.fnBg)
+        .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(previousTitle != nil)
         .toolbar {
             // Leading: custom back button
@@ -280,7 +282,7 @@ struct ActivityDetailView: View {
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 28)
-            .padding(.top, 80)
+            .padding(.top, 110)
         }
         .frame(height: 280)
     }
