@@ -419,7 +419,80 @@ private struct CreateActivitySheet: View {
             if submitted {
                 submittedView
             } else {
-                formView
+                Form {
+                    Section("Información básica") {
+                        TextField("Título de la actividad *", text: $title)
+                        TextField("Descripción (opcional)", text: $descriptionText, axis: .vertical)
+                            .lineLimit(3...6)
+                        TextField("Ubicación (opcional)", text: $location)
+                    }
+                    Section("Tipo y formato") {
+                        Picker("Tipo", selection: $kind) {
+                            ForEach(kinds, id: \.0) { Text($1).tag($0) }
+                        }
+                        Picker("Modalidad", selection: $modality) {
+                            ForEach(modalities, id: \.0) { Text($1).tag($0) }
+                        }
+                        Picker("Dificultad", selection: $difficulty) {
+                            ForEach(difficulties, id: \.0) { Text($1).tag($0) }
+                        }
+                    }
+                    Section("Precio y capacidad") {
+                        HStack {
+                            Text("$")
+                            TextField("Precio mensual", text: $price).keyboardType(.decimalPad)
+                        }
+                        HStack {
+                            Image(systemName: "person.2.fill").foregroundColor(.secondary)
+                            TextField("Capacidad máxima (opcional)", text: $capacity).keyboardType(.numberPad)
+                        }
+                    }
+                    Section {
+                        Toggle(isOn: $enableRunning) {
+                            Label {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Seguimiento de rutas").font(.system(size: 15))
+                                    Text("Los alumnos pueden registrar sus recorridos").font(.system(size: 12)).foregroundColor(.secondary)
+                                }
+                            } icon: {
+                                Image(systemName: "location.north.line.fill").foregroundColor(.fnCyan)
+                            }
+                        }
+                        .tint(.fnCyan)
+                        Toggle(isOn: $enableFiles) {
+                            Label {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Rutinas y archivos").font(.system(size: 15))
+                                    Text("Podés subir rutinas, planes y documentos para tus alumnos").font(.system(size: 12)).foregroundColor(.secondary)
+                                }
+                            } icon: {
+                                Image(systemName: "doc.fill").foregroundColor(.fnPurple)
+                            }
+                        }
+                        .tint(.fnPurple)
+                    } header: {
+                        Text("Funcionalidades adicionales")
+                    }
+                    if let err = errorMsg {
+                        Section {
+                            Text(err).font(.system(size: 13)).foregroundColor(.fnSecondary)
+                        }
+                    }
+                }
+                .navigationTitle("Nueva actividad")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancelar") { dismiss() }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button { saveActivity() } label: {
+                            if saving { ProgressView().tint(.fnPurple) }
+                            else { Text("Enviar").bold().foregroundColor(.fnPurple) }
+                        }
+                        .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || saving)
+                    }
+                }
             }
         }
     }
@@ -446,84 +519,6 @@ private struct CreateActivitySheet: View {
         }
         .navigationTitle("Nueva actividad")
         .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private var formView: some View {
-        Form {
-                Section("Información básica") {
-                    TextField("Título de la actividad *", text: $title)
-                    TextField("Descripción (opcional)", text: $descriptionText, axis: .vertical)
-                        .lineLimit(3...6)
-                    TextField("Ubicación (opcional)", text: $location)
-                }
-                Section("Tipo y formato") {
-                    Picker("Tipo", selection: $kind) {
-                        ForEach(kinds, id: \.0) { Text($1).tag($0) }
-                    }
-                    Picker("Modalidad", selection: $modality) {
-                        ForEach(modalities, id: \.0) { Text($1).tag($0) }
-                    }
-                    Picker("Dificultad", selection: $difficulty) {
-                        ForEach(difficulties, id: \.0) { Text($1).tag($0) }
-                    }
-                }
-                Section("Precio y capacidad") {
-                    HStack {
-                        Text("$")
-                        TextField("Precio mensual", text: $price).keyboardType(.decimalPad)
-                    }
-                    HStack {
-                        Image(systemName: "person.2.fill").foregroundColor(.secondary)
-                        TextField("Capacidad máxima (opcional)", text: $capacity).keyboardType(.numberPad)
-                    }
-                }
-                Section {
-                    Toggle(isOn: $enableRunning) {
-                        Label {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Seguimiento de rutas").font(.system(size: 15))
-                                Text("Los alumnos pueden registrar sus recorridos").font(.system(size: 12)).foregroundColor(.secondary)
-                            }
-                        } icon: {
-                            Image(systemName: "location.north.line.fill").foregroundColor(.fnCyan)
-                        }
-                    }
-                    .tint(.fnCyan)
-                    Toggle(isOn: $enableFiles) {
-                        Label {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Rutinas y archivos").font(.system(size: 15))
-                                Text("Podés subir rutinas, planes y documentos para tus alumnos").font(.system(size: 12)).foregroundColor(.secondary)
-                            }
-                        } icon: {
-                            Image(systemName: "doc.fill").foregroundColor(.fnPurple)
-                        }
-                    }
-                    .tint(.fnPurple)
-                } header: {
-                    Text("Funcionalidades adicionales")
-                }
-                if let err = errorMsg {
-                    Section {
-                        Text(err).font(.system(size: 13)).foregroundColor(.fnSecondary)
-                    }
-                }
-            }
-            .navigationTitle("Nueva actividad")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancelar") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button { saveActivity() } label: {
-                        if saving { ProgressView().tint(.fnPurple) }
-                        else { Text("Enviar").bold().foregroundColor(.fnPurple) }
-                    }
-                    .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || saving)
-                }
-            }
-        }
     }
 
     private func saveActivity() {
