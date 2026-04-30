@@ -69,6 +69,11 @@ struct ActivityDetailView: View {
     @ObservedObject private var favorites = FavoritesService.shared
     @State private var reviews: [ActivityReview] = []
     @State private var loadingReviews = false
+    @State private var showReviewSheet = false
+    @State private var myReviewRating = 5
+    @State private var myReviewComment = ""
+    @State private var submittingReview = false
+    @State private var reviewError: String?
 
     init(activity: Activity, previousTitle: String? = nil) {
         self.activity = activity
@@ -232,9 +237,10 @@ struct ActivityDetailView: View {
                 }
 
                 Text(activity.title)
-                    .font(.custom("DM Serif Display", size: 30))
+                    .font(.custom("DM Serif Display", size: activity.title.count > 35 ? 22 : 28))
                     .foregroundColor(.fnWhite)
-                    .lineLimit(3)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .minimumScaleFactor(0.8)
 
                 HStack(spacing: 8) {
                     HStack(spacing: 5) {
@@ -405,8 +411,121 @@ struct ActivityDetailView: View {
                     reviewCard(rev)
                 }
             }
+
+            if enrolled {
+                Button {
+                    myReviewRating = 5
+                    myReviewComment = ""
+                    reviewError = nil
+                    showReviewSheet = true
+                } label: {
+                    Label("Dejar mi reseña", systemImage: "star.leadinghalf.filled")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.fnAmber)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color.fnAmber.opacity(0.10), in: RoundedRectangle(cornerRadius: 12))
+                }
+                .buttonStyle(ScaleButtonStyle())
+            }
         }
         .task { await loadReviews() }
+        .sheet(isPresented: $showReviewSheet) {
+            reviewSheet
+        }
+    }
+
+    private var reviewSheet: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                VStack(spacing: 8) {
+                    Text("¿Cómo fue tu experiencia?")
+                        .font(.system(size: 18, weight: .bold))
+                    Text(activity.title)
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.top, 8)
+
+                HStack(spacing: 12) {
+                    ForEach(1...5, id: \.self) { star in
+                        Image(systemName: star <= myReviewRating ? "star.fill" : "star")
+                            .font(.system(size: 36))
+                            .foregroundColor(star <= myReviewRating ? .fnAmber : .fnAsh)
+                            .onTapGesture { myReviewRating = star }
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Comentario (opcional)")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.secondary)
+                    TextEditor(text: $myReviewComment)
+                        .frame(height: 100)
+                        .padding(10)
+                        .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
+                        .font(.system(size: 15))
+                }
+                .padding(.horizontal, 4)
+
+                if let err = reviewError {
+                    Text(err)
+                        .font(.system(size: 13))
+                        .foregroundColor(.red)
+                }
+
+                Spacer()
+
+                Button {
+                    Task { await submitReview() }
+                } label: {
+                    Group {
+                        if submittingReview {
+                            ProgressView()
+                        } else {
+                            Text("Publicar reseña")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(FNGradient.primary, in: RoundedRectangle(cornerRadius: 16))
+                }
+                .disabled(submittingReview)
+                .padding(.bottom, 8)
+            }
+            .padding(.horizontal, 20)
+            .navigationTitle("Reseña")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") { showReviewSheet = false }
+                }
+            }
+        }
+    }
+
+    private func submitReview() async {
+        submittingReview = true
+        reviewError = nil
+        struct ReviewPayload: Encodable { let rating: Int; let comment: String? }
+        let payload = ReviewPayload(
+            rating: myReviewRating,
+            comment: myReviewComment.trimmingCharacters(in: .whitespaces).isEmpty ? nil : myReviewComment
+        )
+        guard let body = try? JSONEncoder().encode(payload) else { submittingReview = false; return }
+        do {
+            let _: SimpleOK = try await APIClient.shared.request(
+                "activities/\(activity.id)/reviews", method: "POST", body: body, authorized: true
+            )
+            showReviewSheet = false
+            await loadReviews()
+        } catch {
+            reviewError = "No se pudo publicar la reseña. Intentá de nuevo."
+        }
+        submittingReview = false
     }
 
     private func reviewCard(_ review: ActivityReview) -> some View {

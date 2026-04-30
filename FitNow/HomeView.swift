@@ -112,11 +112,27 @@ struct HomeView: View {
                     heroHeader
                     contentBody.padding(.top, 20)
                 }
-                .padding(.bottom, 40)
+                .padding(.bottom, 100)
             }
             .background(Color.fnBg)
             .ignoresSafeArea(edges: .top)
             .toolbarBackground(.hidden, for: .navigationBar)
+            .overlay(alignment: .bottomTrailing) {
+                NavigationLink(destination: CoachIAView()) {
+                    ZStack {
+                        Circle()
+                            .fill(FNGradient.club)
+                            .frame(width: 58, height: 58)
+                            .shadow(color: Color.fnPrimary.opacity(0.4), radius: 12, y: 4)
+                        Image(systemName: "brain.head.profile")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                }
+                .buttonStyle(ScaleButtonStyle())
+                .padding(.trailing, 20)
+                .padding(.bottom, 24)
+            }
         }
         .onAppear {
             vm.load()
@@ -166,17 +182,20 @@ struct HomeView: View {
                 }
                 Spacer()
 
-                ZStack(alignment: .bottomTrailing) {
-                    ZStack {
-                        Circle().fill(FNGradient.primary).frame(width: 52, height: 52)
-                        Text(String((auth.user?.name ?? "A").prefix(1)).uppercased())
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(.white)
+                NavigationLink(destination: ProfileView()) {
+                    ZStack(alignment: .bottomTrailing) {
+                        ZStack {
+                            Circle().fill(FNGradient.primary).frame(width: 52, height: 52)
+                            Text(String((auth.user?.name ?? "A").prefix(1)).uppercased())
+                                .font(.system(size: 22, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                        .fnShadowBrand()
+                        Circle().fill(Color.fnGreen).frame(width: 12, height: 12)
+                            .overlay(Circle().stroke(Color.fnBg, lineWidth: 2))
                     }
-                    .fnShadowBrand()
-                    Circle().fill(Color.fnGreen).frame(width: 12, height: 12)
-                        .overlay(Circle().stroke(Color.fnBg, lineWidth: 2))
                 }
+                .buttonStyle(.plain)
                 .opacity(appeared ? 1 : 0)
                 .scaleEffect(appeared ? 1 : 0.5)
                 .animation(.spring(response: 0.6, dampingFraction: 0.65).delay(0.25), value: appeared)
