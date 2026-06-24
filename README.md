@@ -514,7 +514,7 @@ fitnow-ios/
 ## CI y tests
 
 - **GitHub Actions** (`.github/workflows/ci.yml`) — corre en `macos-15` con **Xcode 16.3**:
-  resuelve dependencias SPM, hace **build** y corre los **tests** en cada push a `main`/`claude/**`
+  resuelve dependencias SPM, hace **build** y corre los **tests** en cada push a `main`
   y en cada PR a `main`.
 - **SwiftLint** configurado en `.swiftlint.yml`.
 - Tests en `FitNowTests/` (unit) y `FitNowUITests/` (UI, incluyendo launch tests).
