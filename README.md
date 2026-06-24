@@ -17,7 +17,10 @@
 
 - [Descripción](#descripción)
 - [Roles de usuario](#roles-de-usuario)
+- [Funcionalidades](#funcionalidades)
 - [Pantallas](#pantallas)
+- [Integración con la API](#integración-con-la-api)
+- [Servicios](#servicios)
 - [Sistema de diseño](#sistema-de-diseño)
   - [Paleta de colores](#paleta-de-colores)
   - [Tipografía](#tipografía)
@@ -28,16 +31,21 @@
 - [Navegación y flujos](#navegación-y-flujos)
 - [Setup](#setup)
 - [Estructura del proyecto](#estructura-del-proyecto)
+- [CI y tests](#ci-y-tests)
 
 ---
 
 ## Descripción
 
-FitNow es una app iOS de fitness con **dark mode nativo**, diseño de alta fidelidad y 3 roles de usuario diferenciados. Cubre flujos completos de inscripción a actividades, navegación GPS para correr y administración de proveedores.
+FitNow es una app iOS de fitness con **dark mode nativo**, diseño de alta fidelidad y 3 roles de usuario diferenciados. Es un cliente completo del [backend de FitNow](https://github.com/manuel-cosovschi/fitnow-api): cubre autenticación multi-rol, catálogo e inscripción a actividades, pagos, navegación GPS para correr con telemetría, un AI Coach, gamificación y administración de proveedores.
 
 **Stack tecnológico:**
-- SwiftUI 5.0 + NavigationStack
-- MapKit (Run Navigator — dark mode, overlay de ruta)
+- SwiftUI + NavigationStack · arquitectura MVVM (ViewModels + Services)
+- MapKit + CoreLocation (Run Navigator — dark mode, overlay de ruta, telemetría en vivo)
+- HealthKit · StoreKit 2 (suscripción FitNow+) · App Intents + Widgets
+- Sign in with Apple · biometría (Face ID / Touch ID) · Keychain
+- Pagos: Stripe · MercadoPago · pagos in-app (StoreKit)
+- Push notifications (APNs) · deep links · App Tracking Transparency
 - Fuentes custom: DM Serif Display · JetBrains Mono
 - Íconos: SF Symbols (nativo iOS)
 
@@ -53,23 +61,93 @@ FitNow es una app iOS de fitness con **dark mode nativo**, diseño de alta fidel
 
 ---
 
+## Funcionalidades
+
+- **Autenticación multi-rol** — registro/login, Sign in with Apple, 2FA, biometría y tokens en Keychain.
+- **Onboarding** — flujo de bienvenida para nuevos usuarios.
+- **Actividades** — explorar, ver detalle, reseñas y feed de novedades por proveedor.
+- **Inscripciones y check-in** — wizard de inscripción + check-in por **código QR** (escaneo y generación).
+- **Pagos** — Stripe, MercadoPago, métodos guardados, reembolsos y suscripción **FitNow+** (StoreKit).
+- **Running** — planner de rutas, navegador GPS con telemetría en vivo, preview de ruta y registro de sesiones.
+- **Gym** — sesiones de gimnasio, planes de entrenamiento y **AI Coach** (chat) + **form-check** asistido por IA.
+- **Gamificación** — XP, badges, ranking e historial.
+- **Analytics** — resúmenes de running y gimnasio, distribución muscular y streaks.
+- **Favoritos, ofertas especiales y mensajería** in-app.
+- **Integraciones nativas** — HealthKit, App Intents/Widgets, notificaciones push y deep links.
+
+---
+
 ## Pantallas
 
 | # | Pantalla | Rol | Descripción |
 |---|---|---|---|
-| 1 | **Splash Screen** | Todos | Logo + wordmark + dots pulsantes → navega a Login en 2.6 s |
-| 2 | **Login / Registro** | Todos | Form card con role picker, toggle login↔registro, acceso admin |
-| 3 | **Home** | Atleta | Hero header, stats row, quick actions, promo banner, novedades |
-| 4 | **Explorar** | Atleta | Search + filter chips + lista de actividades por tipo |
-| 5 | **Activity Detail** | Atleta | Hero 280 pt, precio, cupos, descripción, provider card, CTA sticky |
-| 6 | **Enrollment Wizard** | Atleta | 3 pasos: Confirmar → Plan → Pagar → Success con confetti |
-| 7 | **Mis Inscripciones** | Atleta | Segmented picker Próximas/Pasadas/Todas, empty state |
-| 8 | **Calendario** | Atleta | Week strip + timeline con eventos por tipo |
-| 9 | **Run Planner** | Atleta | Distance selector gigante, slider, presets, rutas seleccionables |
-| 10 | **Run Navigator** | Atleta | Full-screen MapKit, HUD glass, hazard banner, dashboard métricas |
-| 11 | **Provider Dashboard** | Proveedor | Stats, quick actions, activity list con fill bar, feed de novedades |
-| 12 | **Admin Panel** | Admin | Tabs Ofertas/Estadísticas/Usuarios/Proveedores, bar chart 7 días |
-| 13 | **Perfil** | Todos | Avatar con borde gradiente, stats, settings groups, sign out |
+| 1 | **Splash** | Todos | Logo + wordmark + dots pulsantes → navega a Login |
+| 2 | **Onboarding** | Todos | Flujo de bienvenida para nuevos usuarios |
+| 3 | **Login / Registro** | Todos | Form card con role picker, Sign in with Apple, 2FA |
+| 4 | **Home** | Atleta | Hero header, stats row, quick actions, promo banner, novedades |
+| 5 | **Activity Hub / Explorar** | Atleta | Search + filter chips + lista de actividades por tipo |
+| 6 | **Activity Detail** | Atleta | Hero, precio, cupos, reseñas, provider card, CTA sticky |
+| 7 | **Enrollment Flow** | Atleta | Wizard Confirmar → Plan → Pagar → Success con confetti |
+| 8 | **Mis Inscripciones / Detalle** | Atleta | Segmented Próximas/Pasadas/Todas + QR de check-in |
+| 9 | **Calendario** | Atleta | Week strip + timeline con eventos por tipo |
+| 10 | **Run Hub / Planner** | Atleta | Distance selector, presets, rutas seleccionables |
+| 11 | **Run Navigator** | Atleta | Full-screen MapKit, HUD glass, hazard banner, métricas en vivo |
+| 12 | **Gym Hub** | Atleta | Sesiones de gimnasio, sets y reroute asistido por IA |
+| 13 | **Training Plan** | Atleta | Planes de entrenamiento generados |
+| 14 | **Coach IA** | Atleta | Chat con el AI Coach (modo demo si la API corre en stub) |
+| 15 | **Form Check** | Atleta | Análisis de técnica asistido por IA |
+| 16 | **Gamificación** | Atleta | XP, badges, ranking e historial |
+| 17 | **Analytics** | Atleta | Resúmenes de running/gym, distribución muscular, streaks |
+| 18 | **Club Sports** | Atleta | Deportes de clubes |
+| 19 | **Favoritos** | Atleta | Actividades guardadas |
+| 20 | **Ofertas especiales** | Atleta | Descuentos y promos |
+| 21 | **Mensajes** | Todos | Mensajería / notificaciones in-app |
+| 22 | **FitNow+** | Atleta | Paywall de suscripción (StoreKit) |
+| 23 | **Pagos guardados / Reembolsos** | Atleta | Métodos de pago y solicitud de reembolso |
+| 24 | **Provider Dashboard** | Proveedor | Stats, activity list con fill bar, feed de novedades |
+| 25 | **Trainer Bookings** | Proveedor | Reservas de entrenador |
+| 26 | **Admin Panel** | Admin | Ofertas/Estadísticas/Usuarios/Proveedores, aprobación de contenido |
+| 27 | **Perfil** | Todos | Avatar con borde gradiente, stats, settings, sign out |
+
+---
+
+## Integración con la API
+
+La app consume el [backend de FitNow](https://github.com/manuel-cosovschi/fitnow-api) (REST sobre `/api`).
+
+- **`APIClient.swift`** — capa HTTP central: arma requests, inyecta el `Authorization: Bearer`,
+  decodifica respuestas y maneja errores.
+- **`TokenStore.swift` / `KeychainService.swift`** — persistencia segura de access + refresh tokens
+  y renovación automática del access token.
+- **`AuthViewModel.swift`** — orquesta login/registro, Apple Sign In y 2FA.
+- **ViewModels** (`ActivitiesViewModel`, `EnrollmentsViewModel`…) exponen el estado a las vistas
+  siguiendo MVVM; los **Services** encapsulan cada dominio (pagos, IA, check-in, etc.).
+
+> Los endpoints de IA del backend pueden correr en **modo stub**; en ese caso la app muestra
+> una píldora de "demo" en las vistas de Coach IA y Form Check.
+
+---
+
+## Servicios
+
+Capa de servicios (`*Service.swift`) que aísla integraciones y lógica de dominio:
+
+| Servicio | Responsabilidad |
+|---|---|
+| `APIClient` | Cliente HTTP del backend |
+| `KeychainService` · `TokenStore` | Tokens seguros y sesión |
+| `AppleSignInService` · `BiometricService` | Login federado y Face ID / Touch ID |
+| `PaymentService` · `MercadoPagoService` · `StoreKitService` | Pagos y suscripción FitNow+ |
+| `CoachIAService` · `FormCheckService` | Features de IA |
+| `LocationService` · `RunSessionTracker` | GPS y telemetría de running |
+| `HealthKitService` | Sincronización con Salud |
+| `CheckInService` | Check-in por QR |
+| `HazardService` | Reporte/consulta de hazards en ruta |
+| `NotificationsService` | Push (APNs) |
+| `FavoritesService` | Favoritos |
+| `WidgetDataService` · `FitNowAppIntents` | Widgets y App Intents |
+| `ATTService` | App Tracking Transparency |
+| `DeepLinkHandler` | Manejo de deep links |
 
 ---
 
@@ -316,7 +394,7 @@ Splash (2.6 s)
 
 ### Requisitos
 
-- Xcode 15+
+- Xcode 16.3 (versión usada por el CI; 15+ debería funcionar)
 - iOS 17+ deployment target
 - Swift 5.9+
 
@@ -343,12 +421,14 @@ Agregar al bundle de Xcode (`FitNow/Resources/Fonts/`):
 <key>UIAppFonts</key>
 <array>
     <string>DMSerifDisplay-Regular.ttf</string>
-    <string>DMSerifDisplay-Italic.ttf</string>
     <string>JetBrainsMono-Regular.ttf</string>
-    <string>JetBrainsMono-Bold.ttf</string>
     <string>JetBrainsMono-Medium.ttf</string>
+    <string>JetBrainsMono-SemiBold.ttf</string>
+    <string>JetBrainsMono-Bold.ttf</string>
 </array>
 ```
+
+> Las fuentes ya están incluidas en el repo bajo `FitNow/Fonts/` y declaradas en `Info.plist`.
 
 ### MapKit (Run Navigator)
 
@@ -366,41 +446,78 @@ config.pointOfInterestFilter = .excludingAll
 
 ## Estructura del proyecto
 
+El target usa una organización **plana** dentro de `FitNow/` (los archivos no están en subcarpetas, salvo `Assets.xcassets` y `Fonts`). Agrupados por responsabilidad:
+
 ```
-FitNow/
-├── App/
-│   ├── FitNowApp.swift
-│   └── ContentView.swift
-├── Design/
-│   ├── Colors.swift          # Tokens fnBlue, fnBg, fnSurface…
-│   ├── Typography.swift      # Font extensions
-│   ├── Gradients.swift       # LinearGradient constants
-│   └── Components/
-│       ├── FNButton.swift    # Botón primario con ScaleButtonStyle
-│       ├── GlassCard.swift   # Card con blur + border sutil
-│       ├── ActivityCard.swift
-│       ├── StatCard.swift
-│       └── BadgeView.swift
-├── Screens/
-│   ├── Splash/
-│   ├── Auth/                 # Login + Registro
-│   ├── Home/
-│   ├── Explore/
-│   ├── ActivityDetail/
-│   ├── Enrollment/           # Wizard 3 pasos + Success
-│   ├── Enrollments/          # Mis Inscripciones
-│   ├── Calendar/
-│   ├── Run/
-│   │   ├── RunPlanner/
-│   │   └── RunNavigator/
-│   ├── Provider/
-│   ├── Admin/
-│   └── Profile/
-├── Models/
-├── Resources/
-│   └── Fonts/
-└── Info.plist
+fitnow-ios/
+├── FitNow.xcodeproj
+├── FitNow/
+│   ├── FitNowApp.swift              # @main · entrypoint
+│   ├── RootView.swift · MainTabView.swift   # Routing por rol
+│   ├── DesignSystem.swift           # Colors, Typography, Gradients, componentes
+│   ├── Models.swift · RunModels.swift · GamificationModels.swift
+│   │
+│   ├── ── Auth ──
+│   ├── LoginView.swift · OnboardingView.swift · TwoFactorView.swift
+│   ├── AuthViewModel.swift
+│   ├── AppleSignInService.swift · BiometricService.swift
+│   ├── KeychainService.swift · TokenStore.swift
+│   │
+│   ├── ── Actividades / inscripciones ──
+│   ├── ActivityHubView.swift · ActivitiesListView.swift · ActivitiesViewModel.swift
+│   ├── ActivityDetailView.swift · ActivityDetailLoader.swift
+│   ├── EnrollmentFlowView.swift · EnrollmentDetailView.swift
+│   ├── MyEnrollmentsView.swift · EnrollmentsViewModel.swift
+│   ├── CalendarView.swift · ClubSportsView.swift
+│   ├── QRScannerView.swift · QRCodeView.swift · CheckInService.swift
+│   │
+│   ├── ── Running ──
+│   ├── RunHubView.swift · RunPlannerView.swift · RunNavigatorView.swift
+│   ├── RunRoutePreviewView.swift · RunSessionTracker.swift
+│   ├── LocationService.swift · HazardService.swift
+│   │
+│   ├── ── Gym / IA ──
+│   ├── GymHubView.swift · TrainingPlanView.swift
+│   ├── CoachIAView.swift · CoachIAService.swift
+│   ├── FormCheckView.swift · FormCheckService.swift
+│   │
+│   ├── ── Pagos ──
+│   ├── PaymentService.swift · MercadoPagoService.swift · StoreKitService.swift
+│   ├── FitNowPlusView.swift · SavedPaymentsView.swift · RefundView.swift
+│   │
+│   ├── ── Gamificación / analytics / social ──
+│   ├── GamificationView.swift · AnalyticsView.swift
+│   ├── FavoritesView.swift · FavoritesService.swift
+│   ├── SpecialOffersView.swift · MessagesView.swift
+│   │
+│   ├── ── Proveedor / admin ──
+│   ├── ProviderDashboardView.swift · TrainerBookingsView.swift · AdminView.swift
+│   │
+│   ├── ── Perfil / plataforma ──
+│   ├── HomeView.swift · ProfileView.swift · SplashView.swift
+│   ├── APIClient.swift · NotificationsService.swift · HealthKitService.swift
+│   ├── DeepLinkHandler.swift · ATTService.swift
+│   ├── FitNowAppIntents.swift · WidgetDataService.swift
+│   │
+│   ├── Assets.xcassets
+│   ├── Fonts/                       # DM Serif Display · JetBrains Mono
+│   └── Info.plist
+├── FitNowTests/                     # Unit tests
+└── FitNowUITests/                   # UI tests
 ```
+
+> Los tokens del sistema de diseño (colores, tipografía, gradientes y componentes) viven en
+> un único archivo **`DesignSystem.swift`**.
+
+---
+
+## CI y tests
+
+- **GitHub Actions** (`.github/workflows/ci.yml`) — corre en `macos-15` con **Xcode 16.3**:
+  resuelve dependencias SPM, hace **build** y corre los **tests** en cada push a `main`/`claude/**`
+  y en cada PR a `main`.
+- **SwiftLint** configurado en `.swiftlint.yml`.
+- Tests en `FitNowTests/` (unit) y `FitNowUITests/` (UI, incluyendo launch tests).
 
 ---
 
