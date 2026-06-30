@@ -465,8 +465,26 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
                 applySegments([r]); emitStatus("Ruta lista. ¡A correr!")
                 announceIfNeeded(r.steps.first?.instructions.isEmpty == false ? r.steps.first!.instructions : "Comienzo")
                 updateInstruction(for: nil)
-            } catch { emitStatus("No se pudo calcular la ruta") }
+            } catch { fallBackToSuggestedRoute() }
         }
+    }
+
+    /// Last-resort route: draw the backend's road-based geometry directly as the
+    /// active route. Apple's MKDirections throttles after a handful of requests,
+    /// so on a long loop it can fail entirely — but the suggestion is already
+    /// snapped to roads by the backend (OSRM), so it's perfectly runnable without
+    /// turn-by-turn. Beats the dead-end "no se pudo calcular la ruta".
+    private func fallBackToSuggestedRoute() {
+        let coords = option.geojson.coords2D
+        guard coords.count >= 2 else { emitStatus("Ruta inválida"); return }
+        clearBlueOverlays()
+        navSteps = []
+        currentStepIndex = 0
+        let pl = MKPolyline(coordinates: coords, count: coords.count)
+        blueOverlays.append(pl)
+        map.addOverlay(pl, level: .aboveLabels)
+        emitStatus("Ruta lista. ¡A correr!")
+        updateInstruction(for: nil)
     }
 
     private func applySegments(_ segments: [MKRoute]) {
@@ -479,7 +497,9 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
         emitStatus("Calculando ruta…")
         let coords = option.geojson.coords2D
         guard !coords.isEmpty else { emitStatus("Ruta inválida"); return }
-        let points = anchors(from: coords, every: 500)
+        // Sample sparsely: MKDirections throttles after a few calls, so one
+        // request per ~2.5 km (≈8 on a 21 km loop) instead of one per 500 m (≈42).
+        let points = anchors(from: coords, every: 2500)
         guard points.count >= 2 else { requestDirectRoute(from: src); return }
         var segments: [MKRoute] = []; let start = src ?? origin; var last = start
         do {
@@ -487,7 +507,7 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
             applySegments(segments); emitStatus("Ruta lista. ¡A correr!")
             announceIfNeeded(navSteps.first?.instructions.isEmpty == false ? navSteps.first!.instructions : "Comienzo")
             updateInstruction(for: nil)
-        } catch { requestDirectRoute(from: start) }
+        } catch { fallBackToSuggestedRoute() }
     }
 
     private func emitStatus(_ s: String) { onStatus(s) }
