@@ -17,6 +17,9 @@ final class RunSessionTracker: ObservableObject {
     // MARK: - Published state
     @Published private(set) var sessionId: Int?
     @Published private(set) var totalDistanceM: CLLocationDistance = 0
+    /// Post-run AI analysis, fetched after the run is finalised.
+    @Published private(set) var analysis: RunAnalysis?
+    @Published private(set) var analyzing = false
 
     // MARK: - Private state
     private var pendingPoints: [[String: Any]] = []
@@ -104,19 +107,25 @@ final class RunSessionTracker: ObservableObject {
         let distanceM = totalDistanceM
         let started   = startedAt
         sessionId = nil
+        analysis = nil
+        analyzing = true
 
         var body: [String: Any] = ["distance_m": Int(distanceM)]
         if let s = started { body["duration_s"] = Int(Date().timeIntervalSince(s)) }
 
-        guard let data = try? JSONSerialization.data(withJSONObject: body) else { return }
+        guard let data = try? JSONSerialization.data(withJSONObject: body) else { analyzing = false; return }
 
         APIClient.shared.requestPublisher("run/sessions/\(sid)/finish",
                                  method: "POST",
                                  body: data,
                                  authorized: true)
             .sink(
-                receiveCompletion: { _ in },
-                receiveValue: { (_: SimpleOK) in }
+                receiveCompletion: { [weak self] completion in
+                    if case .failure = completion { self?.analyzing = false }
+                },
+                receiveValue: { [weak self] (_: SimpleOK) in
+                    self?.fetchAnalysis(sessionId: sid)
+                }
             )
             .store(in: &bag)
 
@@ -133,6 +142,26 @@ final class RunSessionTracker: ObservableObject {
                 )
             }
         }
+    }
+
+    /// After the run is finalised, ask the backend for the grounded AI analysis.
+    private func fetchAnalysis(sessionId sid: Int) {
+        guard let data = try? JSONSerialization.data(withJSONObject: ["session_id": sid]) else {
+            analyzing = false
+            return
+        }
+        APIClient.shared.requestPublisher("ai/run-analysis",
+                                 method: "POST",
+                                 body: data,
+                                 authorized: true)
+            .sink(
+                receiveCompletion: { [weak self] _ in self?.analyzing = false },
+                receiveValue: { [weak self] (a: RunAnalysis) in
+                    self?.analysis = a
+                    self?.analyzing = false
+                }
+            )
+            .store(in: &bag)
     }
 
     /// Call when the user exits navigation without completing the run.

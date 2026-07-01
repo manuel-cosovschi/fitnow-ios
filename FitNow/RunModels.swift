@@ -48,6 +48,33 @@ struct RunSessionsResponse: Decodable {
     let items: [RunSession]
 }
 
+// Análisis post-corrida (POST /ai/run-analysis). Los números vienen de la
+// sesión real; el texto del modelo pasa por validación en el backend.
+struct RunAnalysis: Decodable {
+    let headline: String
+    let summary: String
+    let pace_assessment: String
+    let strengths: [String]
+    let improvements: [String]
+    let recommendation: String
+    let next_run: NextRun
+    let metrics: Metrics?
+    let ai_mode: String
+
+    struct NextRun: Decodable {
+        let distance_km: Double
+        let focus: String
+    }
+    struct Metrics: Decodable {
+        let distance_km: Double?
+        let duration_min: Double?
+        let pace_label: String?
+        let avg_hr: Int?
+    }
+
+    var isDemo: Bool { ai_mode != "real" }
+}
+
 // Respuesta con una ruta concreta (si la pidieras por id)
 struct RunRouteResponse: Decodable {
     let route: RunRouteDetail

@@ -31,6 +31,7 @@ struct RunNavigatorView: View {
     @State private var elapsed: TimeInterval = 0
     @State private var timer: Timer?
     @State private var sessionEnded = false
+    @State private var showAnalysis = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -80,11 +81,14 @@ struct RunNavigatorView: View {
             Button("Finalizar", role: .destructive) {
                 sessionEnded = true
                 tracker.finish()
-                dismiss()
+                showAnalysis = true
             }
             Button("Continuar", role: .cancel) { }
         } message: {
             Text("Se guardará tu sesión con los datos recorridos.")
+        }
+        .sheet(isPresented: $showAnalysis, onDismiss: { dismiss() }) {
+            RunAnalysisSheet(tracker: tracker) { showAnalysis = false }
         }
     }
 
@@ -612,5 +616,108 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
 fileprivate extension MKRoute.Step {
     var polylineIfAvailable: MKPolyline? {
         value(forKey: "polyline") as? MKPolyline
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MARK: - Post-run AI analysis sheet
+// ─────────────────────────────────────────────────────────────────────────────
+
+struct RunAnalysisSheet: View {
+    @ObservedObject var tracker: RunSessionTracker
+    let onDone: () -> Void
+
+    var body: some View {
+        NavigationView {
+            Group {
+                if let a = tracker.analysis {
+                    content(a)
+                } else if tracker.analyzing {
+                    VStack(spacing: 16) {
+                        ProgressView()
+                        Text("Analizando tu corrida…").foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    VStack(spacing: 12) {
+                        Image(systemName: "figure.run").font(.system(size: 44)).foregroundColor(.secondary)
+                        Text("¡Corrida guardada!").font(.headline)
+                        Text("No pudimos generar el análisis esta vez.")
+                            .font(.subheadline).foregroundColor(.secondary).multilineTextAlignment(.center)
+                    }
+                    .padding().frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            }
+            .navigationTitle("Análisis")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Listo") { onDone() }
+                }
+            }
+        }
+    }
+
+    private func content(_ a: RunAnalysis) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 8) {
+                        Text(a.headline).font(.title3.bold())
+                        if a.isDemo {
+                            Text("DEMO").font(.caption2.bold())
+                                .padding(.horizontal, 6).padding(.vertical, 2)
+                                .background(Color.orange.opacity(0.2))
+                                .foregroundColor(.orange).clipShape(Capsule())
+                        }
+                    }
+                    Text(a.summary).font(.subheadline).foregroundColor(.secondary)
+                }
+
+                if let m = a.metrics {
+                    HStack(spacing: 12) {
+                        metric("Distancia", m.distance_km.map { "\($0) km" } ?? "—")
+                        metric("Tiempo", m.duration_min.map { "\(Int($0)) min" } ?? "—")
+                        metric("Ritmo", m.pace_label ?? "—")
+                    }
+                }
+
+                section("Ritmo", [a.pace_assessment])
+                section("Fortalezas", a.strengths, symbol: "checkmark.circle.fill", tint: .green)
+                section("A mejorar", a.improvements, symbol: "arrow.up.circle.fill", tint: .blue)
+                section("Recomendación", [a.recommendation])
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Próxima corrida").font(.headline)
+                    Text("\(Int(a.next_run.distance_km)) km · \(a.next_run.focus)")
+                        .font(.subheadline).foregroundColor(.secondary)
+                }
+            }
+            .padding()
+        }
+    }
+
+    private func metric(_ label: String, _ value: String) -> some View {
+        VStack(spacing: 2) {
+            Text(value).font(.headline)
+            Text(label).font(.caption).foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity).padding(.vertical, 10)
+        .background(Color.gray.opacity(0.15))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func section(_ title: String, _ items: [String], symbol: String? = nil, tint: Color = .primary) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title).font(.headline)
+            ForEach(items, id: \.self) { item in
+                HStack(alignment: .top, spacing: 8) {
+                    if let symbol = symbol {
+                        Image(systemName: symbol).foregroundColor(tint).font(.subheadline)
+                    }
+                    Text(item).font(.subheadline)
+                }
+            }
+        }
     }
 }
