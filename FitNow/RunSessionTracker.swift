@@ -106,12 +106,27 @@ final class RunSessionTracker: ObservableObject {
         guard let sid = sessionId else { return }
         let distanceM = totalDistanceM
         let started   = startedAt
+        let end        = Date()
         sessionId = nil
         analysis = nil
         analyzing = true
 
+        // Pull the average heart rate for the run window from HealthKit (e.g. an
+        // Apple Watch worn during the run), then finalise the session with it so
+        // the coach analysis factors in the real effort. Falls back to no HR.
+        Task { @MainActor in
+            var avgHR: Double? = nil
+            if let s = started {
+                avgHR = await HealthKitService.shared.averageHeartRate(from: s, to: end)
+            }
+            self.postFinish(sid: sid, distanceM: distanceM, started: started, end: end, avgHR: avgHR)
+        }
+    }
+
+    private func postFinish(sid: Int, distanceM: CLLocationDistance, started: Date?, end: Date, avgHR: Double?) {
         var body: [String: Any] = ["distance_m": Int(distanceM)]
-        if let s = started { body["duration_s"] = Int(Date().timeIntervalSince(s)) }
+        if let s = started { body["duration_s"] = Int(end.timeIntervalSince(s)) }
+        if let hr = avgHR, hr > 0 { body["avg_hr_bpm"] = Int(hr.rounded()) }
 
         guard let data = try? JSONSerialization.data(withJSONObject: body) else { analyzing = false; return }
 
@@ -129,14 +144,12 @@ final class RunSessionTracker: ObservableObject {
             )
             .store(in: &bag)
 
-        // Save to HealthKit
+        // Save the workout to HealthKit
         if let s = started {
-            let end = Date()
-            let duration = end.timeIntervalSince(s)
             Task {
                 await HealthKitService.shared.saveRun(
                     distanceMeters: distanceM,
-                    durationSeconds: duration,
+                    durationSeconds: end.timeIntervalSince(s),
                     startDate: s,
                     endDate: end
                 )

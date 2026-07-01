@@ -103,6 +103,31 @@ final class HealthKitService {
         }
     }
 
+    // MARK: - Read average heart rate (feeds the coach analysis)
+
+    /// Average heart rate (bpm) recorded in the given window, e.g. from an Apple
+    /// Watch worn during the run. Returns nil if there are no samples or no
+    /// permission — the run just finishes without HR in that case.
+    func averageHeartRate(from start: Date, to end: Date) async -> Double? {
+        guard isAvailable, end > start else { return nil }
+        let _ = await requestAuthorization()
+
+        let hrType = HKQuantityType(.heartRate)
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate)
+        let bpmUnit = HKUnit.count().unitDivided(by: .minute())
+
+        return await withCheckedContinuation { continuation in
+            let query = HKStatisticsQuery(
+                quantityType: hrType,
+                quantitySamplePredicate: predicate,
+                options: .discreteAverage
+            ) { _, stats, _ in
+                continuation.resume(returning: stats?.averageQuantity()?.doubleValue(for: bpmUnit))
+            }
+            store.execute(query)
+        }
+    }
+
     // MARK: - ACWR
 
     struct ACWR {
