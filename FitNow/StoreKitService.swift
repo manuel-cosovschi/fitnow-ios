@@ -28,10 +28,12 @@ final class StoreKitService {
 
     deinit { transactionUpdatesTask?.cancel() }
 
+    // Limpia el error de compra.
     func clearError() { purchaseError = nil }
 
     // MARK: - Load products
 
+    // Carga los productos de suscripción.
     func load() async {
         isLoading = true
         defer { isLoading = false }
@@ -47,6 +49,7 @@ final class StoreKitService {
     // MARK: - Purchase
 
     @discardableResult
+    // Compra la suscripción FitNow+.
     func purchase(_ product: Product) async -> Bool {
         purchaseError = nil
         do {
@@ -72,6 +75,7 @@ final class StoreKitService {
 
     // MARK: - Restore
 
+    // Restaura compras anteriores.
     func restorePurchases() async {
         do {
             try await AppStore.sync()
@@ -83,6 +87,7 @@ final class StoreKitService {
 
     // MARK: - Helpers
 
+    // Chequea si tenés la suscripción activa.
     private func refreshPurchaseStatus() async {
         var hasActive = false
         for await result in Transaction.currentEntitlements {
@@ -94,6 +99,7 @@ final class StoreKitService {
         isPlusActive = hasActive
     }
 
+    // Escucha las compras que llegan de Apple.
     private func listenForTransactions() async {
         for await result in Transaction.updates {
             guard let transaction = try? checkVerified(result) else { continue }
@@ -102,6 +108,7 @@ final class StoreKitService {
         }
     }
 
+    // Verifica que una compra sea auténtica de Apple.
     private func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
         switch result {
         case .unverified: throw StoreError.failedVerification

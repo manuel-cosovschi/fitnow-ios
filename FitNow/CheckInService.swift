@@ -48,6 +48,7 @@ final class CheckInService {
     var lastResult: CheckInResult?
     var lastError: String?
 
+    // Marca la asistencia (check-in) contra el backend.
     func checkIn(enrollmentId: Int) async throws -> CheckInResult {
         isProcessing = true
         lastError = nil
@@ -59,6 +60,7 @@ final class CheckInService {
         return result
     }
 
+    // Interpreta el contenido del código QR.
     func parseQR(_ value: String) -> Int? {
         // Accepts: fitnow://checkin/123  OR just "123"
         if let url = URL(string: value),
@@ -156,6 +158,7 @@ struct ProviderEnrollmentsTab: View {
         .preferredColorScheme(.dark)
     }
 
+    // El cartelito de resultado del check-in.
     private func checkInResultBanner(_ result: CheckInResult?, success: Bool, error: String? = nil) -> some View {
         HStack(spacing: 14) {
             Image(systemName: success ? "checkmark.circle.fill" : "xmark.circle.fill")
@@ -208,6 +211,7 @@ struct ProviderEnrollmentsTab: View {
         }
     }
 
+    // Una fila con los datos de un inscripto.
     private func enrollmentRow(_ e: ProviderEnrollment) -> some View {
         HStack(spacing: 12) {
             // Status dot
@@ -285,6 +289,7 @@ struct ProviderEnrollmentsTab: View {
 
     // MARK: - API
 
+    // Carga los inscriptos.
     private func load() async {
         isLoading = true
         let resp: ListResponse<ProviderEnrollment>? = try? await APIClient.shared.request(
@@ -294,6 +299,7 @@ struct ProviderEnrollmentsTab: View {
         isLoading = false
     }
 
+    // Procesa lo que leyó la cámara del QR.
     private func handleScan(_ value: String) async {
         guard let enrollmentId = CheckInService.shared.parseQR(value) else {
             withAnimation { scanError = "QR no reconocido: \(value)" }

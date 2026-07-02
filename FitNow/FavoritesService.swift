@@ -15,6 +15,7 @@ final class FavoritesService: ObservableObject {
         }
     }
 
+    // Agrega o saca de favoritos.
     func toggle(_ activity: Activity) {
         if let idx = favorites.firstIndex(where: { $0.id == activity.id }) {
             favorites.remove(at: idx)
@@ -24,10 +25,12 @@ final class FavoritesService: ObservableObject {
         persist()
     }
 
+    // Dice si una actividad está en favoritos.
     func isFavorite(_ id: Int) -> Bool {
         favorites.contains(where: { $0.id == id })
     }
 
+    // Guarda los favoritos.
     private func persist() {
         if let data = try? JSONEncoder().encode(favorites) {
             UserDefaults.standard.set(data, forKey: key)

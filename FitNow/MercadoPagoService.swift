@@ -12,6 +12,7 @@ final class MercadoPagoService {
 
     // MARK: - Create Preference
 
+    // Le pide al backend preparar un pago con MercadoPago.
     func createPreference(
         activityId: Int,
         planName: String,
@@ -36,6 +37,7 @@ final class MercadoPagoService {
 
     // MARK: - Poll enrollment after MP redirect
 
+    // Pregunta cada tanto si el pago se confirmó.
     func pollConfirmation(enrollmentId: Int) async throws -> EnrollmentItem {
         try await PaymentService.shared.pollEnrollmentConfirmation(enrollmentId: enrollmentId)
     }
@@ -116,6 +118,7 @@ struct MercadoPagoWebView: View {
         .onAppear { isLoading = false }
     }
 
+    // Abre el checkout de MercadoPago.
     private func openMercadoPago() {
         // Opens MP checkout in Safari; deep-link back via fitnow://mp-success?enrollment_id=X
         // handled in DeepLinkHandler. Stub: simulate success after 2s for dev.

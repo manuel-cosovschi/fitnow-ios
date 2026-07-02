@@ -27,6 +27,7 @@ final class ActivitiesViewModel: ObservableObject {
 
     private var bag = Set<AnyCancellable>()
 
+    // Limpia los filtros de búsqueda.
     func clearFilters() {
         selectedKind = ""
         selectedDifficulty = ""
@@ -36,6 +37,7 @@ final class ActivitiesViewModel: ObservableObject {
         selectedSort = "popular"
     }
 
+    // Trae las actividades del backend con los filtros puestos.
     func fetch() {
         loading = true
         error = nil

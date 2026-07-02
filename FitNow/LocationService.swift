@@ -32,6 +32,7 @@ final class LocationService: NSObject, ObservableObject {
         }
     }
 
+    // Deja de seguir tu ubicación.
     func stop() { manager.stopUpdatingLocation() }
 }
 
@@ -59,12 +60,14 @@ extension LocationService: CLLocationManagerDelegate {
         }
     }
 
+    // Recibe las actualizaciones de ubicación del GPS.
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         if let loc = locations.last {
             lastLocation = loc
         }
     }
 
+    // Recibe las actualizaciones de ubicación del GPS.
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("Location error:", error.localizedDescription)
     }

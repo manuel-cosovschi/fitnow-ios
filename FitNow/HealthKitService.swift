@@ -13,6 +13,7 @@ final class HealthKitService {
 
     // MARK: - Authorization
 
+    // Pide permiso para leer/escribir en Apple Salud.
     func requestAuthorization() async -> Bool {
         guard isAvailable else { return false }
         let types: Set<HKSampleType> = [
@@ -28,6 +29,7 @@ final class HealthKitService {
 
     // MARK: - Save run workout
 
+    // Guarda la corrida terminada en Apple Salud.
     func saveRun(
         distanceMeters: Double,
         durationSeconds: TimeInterval,
@@ -78,6 +80,7 @@ final class HealthKitService {
 
     // MARK: - Read weekly distance (for ACWR)
 
+    // Suma los km que corriste en una semana.
     func weeklyDistanceKm(weeksBack: Int) async -> Double {
         guard isAvailable else { return 0 }
         let _ = await requestAuthorization()
@@ -144,6 +147,7 @@ final class HealthKitService {
         enum Zone { case underload, optimal, overload }
     }
 
+    // Calcula la relación carga aguda/crónica, para avisarte si entrenás de más.
     func computeACWR() async -> ACWR {
         async let w1 = weeklyDistanceKm(weeksBack: 1)
         async let w2 = weeklyDistanceKm(weeksBack: 2)
@@ -156,6 +160,7 @@ final class HealthKitService {
 
     // MARK: - Helpers
 
+    // Estima las calorías quemadas.
     private func estimateCalories(distanceMeters: Double, durationSeconds: TimeInterval) -> Double {
         // MET ≈ 8 for running, average weight 70kg assumed
         let met = 8.0

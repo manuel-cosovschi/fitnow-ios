@@ -8,6 +8,7 @@ final class EnrollmentsViewModel: ObservableObject {
 
     private var bag = Set<AnyCancellable>()
 
+    // Trae tus inscripciones del backend.
     func fetchMine() {
         loading = true; error = nil
         APIClient.shared.requestPublisher("enrollments/mine", authorized: true)

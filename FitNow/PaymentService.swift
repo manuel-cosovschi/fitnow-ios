@@ -50,6 +50,7 @@ final class PaymentService {
 
     // MARK: - Create Payment Intent
 
+    // Le pide al backend preparar un pago con Stripe.
     func createPaymentIntent(
         activityId: Int,
         planName: String,
@@ -75,6 +76,7 @@ final class PaymentService {
 
     // MARK: - Validate Coupon
 
+    // Valida un cupón contra el backend.
     func validateCoupon(_ code: String, activityId: Int) async throws -> CouponValidationResponse {
         struct Payload: Encodable { let code: String; let activityId: Int
             enum CodingKeys: String, CodingKey { case code; case activityId = "activity_id" }
@@ -89,6 +91,7 @@ final class PaymentService {
 
     // MARK: - Poll enrollment confirmation
 
+    // Pregunta cada tanto si el pago ya se confirmó.
     func pollEnrollmentConfirmation(enrollmentId: Int, maxAttempts: Int = 10) async throws -> EnrollmentItem {
         for attempt in 0..<maxAttempts {
             let items: ListResponse<EnrollmentItem> = try await APIClient.shared.request(
@@ -197,6 +200,7 @@ struct StripePaymentView: View {
         }
     }
 
+    // Muestra la pantalla de pago de Stripe.
     private func presentStripeSheet() {
         // When StripePaymentSheet SDK is installed:
         //

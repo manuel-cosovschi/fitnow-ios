@@ -94,6 +94,7 @@ final class CoachIAService {
 
     // MARK: - SSE chunk parsing
 
+    // Va armando la respuesta del coach a medida que llega en streaming.
     private func parseSSEChunk(_ payload: String) -> String? {
         guard let data = payload.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]

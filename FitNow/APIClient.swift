@@ -23,6 +23,7 @@ enum APIError: LocalizedError {
 // MARK: - Protocol
 
 protocol APIClientProtocol {
+    // El método principal: hace un pedido y, si el token venció, lo renueva y reintenta.
     func request<T: Decodable>(
         _ path: String,
         method: String,
@@ -62,6 +63,7 @@ private let log = Logger(subsystem: "com.fitnow.app", category: "Network")
 private actor RefreshCoordinator {
     private var task: Task<Void, Error>?
 
+    // Evita que dos refrescos de token pasen al mismo tiempo.
     func coalesce(_ body: @escaping () async throws -> Void) async throws {
         if let existing = task {
             // A refresh is already in flight — piggyback on it.
@@ -94,6 +96,7 @@ final class APIClient: APIClientProtocol {
 
     // MARK: - Primary API (async/await)
 
+    // El método principal: hace un pedido y, si el token venció, lo renueva y reintenta.
     func request<T: Decodable>(
         _ path: String,
         method: String = "GET",
@@ -119,12 +122,14 @@ final class APIClient: APIClientProtocol {
     // MARK: - SSE helper
     // Exposes the configured session (with timeouts) for streaming callers.
 
+    // Versión para respuestas en streaming (el chat del coach).
     func bytesRequest(_ request: URLRequest) async throws -> (URLSession.AsyncBytes, URLResponse) {
         try await session.bytes(for: request)
     }
 
     // MARK: - Combine bridge (legacy ViewModels)
 
+    // Igual que request pero devolviendo un publisher de Combine.
     func requestPublisher<T: Decodable>(
         _ path: String,
         method: String = "GET",
@@ -153,6 +158,7 @@ final class APIClient: APIClientProtocol {
 
     // MARK: - Private
 
+    // Manda el pedido de verdad y decodifica la respuesta.
     private func performRequest<T: Decodable>(
         _ path: String,
         method: String,
@@ -192,6 +198,7 @@ final class APIClient: APIClientProtocol {
         }
     }
 
+    // Arma el pedido HTTP (URL, método, headers) y le pega el token si hace falta.
     func buildRequest(
         _ path: String,
         method: String = "GET",
@@ -228,6 +235,7 @@ final class APIClient: APIClientProtocol {
 
     // MARK: - Refresh
 
+    // Renueva el token de acceso usando el de refresco.
     private func refreshAccessToken() async throws {
         try await refreshCoordinator.coalesce { [weak self] in
             guard let self else { return }
@@ -255,6 +263,7 @@ final class APIClient: APIClientProtocol {
         }
     }
 
+    // Cierra la sesión cuando el token venció y no se pudo renovar.
     private func expireSession() {
         tokenStore.clear()
         DispatchQueue.main.async {
@@ -264,6 +273,7 @@ final class APIClient: APIClientProtocol {
 
     // MARK: - Retry (network errors only, exponential backoff)
 
+    // Reintenta algo si falla por un error temporal.
     private func withRetry<T>(
         maxAttempts: Int = 3,
         _ work: () async throws -> T
@@ -288,6 +298,8 @@ final class APIClient: APIClientProtocol {
     // MARK: - Convenience token accessors (for AuthViewModel compatibility)
 
     var token: String? { tokenStore.accessToken }
+    // Guarda el token de sesión.
     func setToken(_ t: String) { tokenStore.accessToken = t }
+    // Borra el token guardado.
     func clearToken() { tokenStore.clear() }
 }

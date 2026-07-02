@@ -46,6 +46,7 @@ final class HazardService {
         fetch(around: c)
     }
 
+    // Trae los peligros reportados cerca.
     private func fetch(around c: CLLocationCoordinate2D) {
         lastFetchCenter = c
         lastFetchDate = Date()

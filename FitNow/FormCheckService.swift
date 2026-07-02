@@ -65,6 +65,7 @@ final class FormCheckService: ObservableObject {
 
     // MARK: - Analyse a single pixel buffer
 
+    // Analiza la técnica del ejercicio con la cámara (visión por computadora).
     func analyse(pixelBuffer: CVPixelBuffer) {
         guard !isAnalyzing else { return }
         isAnalyzing = true
@@ -95,6 +96,7 @@ final class FormCheckService: ObservableObject {
 
     // MARK: - Persistence (POST /api/ai/form-check)
 
+    // Guarda el resultado del análisis.
     private func persist(result: FormCheckResult, exercise: FormExercise) async {
         var jointsDict: [String: [String: Double]] = [:]
         for (name, point) in result.joints {
@@ -128,6 +130,7 @@ final class FormCheckService: ObservableObject {
 
     // MARK: - Scoring per exercise
 
+    // Puntúa la técnica general.
     private func score(observation: VNHumanBodyPoseObservation, exercise: FormExercise) -> FormCheckResult {
         var joints: [VNHumanBodyPoseObservation.JointName: CGPoint] = [:]
         for name in VNHumanBodyPoseObservation.JointName.allNames {
@@ -146,6 +149,7 @@ final class FormCheckService: ObservableObject {
 
     // MARK: Squat — checks knee angle + back straightness
 
+    // Puntúa la técnica de la sentadilla.
     private func scoreSquat(joints: [VNHumanBodyPoseObservation.JointName: CGPoint]) -> FormCheckResult {
         guard let leftHip   = joints[.leftHip],
               let leftKnee  = joints[.leftKnee],
@@ -180,6 +184,7 @@ final class FormCheckService: ObservableObject {
 
     // MARK: Push-up — checks elbow angle + body alignment
 
+    // Puntúa la técnica de la flexión.
     private func scorePushUp(joints: [VNHumanBodyPoseObservation.JointName: CGPoint]) -> FormCheckResult {
         guard let leftShoulder = joints[.leftShoulder],
               let leftElbow    = joints[.leftElbow],
@@ -199,6 +204,7 @@ final class FormCheckService: ObservableObject {
 
     // MARK: Plank — checks hip height vs shoulder line
 
+    // Puntúa la técnica de la plancha.
     private func scorePlank(joints: [VNHumanBodyPoseObservation.JointName: CGPoint]) -> FormCheckResult {
         guard let leftShoulder = joints[.leftShoulder],
               let leftHip      = joints[.leftHip],
@@ -223,6 +229,7 @@ final class FormCheckService: ObservableObject {
 
     // MARK: Deadlift — checks back angle during lift
 
+    // Puntúa la técnica del peso muerto.
     private func scoreDeadlift(joints: [VNHumanBodyPoseObservation.JointName: CGPoint]) -> FormCheckResult {
         guard let leftShoulder = joints[.leftShoulder],
               let leftHip      = joints[.leftHip],
@@ -244,6 +251,7 @@ final class FormCheckService: ObservableObject {
 
     // MARK: - Geometry helper
 
+    // Calcula el ángulo entre articulaciones.
     private func angle(a: CGPoint, b: CGPoint, c: CGPoint) -> Double {
         let ab = CGPoint(x: a.x - b.x, y: a.y - b.y)
         let cb = CGPoint(x: c.x - b.x, y: c.y - b.y)

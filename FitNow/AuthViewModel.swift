@@ -39,6 +39,7 @@ final class AuthViewModel: ObservableObject {
 
     // MARK: - Session restore
 
+    // Al abrir la app, recupera tu sesión si ya estabas logueado.
     private func restoreSession() {
         guard tokenStore.isAuthenticated else { return }
         if let data = UserDefaults.standard.data(forKey: Self.userKey),
@@ -48,6 +49,7 @@ final class AuthViewModel: ObservableObject {
         }
     }
 
+    // Escucha si la sesión venció para desloguearte.
     private func observeSessionExpiry() {
         NotificationCenter.default.addObserver(
             forName: .sessionExpired, object: nil, queue: .main
@@ -58,6 +60,7 @@ final class AuthViewModel: ObservableObject {
 
     // MARK: - Email / password login
 
+    // Te loguea con email y contraseña.
     func login() {
         guard !loading else { return }
         loading = true; error = nil
@@ -79,6 +82,7 @@ final class AuthViewModel: ObservableObject {
 
     // MARK: - Register
 
+    // Te registra una cuenta nueva.
     func register() {
         guard !loading else { return }
         loading = true; error = nil
@@ -112,6 +116,7 @@ final class AuthViewModel: ObservableObject {
 
     // MARK: - Sign in with Apple
 
+    // Login con Apple.
     func signInWithApple() {
         guard !loading else { return }
         loading = true; error = nil
@@ -165,6 +170,7 @@ final class AuthViewModel: ObservableObject {
 
     // MARK: - Two-Factor Authentication
 
+    // Verifica el código de 2FA.
     func verifyTwoFactor(tempToken: String, code: String) {
         guard !loading else { return }
         loading = true; twoFactorError = nil
@@ -193,6 +199,7 @@ final class AuthViewModel: ObservableObject {
         }
     }
 
+    // Cancela el paso de 2FA.
     func cancelTwoFactor() {
         pendingTwoFactor  = nil
         twoFactorError    = nil
@@ -200,6 +207,7 @@ final class AuthViewModel: ObservableObject {
 
     // MARK: - Logout
 
+    // Cierra tu sesión.
     func logout() {
         tokenStore.clear()
         UserDefaults.standard.removeObject(forKey: Self.userKey)
@@ -210,6 +218,7 @@ final class AuthViewModel: ObservableObject {
 
     // MARK: - Private helpers
 
+    // Interpreta la respuesta del login, que puede pedir 2FA o darte el token directo.
     private func handleLoginFlexResponse(_ resp: LoginFlexResponse) {
         if let requiresTwoFactor = resp.requiresTwoFactor, requiresTwoFactor,
            let tempToken = resp.tempToken {
@@ -229,6 +238,7 @@ final class AuthViewModel: ObservableObject {
         isAuthenticated = true
     }
 
+    // Guarda la sesión (token + usuario) después de loguearte.
     private func applyAuth(_ resp: AuthResponse, intendedRole: String? = nil) {
         tokenStore.store(access: resp.token, refresh: resp.refreshToken)
         let resolvedRole = resp.user.role.flatMap { $0.isEmpty ? nil : $0 }
@@ -241,18 +251,21 @@ final class AuthViewModel: ObservableObject {
         isAuthenticated = true
     }
 
+    // Guarda la sesión en el dispositivo.
     private func save(user: User) {
         if let data = try? JSONEncoder().encode(user) {
             UserDefaults.standard.set(data, forKey: Self.userKey)
         }
     }
 
+    // Cierra la sesión a la fuerza (por ejemplo si venció).
     private func forceLogout() {
         user            = nil
         isAuthenticated = false
         pendingTwoFactor = nil
     }
 
+    // Convierte un error técnico en un mensaje entendible.
     private func humanError(_ error: Error) -> String {
         if let api = error as? APIError {
             switch api {
@@ -273,6 +286,7 @@ final class AuthViewModel: ObservableObject {
 
     // MARK: - Apple credential state verification on relaunch
 
+    // Chequea que tu login con Apple siga válido.
     private func verifyAppleCredentialState() async {
         guard let uid = appleUserID else { return }
         let state = await AppleSignInService.checkCredentialState(userID: uid)

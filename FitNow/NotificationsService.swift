@@ -7,12 +7,14 @@ final class NotificationsService {
 
     // MARK: - Permission
 
+    // Pide permiso para mandarte notificaciones.
     func requestPermission() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { _, _ in }
     }
 
     // MARK: - APNs device token
 
+    // Registra el celu para recibir notificaciones push.
     func registerDeviceToken(_ tokenData: Data) {
         let token = tokenData.map { String(format: "%02x", $0) }.joined()
         Task {
@@ -24,6 +26,7 @@ final class NotificationsService {
         }
     }
 
+    // Da de baja el celu de las notificaciones.
     func unregisterDeviceToken() {
         Task {
             let _: SimpleOK? = try? await APIClient.shared.request(
@@ -68,6 +71,7 @@ final class NotificationsService {
 
     // MARK: - Private helpers
 
+    // Programa una notificación local.
     private func schedule(identifier: String, title: String, body: String, date: Date) {
         UNUserNotificationCenter.current().getNotificationSettings { settings in
             guard settings.authorizationStatus == .authorized else { return }
@@ -86,6 +90,7 @@ final class NotificationsService {
         }
     }
 
+    // Convierte una fecha de texto a fecha real.
     private func parseISO(_ s: String) -> Date? {
         let fracF  = ISO8601DateFormatter()
         fracF.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
