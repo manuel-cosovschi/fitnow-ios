@@ -786,12 +786,21 @@ struct EnrollmentFlowView: View {
                     }
 
                 case .coupon:
-                    FitNowButton(
-                        title: "Ir al pago · $\(Int(finalPrice))",
-                        icon: "lock.shield.fill",
-                        gradient: typeInfo.gradient
-                    ) {
-                        withAnimation { step = .stripePayment }
+                    VStack(spacing: 10) {
+                        FitNowButton(
+                            title: "Ir al pago · $\(Int(finalPrice))",
+                            icon: "lock.shield.fill",
+                            gradient: typeInfo.gradient
+                        ) {
+                            withAnimation { step = .stripePayment }
+                        }
+                        FitNowButton(
+                            title: "Pagar en el lugar",
+                            icon: "banknote.fill",
+                            gradient: FNGradient.dark
+                        ) {
+                            Task { await enrollDirect() }
+                        }
                     }
 
                 case .stripePayment, .success:
@@ -882,4 +891,44 @@ struct EnrollmentFlowView: View {
             onEnrolled?()
         }
     }
+
+    // Inscripción directa, sin pasar por el pago online: registra la inscripción
+    // con método "transfer" (pago en el lugar). Deja completar el flujo cuando el
+    // pago online no está disponible, para poder ver inscripciones, horarios y
+    // rutinas.
+    private func enrollDirect() async {
+        isCreatingIntent = true
+        intentError = nil
+        var body: [String: Any] = [
+            "activity_id": activity.id,
+            "payment_method": "transfer",
+            "payment_type": paymentChoice == .deposit ? "deposit" : "full",
+        ]
+        if let plan = selectedPlan {
+            body["plan_name"]  = plan.name
+            body["plan_price"] = finalPrice
+        }
+        guard let data = try? JSONSerialization.data(withJSONObject: body) else {
+            isCreatingIntent = false
+            return
+        }
+        do {
+            let created: EnrollCreated = try await APIClient.shared.request(
+                "enrollments", method: "POST", body: data, authorized: true
+            )
+            confirmedEnrollmentId = created.id
+            NotificationsService.shared.scheduleReminders(
+                activityTitle: activity.title,
+                activityId: activity.id,
+                dateStart: activity.date_start
+            )
+            withAnimation { step = .success }
+            onEnrolled?()
+        } catch {
+            intentError = error.localizedDescription
+        }
+        isCreatingIntent = false
+    }
+
+    private struct EnrollCreated: Decodable { let id: Int }
 }
