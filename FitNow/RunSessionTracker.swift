@@ -26,6 +26,11 @@ final class RunSessionTracker: ObservableObject {
     private var bag = Set<AnyCancellable>()
     private var startedAt: Date?
     private var lastLocation: CLLocation?
+    // Guardados de start(): permiten recrear la sesión al finalizar si el POST
+    // inicial falló (p. ej. la base estaba caída), así el análisis igual funciona.
+    private var startRouteId: Int?
+    private var startOriginLat: Double = 0
+    private var startOriginLng: Double = 0
 
     /// Flush when this many points have accumulated
     private let flushThreshold = 10
@@ -39,6 +44,9 @@ final class RunSessionTracker: ObservableObject {
         startedAt = Date()
         totalDistanceM = 0
         lastLocation = nil
+        startRouteId   = routeId
+        startOriginLat = originLat
+        startOriginLng = originLng
 
         var body: [String: Any] = [
             "origin_lat": originLat,
@@ -63,8 +71,17 @@ final class RunSessionTracker: ObservableObject {
 
     /// Call on every GPS update from the location manager.
     func addPoint(_ location: CLLocation) {
+        // Filtro anti-ruido de GPS: parado en un escritorio el GPS "salta" unos
+        // metros entre lecturas, y sin filtrar eso se sumaría como distancia real.
+        // 1) Descartamos lecturas imprecisas.
+        guard location.horizontalAccuracy > 0, location.horizontalAccuracy <= 25 else { return }
+
         if let prev = lastLocation {
-            totalDistanceM += location.distance(from: prev)
+            let step = location.distance(from: prev)
+            // 2) Menos de 8 m entre lecturas = ruido: no lo contamos ni movemos
+            //    el ancla, así el salto no acumula distancia falsa.
+            guard step >= 8 else { return }
+            totalDistanceM += step
         }
         lastLocation = location
 
@@ -107,20 +124,35 @@ final class RunSessionTracker: ObservableObject {
         let distanceM = totalDistanceM
         let started   = startedAt
         let end        = Date()
-        sessionId = nil
         analysis = nil
         analyzing = true
 
-        // Pull the average heart rate for the run window from HealthKit (e.g. an
-        // Apple Watch worn during the run), then finalise the session with it so
-        // the coach analysis factors in the real effort. Falls back to no HR.
         Task { @MainActor in
+            // Si la sesión no se creó en el backend (falló el POST inicial), la
+            // creamos ahora, así igual podemos finalizar y pedir el análisis.
+            guard let sid = await self.ensureSession() else { self.analyzing = false; return }
+            self.sessionId = nil
+
+            // Pulso promedio de la ventana de la corrida desde HealthKit (Apple
+            // Watch), para que el análisis del coach use el esfuerzo real.
             var avgHR: Double? = nil
             if let s = started {
                 avgHR = await HealthKitService.shared.averageHeartRate(from: s, to: end)
             }
             self.postFinish(sid: sid, distanceM: distanceM, started: started, end: end, avgHR: avgHR)
         }
+    }
+
+    /// Devuelve la sesión activa o intenta crearla ahora si el POST inicial falló.
+    private func ensureSession() async -> Int? {
+        if let sid = sessionId { return sid }
+        var body: [String: Any] = ["origin_lat": startOriginLat, "origin_lng": startOriginLng]
+        if let rid = startRouteId { body["route_id"] = rid }
+        guard let data = try? JSONSerialization.data(withJSONObject: body) else { return nil }
+        let created: RunSessionCreated? = try? await APIClient.shared.request(
+            "run/sessions", method: "POST", body: data, authorized: true)
+        if let id = created?.id { sessionId = id; return id }
+        return nil
     }
 
     private func postFinish(sid: Int, distanceM: CLLocationDistance, started: Date?, end: Date, avgHR: Double?) {

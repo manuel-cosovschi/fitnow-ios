@@ -271,7 +271,9 @@ struct RunNavigatorView: View {
     }
 
     private var paceText: String {
-        guard tracker.totalDistanceM > 10, elapsed > 0 else { return "—" }
+        // Recién mostramos ritmo cuando hay una distancia real (>50 m); antes,
+        // con poca distancia, el ritmo (tiempo/distancia) da números disparatados.
+        guard tracker.totalDistanceM > 50, elapsed > 0 else { return "—" }
         let pace = elapsed / (tracker.totalDistanceM / 1000.0)
         let m = Int(pace) / 60
         let s = Int(pace) % 60
