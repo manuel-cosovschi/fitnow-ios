@@ -406,6 +406,7 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
             .store(in: &bag)
         setupLocation()
         drawSuggestedPolyline()
+        addStartFinishMarker()
         Task { await requestRouteFollowingSuggestion() }
     }
 
@@ -432,6 +433,15 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
                               animated: false)
     }
 
+    // Marca dónde empieza y termina el circuito (todas las rutas son loops:
+    // salís y llegás al mismo punto), así se entiende el recorrido de un vistazo.
+    private func addStartFinishMarker() {
+        let pin = MKPointAnnotation()
+        pin.coordinate = origin
+        pin.title = "Salida y meta"
+        map.addAnnotation(pin)
+    }
+
     private func anchors(from coords: [CLLocationCoordinate2D], every meters: CLLocationDistance) -> [CLLocationCoordinate2D] {
         guard !coords.isEmpty else { return [] }
         var out: [CLLocationCoordinate2D] = [origin]; var acc: CLLocationDistance = 0
@@ -444,6 +454,17 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
         if let last = coords.last, let prev = out.last,
            !(prev.latitude == last.latitude && prev.longitude == last.longitude) { out.append(last) }
         return out
+    }
+
+    // Largo total de la geometría (suma de los tramos entre puntos).
+    private func routeLength(of coords: [CLLocationCoordinate2D]) -> CLLocationDistance {
+        guard coords.count >= 2 else { return 0 }
+        var total: CLLocationDistance = 0
+        for i in 1..<coords.count {
+            total += CLLocation(latitude: coords[i-1].latitude, longitude: coords[i-1].longitude)
+                .distance(from: CLLocation(latitude: coords[i].latitude, longitude: coords[i].longitude))
+        }
+        return total
     }
 
     private func calculate(from a: CLLocationCoordinate2D, to b: CLLocationCoordinate2D) async throws -> MKRoute {
@@ -503,9 +524,12 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
         emitStatus("Calculando ruta…")
         let coords = option.geojson.coords2D
         guard !coords.isEmpty else { emitStatus("Ruta inválida"); return }
-        // Sample sparsely: MKDirections throttles after a few calls, so one
-        // request per ~2.5 km (≈8 on a 21 km loop) instead of one per 500 m (≈42).
-        let points = anchors(from: coords, every: 2500)
+        // Sample proportionally to the route length (~6 anchors always): with a
+        // fixed 2.5 km spacing a 5 km loop got only 2 unique anchors and Apple
+        // collapsed the circle into a short out-and-back. Floor of 700 m keeps
+        // the request count under MKDirections' throttle on short routes too.
+        let totalM = routeLength(of: coords)
+        let points = anchors(from: coords, every: max(700, totalM / 6))
         guard points.count >= 2 else { requestDirectRoute(from: src); return }
         var segments: [MKRoute] = []; let start = src ?? origin; var last = start
         do {
@@ -532,6 +556,19 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
             return r
         }
         return MKOverlayRenderer(overlay: overlay)
+    }
+
+    // Dibuja el pin de "Salida y meta" como banderita verde.
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+        guard annotation is MKPointAnnotation else { return nil }
+        let id = "startFinish"
+        let view = (mapView.dequeueReusableAnnotationView(withIdentifier: id) as? MKMarkerAnnotationView)
+            ?? MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: id)
+        view.annotation = annotation
+        view.markerTintColor = UIColor(Color.fnGreen)
+        view.glyphImage = UIImage(systemName: "flag.checkered")
+        view.canShowCallout = true
+        return view
     }
 
     // MARK: CLLocationManagerDelegate
