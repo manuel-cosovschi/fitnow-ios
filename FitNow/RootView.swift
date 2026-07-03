@@ -5,7 +5,14 @@ struct RootView: View {
     @Environment(BiometricService.self) var biometric
 
     @State private var showSplash = true
-    @AppStorage("fn_onboarding_done") private var onboardingDone = false
+    // Fuerza a la vista a re-evaluarse cuando se completa el onboarding.
+    @State private var onboardingTick = 0
+
+    // El onboarding se marca POR USUARIO (no por dispositivo): si en el mismo
+    // teléfono se crea una cuenta nueva, esa cuenta ve su propio onboarding.
+    private var onboardingKey: String {
+        "fn_onboarding_done_u\(auth.user?.id ?? 0)"
+    }
 
     var body: some View {
         Group {
@@ -41,10 +48,14 @@ struct RootView: View {
         case "admin":
             NavigationStack { AdminView() }
         default:
-            if !onboardingDone {
-                OnboardingView(onComplete: { onboardingDone = true })
-            } else {
+            if UserDefaults.standard.bool(forKey: onboardingKey) {
                 MainTabView()
+            } else {
+                OnboardingView(onComplete: {
+                    UserDefaults.standard.set(true, forKey: onboardingKey)
+                    onboardingTick += 1
+                })
+                .id(onboardingTick)
             }
         }
     }
