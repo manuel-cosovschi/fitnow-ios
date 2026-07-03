@@ -76,11 +76,19 @@ final class RunSessionTracker: ObservableObject {
         // 1) Descartamos lecturas imprecisas.
         guard location.horizontalAccuracy > 0, location.horizontalAccuracy <= 25 else { return }
 
+        // 2) El chip del GPS reporta la velocidad real (por efecto Doppler):
+        //    parado da ~0, así que exigimos velocidad de caminata o más.
+        //    (< 0 significa "desconocida": en ese caso no bloqueamos por esto.)
+        guard location.speed < 0 || location.speed >= 0.7 else { return }
+
         if let prev = lastLocation {
             let step = location.distance(from: prev)
-            // 2) Menos de 8 m entre lecturas = ruido: no lo contamos ni movemos
-            //    el ancla, así el salto no acumula distancia falsa.
-            guard step >= 8 else { return }
+            let dt   = location.timestamp.timeIntervalSince(prev.timestamp)
+            guard dt > 0 else { return }
+            // 3) El paso tiene que ser coherente: ni ruido chico (< 8 m), ni un
+            //    "teletransporte" imposible, ni un drift lento acumulado.
+            let speed = step / dt
+            guard step >= 8, speed >= 0.7, speed <= 12 else { return }
             totalDistanceM += step
         }
         lastLocation = location

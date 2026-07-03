@@ -382,6 +382,11 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
     private var currentStepIndex: Int = 0
     private var followUser = true
     private var bag = Set<AnyCancellable>()
+    // Freno del recálculo de ruta: sin esto, parado "fuera de ruta" se
+    // recalculaba en CADA lectura de GPS y Apple bloqueaba Directions
+    // (máx. 50 pedidos/minuto).
+    private var isCalculatingRoute = false
+    private var lastRerouteAt = Date.distantPast
 
     init(option: RunRouteOption, origin: CLLocationCoordinate2D, userPrefs: RunUserPrefs,
          onStatus: @escaping (String) -> Void, onStep: @escaping (String, CLLocationDistance) -> Void,
@@ -521,6 +526,9 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
     }
 
     private func requestRouteFollowingSuggestion(from src: CLLocationCoordinate2D? = nil) async {
+        guard !isCalculatingRoute else { return }
+        isCalculatingRoute = true
+        defer { isCalculatingRoute = false }
         emitStatus("Calculando ruta…")
         let coords = option.geojson.coords2D
         guard !coords.isEmpty else { emitStatus("Ruta inválida"); return }
@@ -578,7 +586,14 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
         HazardService.shared.refreshIfNeeded(around: loc.coordinate)
         if followUser { map.setCenter(loc.coordinate, animated: true) }
         updateInstruction(for: loc)
-        if isOffCompositeRoute(current: loc, threshold: userPrefs.rerouteDistanceMeters) {
+        // Recalcular SOLO si: no hay otro cálculo en curso, pasaron 30 s del
+        // último, y te estás moviendo de verdad (el GPS parado hace "saltar"
+        // la posición y dispararía recálculos en loop).
+        if isOffCompositeRoute(current: loc, threshold: userPrefs.rerouteDistanceMeters),
+           !isCalculatingRoute,
+           Date().timeIntervalSince(lastRerouteAt) > 30,
+           loc.speed >= 1 {
+            lastRerouteAt = Date()
             emitStatus("Desvío detectado. Recalculando…")
             Task { await requestRouteFollowingSuggestion(from: loc.coordinate) }
         }

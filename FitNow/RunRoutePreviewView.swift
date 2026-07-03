@@ -266,12 +266,15 @@ struct RunRoutePreviewView: View {
         APIClient.shared.requestPublisher("run/routes/\(option.id)/feedback", method: "POST", body: data, authorized: true)
             .sink { completion in
                 if case .failure(let e) = completion { self.message = friendlyFeedbackError(e) }
-            } receiveValue: { (_: SimpleOK) in
+            } receiveValue: { (_: FeedbackCreated) in
                 withAnimation { self.feedbackSent = true }
                 self.message = "¡Gracias!"
             }
             .store(in: &bag)
     }
+
+    // Respuesta del POST de feedback: el backend devuelve la valoración creada.
+    private struct FeedbackCreated: Decodable { let id: Int }
 
     // Traduce el error crudo del servidor a algo mostrable en la tarjeta.
     private func friendlyFeedbackError(_ error: Error) -> String {

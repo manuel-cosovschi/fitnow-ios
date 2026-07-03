@@ -62,8 +62,9 @@ final class HazardService {
                 if case .failure(let e) = completion {
                     print("Hazards fetch error:", e.localizedDescription)
                 }
-            } receiveValue: { (resp: ListResponse<HazardArea>) in
-                self.hazards = resp.items
+            } receiveValue: { (resp: [HazardArea]) in
+                // El endpoint devuelve el array directo (sin envoltorio items).
+                self.hazards = resp
             }
             .store(in: &bag)
     }
