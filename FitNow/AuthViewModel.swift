@@ -271,7 +271,16 @@ final class AuthViewModel: ObservableObject {
             switch api {
             case .unauthorized:
                 return "Email o contraseña incorrectos."
-            case .http(let code, _):
+            case .http(let code, let body):
+                // El backend ya manda el motivo en español (p. ej. "La contraseña
+                // debe tener al menos 6 caracteres."): lo mostramos tal cual en
+                // vez de un "error del servidor" genérico.
+                if let data = body.data(using: .utf8),
+                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let err  = json["error"] as? [String: Any],
+                   let msg  = err["message"] as? String, !msg.isEmpty {
+                    return msg
+                }
                 switch code {
                 case 401: return "Email o contraseña incorrectos."
                 case 404: return "No existe una cuenta con ese email."
