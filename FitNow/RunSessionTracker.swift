@@ -120,7 +120,6 @@ final class RunSessionTracker: ObservableObject {
     /// Call when the user completes the run.
     func finish() {
         flush()
-        guard let sid = sessionId else { return }
         let distanceM = totalDistanceM
         let started   = startedAt
         let end        = Date()
