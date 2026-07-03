@@ -734,3 +734,17 @@ func fnPrettyDate(_ s: String) -> String {
     }
     return s
 }
+
+// MARK: - Texto "con contenido"
+
+extension Optional where Wrapped == String {
+    /// Devuelve el texto solo si dice algo de verdad: nil si está vacío,
+    /// son solo espacios o puntuación suelta (p. ej. "."), para que la UI
+    /// no muestre puntitos raros cuando cargaron un campo con cualquier cosa.
+    var meaningfulText: String? {
+        guard let raw = self else { return nil }
+        let s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !s.isEmpty, s.rangeOfCharacter(from: .alphanumerics) != nil else { return nil }
+        return s
+    }
+}

@@ -7,6 +7,9 @@ struct ActivitiesListView: View {
     @State private var showingFilters = false
     @State private var appeared = false
     @State private var showMap = false
+    // Cámara del mapa: arranca encuadrando los pines y el botón nativo permite
+    // saltar a tu ubicación.
+    @State private var mapCamera: MapCameraPosition = .automatic
 
     private let kindFilters: [(label: String, value: String)] = [
         ("Todos",        ""),
@@ -116,7 +119,9 @@ struct ActivitiesListView: View {
             guard let lat = a.lat, let lng = a.lng else { return nil }
             return ActivityPin(activity: a, coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng))
         }
-        return Map {
+        return Map(position: $mapCamera) {
+            // Tu punto azul en el mapa.
+            UserAnnotation()
             ForEach(pinned) { pin in
                 Annotation(pin.activity.title, coordinate: pin.coordinate) {
                     NavigationLink {
@@ -138,6 +143,16 @@ struct ActivitiesListView: View {
             }
         }
         .mapStyle(.standard(elevation: .flat))
+        .mapControls {
+            // Botón nativo para centrar el mapa en tu ubicación.
+            MapUserLocationButton()
+            MapCompass()
+        }
+        .onAppear {
+            // Pide el permiso de ubicación si hace falta, para que aparezca
+            // el punto azul y funcione el botón de centrar.
+            LocationService.shared.start()
+        }
         .ignoresSafeArea(edges: .bottom)
     }
 

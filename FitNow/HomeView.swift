@@ -405,7 +405,9 @@ struct HomeView: View {
         .padding(18)
         .frame(height: 140)
         .background(RoundedRectangle(cornerRadius: 22).fill(gradient))
-        .fnShadowBrand()
+        // Sombra sutil y oscura: el resplandor azul de marca hacía que las
+        // sombras de las cards contiguas se fundieran en una banda rectangular.
+        .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 5)
     }
 
     // MARK: - Promo Banner
@@ -435,7 +437,7 @@ struct HomeView: View {
         ZStack(alignment: .trailing) {
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(vm.featuredOffer.flatMap(\.discount_label) ?? "NUEVO")
+                    Text((vm.featuredOffer?.discount_label).meaningfulText ?? "NUEVO")
                         .font(.system(size: 11, weight: .bold))
                         .foregroundColor(.white.opacity(0.95))
                         .padding(.horizontal, 10)
@@ -446,7 +448,7 @@ struct HomeView: View {
                         .font(.system(size: 19, weight: .bold))
                         .foregroundColor(.white)
 
-                    Text(vm.featuredOffer?.description ??
+                    Text((vm.featuredOffer?.description).meaningfulText ??
                          "Descuentos exclusivos de entrenadores, gimnasios y clubes")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(.white.opacity(0.80))

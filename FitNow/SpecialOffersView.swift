@@ -124,7 +124,7 @@ struct SpecialOffersView: View {
                     }
                 }
                 Spacer()
-                if let label = offer.discount_label, !label.isEmpty {
+                if let label = offer.discount_label.meaningfulText {
                     Text(label)
                         .font(.custom("DM Serif Display", size: 18))
                         .foregroundColor(.white)
@@ -138,7 +138,7 @@ struct SpecialOffersView: View {
 
             // Description + validity
             VStack(alignment: .leading, spacing: 8) {
-                if let desc = offer.description, !desc.isEmpty {
+                if let desc = offer.description.meaningfulText {
                     Text(desc)
                         .font(.system(size: 14))
                         .foregroundColor(.white)
@@ -156,6 +156,9 @@ struct SpecialOffersView: View {
                 }
             }
             .padding(16)
+            // Ocupa todo el ancho de la card: antes el bloque de abajo quedaba
+            // más angosto que el banner de arriba y se veía "escalonado".
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color.fnSurface)
         }
         .clipShape(RoundedRectangle(cornerRadius: 18))
@@ -443,7 +446,7 @@ struct ProviderMyOffersView: View {
                             Spacer()
                             statusBadge(offer.status)
                         }
-                        if let label = offer.discount_label, !label.isEmpty {
+                        if let label = offer.discount_label.meaningfulText {
                             Text(label)
                                 .font(.system(size: 13))
                                 .foregroundColor(.fnSlate)
