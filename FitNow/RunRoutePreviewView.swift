@@ -265,12 +265,26 @@ struct RunRoutePreviewView: View {
         let data = try! JSONSerialization.data(withJSONObject: body)
         APIClient.shared.requestPublisher("run/routes/\(option.id)/feedback", method: "POST", body: data, authorized: true)
             .sink { completion in
-                if case .failure(let e) = completion { self.message = e.localizedDescription }
+                if case .failure(let e) = completion { self.message = friendlyFeedbackError(e) }
             } receiveValue: { (_: SimpleOK) in
                 withAnimation { self.feedbackSent = true }
                 self.message = "¡Gracias!"
             }
             .store(in: &bag)
+    }
+
+    // Traduce el error crudo del servidor a algo mostrable en la tarjeta.
+    private func friendlyFeedbackError(_ error: Error) -> String {
+        if case APIError.http(let code, let body) = error {
+            if let data = body.data(using: .utf8),
+               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let err  = json["error"] as? [String: Any],
+               let msg  = err["message"] as? String, !msg.isEmpty {
+                return msg
+            }
+            if code == 409 { return "Ya calificaste esta ruta." }
+        }
+        return "No se pudo enviar. Probá de nuevo."
     }
 }
 
