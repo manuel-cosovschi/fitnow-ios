@@ -323,8 +323,13 @@ struct ActivityDetailView: View {
                 trainerSection
             }
 
-            // Dates
-            datesCard
+            // Fechas: si la actividad no tiene (membresía tipo gym), mostramos
+            // que la inscripción se renueva mes a mes en vez de fechas vacías.
+            if startISO == nil && endISO == nil {
+                membershipCard
+            } else {
+                datesCard
+            }
 
             // Seats (club_sport)
             if showSeatsLeft, let left = seatsLeft {
@@ -737,6 +742,36 @@ struct ActivityDetailView: View {
                 .font(.system(size: 12))
                 .foregroundColor(.fnSlate.opacity(0.7))
         }
+    }
+
+    // Card para actividades sin fecha fija: membresía con renovación mensual.
+    private var membershipCard: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(Color.fnGreen.opacity(0.15))
+                    .frame(width: 40, height: 40)
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .font(.system(size: 16))
+                    .foregroundColor(.fnGreen)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Membresía sin vencimiento")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.fnSlate)
+                    .textCase(.uppercase)
+                    .tracking(0.5)
+                Text("La inscripción se renueva mes a mes")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(.white)
+            }
+            Spacer()
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.fnSurface)
+        )
     }
 
     private var datesCard: some View {
