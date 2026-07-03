@@ -242,31 +242,38 @@ struct HomeView: View {
         let dateStr  = enrollment.date_start.flatMap { formatEnrollmentDate($0) }
 
         return VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(typeInfo.color.opacity(0.15))
-                        .frame(width: 48, height: 48)
-                    Image(systemName: typeInfo.icon)
-                        .font(.system(size: 22, weight: .semibold))
-                        .foregroundColor(typeInfo.color)
-                }
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(enrollment.title)
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.fnWhite)
-                        .lineLimit(1)
-                    if let date = dateStr {
-                        Label(date, systemImage: "clock")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.fnSlate)
+            // Tocar la fila (o la flechita) abre el detalle de la inscripción,
+            // el mismo que ves desde Mis inscripciones.
+            NavigationLink {
+                EnrollmentDetailView(enrollment: enrollment)
+            } label: {
+                HStack(spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(typeInfo.color.opacity(0.15))
+                            .frame(width: 48, height: 48)
+                        Image(systemName: typeInfo.icon)
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundColor(typeInfo.color)
                     }
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(enrollment.title)
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.fnWhite)
+                            .lineLimit(1)
+                        if let date = dateStr {
+                            Label(date, systemImage: "clock")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.fnSlate)
+                        }
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.fnSlate)
                 }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.fnSlate)
             }
+            .buttonStyle(.plain)
 
             if let loc = enrollment.location, !loc.isEmpty {
                 Divider()
