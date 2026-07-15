@@ -9,8 +9,16 @@ private let MDP_FALLBACK = CLLocationCoordinate2D(latitude: -38.0055, longitude:
 // MARK: - RunPlannerView
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Perfiles de pesos que entiende el planificador del backend.
+private let PLANNER_PROFILES: [(key: String, label: String, icon: String)] = [
+    ("seguridad",   "Seguridad",   "shield.fill"),
+    ("equilibrado", "Equilibrado", "scale.3d"),
+    ("distancia",   "Distancia",   "arrow.left.and.right"),
+]
+
 struct RunPlannerView: View {
     @State private var distanceKm: Double = 5
+    @State private var profile: String = "equilibrado"
     @State private var generating = false
     @State private var error: String?
     @State private var options: [RunRouteOption] = []
@@ -149,6 +157,40 @@ struct RunPlannerView: View {
                     .buttonStyle(ScaleButtonStyle())
                 }
             }
+
+            // Profile selector: se manda al backend para ajustar los pesos del planner
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Prioridad de la ruta")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(.fnSlate)
+                    .textCase(.uppercase)
+                    .tracking(0.5)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                HStack(spacing: 8) {
+                    ForEach(PLANNER_PROFILES, id: \.key) { p in
+                        Button {
+                            withAnimation(.spring(response: 0.3)) { profile = p.key }
+                        } label: {
+                            HStack(spacing: 5) {
+                                Image(systemName: p.icon)
+                                    .font(.system(size: 11, weight: .bold))
+                                Text(p.label)
+                                    .font(.system(size: 12, weight: .bold))
+                            }
+                            .foregroundColor(profile == p.key ? .white : .fnSlate)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 9)
+                            .background(
+                                Capsule()
+                                    .fill(profile == p.key
+                                          ? AnyShapeStyle(FNGradient.run)
+                                          : AnyShapeStyle(Color.white.opacity(0.1)))
+                            )
+                        }
+                        .buttonStyle(ScaleButtonStyle())
+                    }
+                }
+            }
         }
         .padding(20)
         .background(
@@ -283,7 +325,10 @@ struct RunPlannerView: View {
         let body: [String: Any] = [
             "origin_lat": origin.latitude,
             "origin_lng": origin.longitude,
-            "distance_m": Int(distanceKm * 1000)
+            "distance_m": Int(distanceKm * 1000),
+            "profile": profile,
+            // hora actual: el backend la usa para el modo nocturno
+            "when": ISO8601DateFormatter().string(from: Date())
         ]
         let data = try! JSONSerialization.data(withJSONObject: body)
         APIClient.shared.requestPublisher("run/routes", method: "POST", body: data, authorized: true)

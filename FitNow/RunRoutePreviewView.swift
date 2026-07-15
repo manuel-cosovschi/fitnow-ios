@@ -118,6 +118,13 @@ struct RunRoutePreviewView: View {
                 .opacity(appeared ? 1 : 0)
                 .animation(.spring(response: 0.5).delay(0.15), value: appeared)
 
+            // Desglose del evaluador multicriterio (si el backend lo mandó)
+            if option.criteria != nil {
+                criteriaCard
+                    .opacity(appeared ? 1 : 0)
+                    .animation(.spring(response: 0.5).delay(0.18), value: appeared)
+            }
+
             // Navigate CTA
             FitNowButton(
                 title: "Iniciar ruta",
@@ -167,6 +174,75 @@ struct RunRoutePreviewView: View {
                 .foregroundColor(.fnSlate)
         }
         .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Criteria Card
+
+    // Muestra cómo puntuó la ruta el planificador: fidelidad de distancia,
+    // exposición a zonas reportadas, giros por km y afinidad con el historial.
+    private var criteriaCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label("Por qué esta ruta", systemImage: "chart.bar.fill")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(.white)
+                Spacer()
+                if let s = option.score {
+                    Text(String(format: "score %.2f", s))
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .foregroundColor(.fnCyan)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(Color.fnCyan.opacity(0.12)))
+                }
+            }
+
+            if let c = option.criteria {
+                if let f = c.distance_fidelity {
+                    criteriaRow(icon: "scope", color: .fnCyan,
+                                label: "Fidelidad de distancia",
+                                value: String(format: "%.0f%%", f * 100))
+                }
+                if let e = c.hazard_exposure_m {
+                    criteriaRow(icon: "exclamationmark.shield.fill",
+                                color: e > 0 ? .fnSecondary : .fnGreen,
+                                label: "Exposición a zonas reportadas",
+                                value: e > 0 ? String(format: "%.0f m", e) : "sin zonas")
+                }
+                if let t = c.turns_per_km {
+                    criteriaRow(icon: "arrow.triangle.turn.up.right.diamond.fill",
+                                color: .fnPrimary,
+                                label: "Giros por km",
+                                value: String(format: "%.1f", t))
+                }
+                if let h = c.historical_affinity {
+                    criteriaRow(icon: "clock.arrow.circlepath", color: .fnYellow,
+                                label: "Parecido a rutas bien calificadas",
+                                value: String(format: "%.0f%%", h * 100))
+                }
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.fnSurface)
+        )
+    }
+
+    private func criteriaRow(icon: String, color: Color, label: String, value: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 13))
+                .foregroundColor(color)
+                .frame(width: 20)
+            Text(label)
+                .font(.system(size: 13))
+                .foregroundColor(.fnSlate)
+            Spacer()
+            Text(value)
+                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+        }
     }
 
     // MARK: - Feedback Card

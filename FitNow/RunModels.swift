@@ -2,7 +2,8 @@
 import Foundation
 import CoreLocation
 
-// Opción mostrada en el planner
+// Opción mostrada en el planner. score y criteria vienen del evaluador
+// multicriterio del backend; son opcionales para no romper con respuestas viejas.
 struct RunRouteOption: Identifiable, Decodable {
     let id: Int
     let preference: String
@@ -10,6 +11,17 @@ struct RunRouteOption: Identifiable, Decodable {
     let rationale: String
     let distance_m: Int
     let geojson: GeoJSONLineString
+    let score: Double?
+    let criteria: RunRouteCriteria?
+}
+
+// Desglose de criterios que calcula el planificador para cada candidata.
+struct RunRouteCriteria: Decodable {
+    let distance_fidelity: Double?
+    let hazard_exposure_m: Double?
+    let hazards_touched: Int?
+    let turns_per_km: Double?
+    let historical_affinity: Double?
 }
 
 // GeoJSON línea: { "type": "LineString", "coordinates": [[lng, lat], ...] }
