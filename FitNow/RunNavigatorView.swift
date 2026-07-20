@@ -32,6 +32,7 @@ struct RunNavigatorView: View {
     @State private var timer: Timer?
     @State private var sessionEnded = false
     @State private var showAnalysis = false
+    @State private var showReportSheet = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -56,6 +57,26 @@ struct RunNavigatorView: View {
             .ignoresSafeArea()
             .overlay(alignment: .top) {
                 topHUD
+            }
+
+            // Botón de reporte rápido de zona (estilo Waze), sobre el dashboard
+            .overlay(alignment: .bottomTrailing) {
+                Button {
+                    showReportSheet = true
+                } label: {
+                    Image(systemName: "exclamationmark.bubble.fill")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(width: 52, height: 52)
+                        .background(
+                            Circle()
+                                .fill(Color.fnSecondary)
+                                .shadow(color: Color.fnSecondary.opacity(0.5), radius: 10, x: 0, y: 4)
+                        )
+                }
+                .buttonStyle(ScaleButtonStyle())
+                .padding(.trailing, 16)
+                .padding(.bottom, 240)
             }
 
             // Bottom dashboard
@@ -89,6 +110,9 @@ struct RunNavigatorView: View {
         }
         .sheet(isPresented: $showAnalysis, onDismiss: { dismiss() }) {
             RunAnalysisSheet(tracker: tracker) { showAnalysis = false }
+        }
+        .sheet(isPresented: $showReportSheet) {
+            HazardReportSheet()
         }
     }
 

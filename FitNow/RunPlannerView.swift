@@ -24,6 +24,7 @@ struct RunPlannerView: View {
     @State private var options: [RunRouteOption] = []
     @State private var bag = Set<AnyCancellable>()
     @State private var appeared = false
+    @State private var showReportSheet = false
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -46,6 +47,22 @@ struct RunPlannerView: View {
                 }
                 .opacity(appeared ? 1 : 0)
                 .animation(.spring(response: 0.5).delay(0.10), value: appeared)
+
+                // Reporte rápido de zona (alimenta el planificador y avisa a otros corredores)
+                Button {
+                    showReportSheet = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.bubble.fill")
+                            .font(.system(size: 13, weight: .bold))
+                        Text("Reportar una zona peligrosa acá")
+                            .font(.system(size: 13, weight: .semibold))
+                    }
+                    .foregroundColor(.fnSecondary)
+                }
+                .buttonStyle(ScaleButtonStyle())
+                .opacity(appeared ? 1 : 0)
+                .animation(.spring(response: 0.5).delay(0.12), value: appeared)
 
                 // Error
                 if let e = error {
@@ -79,6 +96,9 @@ struct RunPlannerView: View {
         .onAppear {
             LocationService.shared.start()
             withAnimation(.spring(response: 0.55).delay(0.05)) { appeared = true }
+        }
+        .sheet(isPresented: $showReportSheet) {
+            HazardReportSheet()
         }
     }
 

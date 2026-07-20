@@ -46,6 +46,31 @@ final class HazardService {
         fetch(around: c)
     }
 
+    // Respuesta del alta de un reporte.
+    struct HazardCreated: Decodable { let id: Int }
+
+    // Crea un reporte en la ubicación dada (estilo Waze: un toque y sale).
+    func report(type: String, severity: Int, note: String?, at c: CLLocationCoordinate2D,
+                completion: @escaping (Bool) -> Void) {
+        var payload: [String: Any] = [
+            "lat": c.latitude,
+            "lng": c.longitude,
+            "type": type,
+            "severity": severity,
+        ]
+        if let note, !note.isEmpty { payload["note"] = note }
+        guard let data = try? JSONSerialization.data(withJSONObject: payload) else { completion(false); return }
+        APIClient.shared.requestPublisher("hazards", method: "POST", body: data, authorized: true)
+            .sink { done in
+                if case .failure = done { completion(false) }
+            } receiveValue: { (_: HazardCreated) in
+                // El reporte nuevo entra al cache local para que se vea al instante.
+                self.lastFetchDate = nil
+                completion(true)
+            }
+            .store(in: &bag)
+    }
+
     // Trae los peligros reportados cerca.
     private func fetch(around c: CLLocationCoordinate2D) {
         lastFetchCenter = c
