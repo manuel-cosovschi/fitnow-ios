@@ -466,7 +466,10 @@ fileprivate struct NavigatorMapRepresentable: UIViewRepresentable {
         let map = MKMapView(frame: .zero)
         map.delegate = context.coordinator
         map.showsUserLocation = true
-        map.userTrackingMode = .follow
+        // No usamos userTrackingMode: manejamos la cámara a mano para lograr la
+        // vista de navegación inclinada (pitch) y rotada hacia el rumbo. Con
+        // .follow/.followWithHeading MapKit fuerza la cámara plana y pisaría el pitch.
+        map.userTrackingMode = .none
         map.preferredConfiguration = MKStandardMapConfiguration(elevationStyle: .flat)
         context.coordinator.attach(to: map)
         return map
@@ -501,6 +504,9 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
 
     private var currentStepIndex: Int = 0
     private var followUser = true
+    // Último rumbo válido: si el GPS deja de dar course (parado), mantenemos la
+    // orientación de la cámara en vez de girarla al azar por el ruido.
+    private var lastHeading: CLLocationDirection = 0
     private var bag = Set<AnyCancellable>()
     // Freno del recálculo de ruta: sin esto, parado "fuera de ruta" se
     // recalculaba en CADA lectura de GPS y Apple bloqueaba Directions
@@ -530,7 +536,11 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
             .sink { [weak self] note in
                 guard let self, let f = note.object as? Bool else { return }
                 self.followUser = f
-                self.map.userTrackingMode = f ? .followWithHeading : .none
+                // Al reactivar el seguimiento, saltamos de una a la cámara de
+                // navegación sobre la última posición conocida.
+                if f, let ul = self.map.userLocation.location {
+                    self.updateCamera(to: ul)
+                }
             }
             .store(in: &bag)
         setupLocation()
@@ -574,6 +584,20 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
         case "obra":        return "Obra o corte"
         default:            return "Zona reportada"
         }
+    }
+
+    // Cámara de navegación: en vez de mirar el mapa desde arriba (plano), lo
+    // inclinamos (pitch 60°) y lo rotamos hacia el rumbo de la corrida, así el
+    // recorrido queda "hacia adelante" y da la sensación de ir manejando la ruta.
+    // El rumbo sale del course del GPS; si no hay (parado), se mantiene el último.
+    private func updateCamera(to loc: CLLocation) {
+        guard map != nil else { return }
+        if loc.course >= 0, loc.speed >= 0.5 {
+            lastHeading = loc.course
+        }
+        let cam = MKMapCamera(lookingAtCenter: loc.coordinate,
+                              fromDistance: 480, pitch: 60, heading: lastHeading)
+        map.setCamera(cam, animated: true)
     }
 
     private func setupLocation() {
@@ -736,6 +760,19 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
     }
 
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+        // Ubicación propia: flecha de navegación (no el punto azul). Como la
+        // cámara rota hacia el rumbo, la flecha apunta siempre "hacia adelante"
+        // en pantalla, igual que en un GPS de auto.
+        if annotation is MKUserLocation {
+            let id = "userArrow"
+            let view = mapView.dequeueReusableAnnotationView(withIdentifier: id)
+                ?? MKAnnotationView(annotation: annotation, reuseIdentifier: id)
+            view.annotation = annotation
+            view.image = Self.navigationArrowImage()
+            view.canShowCallout = false
+            view.displayPriority = .required
+            return view
+        }
         // Reporte de riesgo: pin rojo con ícono de alerta.
         if let hz = annotation as? HazardAnnotation {
             let id = "hazard"
@@ -769,12 +806,43 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
         }
     }
 
+    // Flecha de navegación (puck) que reemplaza al punto azul: círculo cian con
+    // borde blanco y una punta de flecha apuntando hacia arriba (el sentido de
+    // avance, porque la cámara ya rota hacia el rumbo). Se dibuja por código para
+    // no depender de un asset.
+    static func navigationArrowImage() -> UIImage {
+        let size = CGSize(width: 36, height: 36)
+        return UIGraphicsImageRenderer(size: size).image { ctx in
+            let c = ctx.cgContext
+            let outer = CGRect(origin: .zero, size: size).insetBy(dx: 2, dy: 2)
+            // sombra suave
+            c.setShadow(offset: CGSize(width: 0, height: 1), blur: 3,
+                        color: UIColor.black.withAlphaComponent(0.35).cgColor)
+            c.setFillColor(UIColor.white.cgColor)
+            c.fillEllipse(in: outer)
+            c.setShadow(offset: .zero, blur: 0, color: nil)
+            // disco cian interior
+            c.setFillColor(UIColor(Color.fnCyan).cgColor)
+            c.fillEllipse(in: outer.insetBy(dx: 3, dy: 3))
+            // punta de flecha blanca hacia arriba
+            let cx = size.width / 2
+            let p = UIBezierPath()
+            p.move(to: CGPoint(x: cx, y: 9))
+            p.addLine(to: CGPoint(x: cx + 7.5, y: 25))
+            p.addLine(to: CGPoint(x: cx, y: 20.5))
+            p.addLine(to: CGPoint(x: cx - 7.5, y: 25))
+            p.close()
+            UIColor.white.setFill()
+            p.fill()
+        }
+    }
+
     // MARK: CLLocationManagerDelegate
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let loc = locations.last else { return }
         onLocation?(loc)
         HazardService.shared.refreshIfNeeded(around: loc.coordinate)
-        if followUser { map.setCenter(loc.coordinate, animated: true) }
+        if followUser { updateCamera(to: loc) }
         updateInstruction(for: loc)
         // Recalcular SOLO si: no hay otro cálculo en curso, pasaron 30 s del
         // último, y te estás moviendo de verdad (el GPS parado hace "saltar"
