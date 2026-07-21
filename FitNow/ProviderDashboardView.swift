@@ -114,6 +114,7 @@ private struct ProviderHomeTab: View {
             VStack(spacing: 20) {
                 headerCard
                 statsGrid
+                balanceLinkCard
                 if !vm.activities.isEmpty {
                     activitySummarySection
                 }
@@ -154,6 +155,39 @@ private struct ProviderHomeTab: View {
             }
             .padding(18)
         }
+    }
+
+    // Acceso al saldo acreditado por inscripciones pagadas y a los retiros.
+    private var balanceLinkCard: some View {
+        NavigationLink {
+            ProviderBalanceView()
+        } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(FNGradient.club)
+                        .frame(width: 44, height: 44)
+                    Image(systemName: "banknote.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Saldo y retiros")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(.white)
+                    Text("Lo acreditado por tus inscripciones pagadas")
+                        .font(.system(size: 12))
+                        .foregroundColor(.fnSlate)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.fnSlate.opacity(0.7))
+            }
+            .padding(14)
+            .background(RoundedRectangle(cornerRadius: 16).fill(Color.fnSurface))
+        }
+        .buttonStyle(ScaleButtonStyle())
     }
 
     private var statsGrid: some View {
