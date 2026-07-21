@@ -402,6 +402,10 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
     private var navSteps: [MKRoute.Step] = []
     private var blueOverlays: [MKPolyline] = []
     private var suggestedPolyline: MKPolyline?
+    // Zonas de riesgo dibujadas en el mapa: círculo rojo (radio de influencia)
+    // + pin rojo por cada reporte cercano. Se refrescan al moverse.
+    private var hazardCircles: [MKCircle] = []
+    private var hazardPins: [MKPointAnnotation] = []
 
     private var currentStepIndex: Int = 0
     private var followUser = true
@@ -439,7 +443,44 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
         setupLocation()
         drawSuggestedPolyline()
         addStartFinishMarker()
+        // Escucha los reportes cercanos y los pinta en el mapa (puntos rojos).
+        HazardService.shared.$hazards
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] hz in self?.renderHazards(hz) }
+            .store(in: &bag)
+        HazardService.shared.refreshIfNeeded(around: origin)
         Task { await requestRouteFollowingSuggestion() }
+    }
+
+    // Dibuja las zonas de riesgo: un círculo rojo translúcido con el radio de
+    // influencia y un pin rojo en el centro de cada reporte. Se rehace cada vez
+    // que llegan reportes nuevos (al moverse hacia una zona no cargada aún).
+    private func renderHazards(_ hazards: [HazardArea]) {
+        guard map != nil else { return }
+        map.removeOverlays(hazardCircles)
+        map.removeAnnotations(hazardPins)
+        hazardCircles.removeAll(); hazardPins.removeAll()
+        for h in hazards {
+            let circle = MKCircle(center: h.center, radius: 75)
+            hazardCircles.append(circle)
+            map.addOverlay(circle, level: .aboveRoads)
+            let pin = HazardAnnotation(kind: h.type)
+            pin.coordinate = h.center
+            pin.title = Self.hazardTitle(h.type)
+            if let n = h.note, !n.isEmpty { pin.subtitle = n }
+            hazardPins.append(pin)
+            map.addAnnotation(pin)
+        }
+    }
+
+    static func hazardTitle(_ type: String) -> String {
+        switch type {
+        case "inseguridad": return "Zona insegura"
+        case "iluminacion": return "Mala iluminación"
+        case "vereda_rota": return "Vereda rota"
+        case "obra":        return "Obra o corte"
+        default:            return "Zona reportada"
+        }
     }
 
     private func setupLocation() {
@@ -579,6 +620,14 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
 
     // MARK: MKMapViewDelegate
     func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+        // Zona de riesgo: círculo rojo translúcido con su radio de influencia.
+        if let circle = overlay as? MKCircle {
+            let r = MKCircleRenderer(circle: circle)
+            r.fillColor   = UIColor(Color.fnSecondary).withAlphaComponent(0.18)
+            r.strokeColor = UIColor(Color.fnSecondary).withAlphaComponent(0.65)
+            r.lineWidth   = 1.5
+            return r
+        }
         if let pl = overlay as? MKPolyline {
             if let sug = suggestedPolyline, pl === sug {
                 let r = MKPolylineRenderer(polyline: pl)
@@ -593,8 +642,20 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
         return MKOverlayRenderer(overlay: overlay)
     }
 
-    // Dibuja el pin de "Salida y meta" como banderita verde.
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+        // Reporte de riesgo: pin rojo con ícono de alerta.
+        if let hz = annotation as? HazardAnnotation {
+            let id = "hazard"
+            let view = (mapView.dequeueReusableAnnotationView(withIdentifier: id) as? MKMarkerAnnotationView)
+                ?? MKMarkerAnnotationView(annotation: hz, reuseIdentifier: id)
+            view.annotation = hz
+            view.markerTintColor = UIColor(Color.fnSecondary)
+            view.glyphImage = UIImage(systemName: Self.hazardGlyph(hz.kind))
+            view.canShowCallout = true
+            view.displayPriority = .required
+            return view
+        }
+        // Pin de "Salida y meta" como banderita verde.
         guard annotation is MKPointAnnotation else { return nil }
         let id = "startFinish"
         let view = (mapView.dequeueReusableAnnotationView(withIdentifier: id) as? MKMarkerAnnotationView)
@@ -604,6 +665,15 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
         view.glyphImage = UIImage(systemName: "flag.checkered")
         view.canShowCallout = true
         return view
+    }
+
+    static func hazardGlyph(_ type: String) -> String {
+        switch type {
+        case "iluminacion": return "lightbulb.slash.fill"
+        case "vereda_rota": return "road.lanes"
+        case "obra":        return "cone.fill"
+        default:            return "exclamationmark.triangle.fill"
+        }
     }
 
     // MARK: CLLocationManagerDelegate
@@ -817,4 +887,11 @@ struct RunAnalysisSheet: View {
             }
         }
     }
+}
+
+// Anotación de una zona de riesgo en el mapa (pin rojo). Guarda el tipo para
+// elegir el ícono y distinguirla del pin verde de salida y meta.
+final class HazardAnnotation: MKPointAnnotation {
+    let kind: String
+    init(kind: String) { self.kind = kind; super.init() }
 }
