@@ -11,6 +11,15 @@ struct RunUserPrefs {
     static let `default` = RunUserPrefs()
 }
 
+// Zona de riesgo que tenés cerca en este momento de la corrida. Se usa para el
+// popup dinámico que salta cuando te acercás y se va cuando la dejás atrás.
+// Es Equatable para que la vista solo se re-anime cuando cambia de verdad.
+struct NearbyHazard: Equatable {
+    let type: String
+    let distance: Int
+    let severity: Int
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // MARK: - RunNavigatorView
 // ─────────────────────────────────────────────────────────────────────────────
@@ -33,6 +42,10 @@ struct RunNavigatorView: View {
     @State private var sessionEnded = false
     @State private var showAnalysis = false
     @State private var showReportSheet = false
+    // Zona de riesgo cercana en vivo: alimenta el popup dinámico. nil = despejado.
+    @State private var nearbyHazard: NearbyHazard?
+    // Latido del popup para que "respire" mientras te acercás (estilo Waze).
+    @State private var hazardPulse = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -52,11 +65,31 @@ struct RunNavigatorView: View {
                 },
                 onLocation: { loc in
                     Task { @MainActor in tracker.addPoint(loc) }
+                },
+                onHazard: { hz in
+                    DispatchQueue.main.async {
+                        withAnimation(.spring(response: 0.42, dampingFraction: 0.72)) {
+                            nearbyHazard = hz
+                        }
+                    }
                 }
             )
             .ignoresSafeArea()
             .overlay(alignment: .top) {
                 topHUD
+            }
+            // Popup dinámico de zona de riesgo: salta animado bajo el HUD cuando
+            // te acercás, muestra el tipo y la distancia en vivo, y se va solo al
+            // dejar la zona atrás. Es la red de seguridad por si la ruta no la
+            // esquivó o el reporte llegó ya en plena corrida.
+            .overlay(alignment: .top) {
+                if let hz = nearbyHazard {
+                    hazardPopup(hz)
+                        .padding(.horizontal, 12)
+                        .padding(.top, 172)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(3)
+                }
             }
 
             // Botón de reporte rápido de zona (estilo Waze), sobre el dashboard
@@ -177,6 +210,63 @@ struct RunNavigatorView: View {
         }
         .padding(.horizontal, 12)
         .padding(.top, 12)
+    }
+
+    // MARK: - Popup dinámico de zona de riesgo
+
+    private func hazardPopup(_ hz: NearbyHazard) -> some View {
+        let color = Self.hazardSeverityColor(hz.severity)
+        return HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.22))
+                    .frame(width: 46, height: 46)
+                    .scaleEffect(hazardPulse ? 1.15 : 0.92)
+                Image(systemName: Coordinator.hazardGlyph(hz.type))
+                    .font(.system(size: 21, weight: .bold))
+                    .foregroundColor(color)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(Coordinator.hazardTitle(hz.type))
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+                Text("Reducí el ritmo y prestá atención")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.fnSlate)
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 6)
+            VStack(alignment: .trailing, spacing: 0) {
+                Text("\(hz.distance)")
+                    .font(.custom("JetBrains Mono", size: 22).weight(.heavy))
+                    .foregroundColor(color)
+                    .contentTransition(.numericText())
+                Text("metros")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundColor(.fnSlate)
+                    .textCase(.uppercase)
+                    .tracking(0.5)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(color.opacity(0.55), lineWidth: 1.5)
+        )
+        .shadow(color: color.opacity(0.35), radius: 12, y: 4)
+        .onAppear {
+            hazardPulse = false
+            withAnimation(.easeInOut(duration: 0.85).repeatForever(autoreverses: true)) {
+                hazardPulse = true
+            }
+        }
+    }
+
+    private static func hazardSeverityColor(_ severity: Int) -> Color {
+        severity >= 2 ? .fnSecondary : .fnYellow
     }
 
     // MARK: - Bottom Dashboard
@@ -365,10 +455,11 @@ fileprivate struct NavigatorMapRepresentable: UIViewRepresentable {
     let onStatus: (String) -> Void
     let onStep: (String, CLLocationDistance) -> Void
     var onLocation: ((CLLocation) -> Void)? = nil
+    var onHazard: ((NearbyHazard?) -> Void)? = nil
 
     func makeCoordinator() -> Coordinator {
         Coordinator(option: option, origin: origin, userPrefs: userPrefs,
-                    onStatus: onStatus, onStep: onStep, onLocation: onLocation)
+                    onStatus: onStatus, onStep: onStep, onLocation: onLocation, onHazard: onHazard)
     }
 
     func makeUIView(context: Context) -> MKMapView {
@@ -394,6 +485,7 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
     private let onStatus: (String) -> Void
     private let onStep: (String, CLLocationDistance) -> Void
     private let onLocation: ((CLLocation) -> Void)?
+    private let onHazard: ((NearbyHazard?) -> Void)?
 
     private var map: MKMapView!
     private let loc = CLLocationManager()
@@ -421,7 +513,7 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
 
     init(option: RunRouteOption, origin: CLLocationCoordinate2D, userPrefs: RunUserPrefs,
          onStatus: @escaping (String) -> Void, onStep: @escaping (String, CLLocationDistance) -> Void,
-         onLocation: ((CLLocation) -> Void)? = nil) {
+         onLocation: ((CLLocation) -> Void)? = nil, onHazard: ((NearbyHazard?) -> Void)? = nil) {
         self.option = option
         self.origin = origin
         self.destination = option.geojson.coords2D.last ?? origin
@@ -429,6 +521,7 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
         self.onStatus = onStatus
         self.onStep = onStep
         self.onLocation = onLocation
+        self.onHazard = onHazard
     }
 
     func attach(to map: MKMapView) {
@@ -703,11 +796,17 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
     private func updateHazardWarning(around loc: CLLocation) {
         guard loc.horizontalAccuracy > 0, loc.horizontalAccuracy <= 30 else { return }
         let status: String?
-        if let dist = HazardService.shared.nearestHazardDistance(from: loc.coordinate, within: 80), dist <= 80 {
-            let rounded = Int((dist / 10).rounded()) * 10
+        // Tomamos el hazard completo (no solo la distancia) para poder pasarle al
+        // popup el tipo y la gravedad. El aviso del popup se actualiza en cada
+        // lectura para que la distancia baje en vivo mientras te acercás.
+        if let h = HazardService.shared.nearestHazard(to: loc.coordinate, within: 80) {
+            let d = loc.distance(from: CLLocation(latitude: h.lat, longitude: h.lng))
+            let rounded = Int((d / 10).rounded()) * 10
             status = "Advertencia: zona riesgosa a \(rounded) m"
+            onHazard?(NearbyHazard(type: h.type, distance: rounded, severity: h.severity ?? 2))
         } else {
             status = nil
+            onHazard?(nil)
         }
         guard status != lastHazardStatus else { return }
         lastHazardStatus = status
