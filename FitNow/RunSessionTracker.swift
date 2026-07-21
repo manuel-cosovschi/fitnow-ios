@@ -73,8 +73,8 @@ final class RunSessionTracker: ObservableObject {
     func addPoint(_ location: CLLocation) {
         // Filtro anti-ruido de GPS: parado en un escritorio el GPS "salta" unos
         // metros entre lecturas, y sin filtrar eso se sumaría como distancia real.
-        // 1) Descartamos lecturas imprecisas.
-        guard location.horizontalAccuracy > 0, location.horizontalAccuracy <= 25 else { return }
+        // 1) Descartamos lecturas imprecisas (adentro la precisión empeora).
+        guard location.horizontalAccuracy > 0, location.horizontalAccuracy <= 20 else { return }
 
         // 2) El chip del GPS reporta la velocidad real (por efecto Doppler):
         //    parado da ~0, así que exigimos velocidad de caminata o más.
@@ -85,10 +85,12 @@ final class RunSessionTracker: ObservableObject {
             let step = location.distance(from: prev)
             let dt   = location.timestamp.timeIntervalSince(prev.timestamp)
             guard dt > 0 else { return }
-            // 3) El paso tiene que ser coherente: ni ruido chico (< 8 m), ni un
-            //    "teletransporte" imposible, ni un drift lento acumulado.
+            // 3) El paso tiene que ser coherente: más grande que la propia
+            //    incertidumbre del GPS (un salto menor que tu margen de error es
+            //    ruido, no movimiento), de al menos 8 m, y con una velocidad de
+            //    persona (ni "teletransporte" ni drift lento acumulado).
             let speed = step / dt
-            guard step >= 8, speed >= 0.7, speed <= 12 else { return }
+            guard step >= 8, step > location.horizontalAccuracy, speed >= 0.7, speed <= 12 else { return }
             totalDistanceM += step
         }
         lastLocation = location

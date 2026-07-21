@@ -411,6 +411,9 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
     // (máx. 50 pedidos/minuto).
     private var isCalculatingRoute = false
     private var lastRerouteAt = Date.distantPast
+    // Última advertencia de zona emitida: evita repetir el mismo aviso en cada
+    // lectura y que el número "salte" por el ruido del GPS estando quieto.
+    private var lastHazardStatus: String?
 
     init(option: RunRouteOption, origin: CLLocationCoordinate2D, userPrefs: RunUserPrefs,
          onStatus: @escaping (String) -> Void, onStep: @escaping (String, CLLocationDistance) -> Void,
@@ -621,9 +624,25 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
             emitStatus("Desvío detectado. Recalculando…")
             Task { await requestRouteFollowingSuggestion(from: loc.coordinate) }
         }
+        // Aviso de zona riesgosa: solo con una lectura confiable (con GPS
+        // impreciso la distancia "salta" y marcaría cualquier cosa), redondeado
+        // a 10 m y sin repetir el mismo aviso en cada actualización.
+        updateHazardWarning(around: loc)
+    }
+
+    private func updateHazardWarning(around loc: CLLocation) {
+        guard loc.horizontalAccuracy > 0, loc.horizontalAccuracy <= 30 else { return }
+        let status: String?
         if let dist = HazardService.shared.nearestHazardDistance(from: loc.coordinate, within: 80), dist <= 80 {
-            emitStatus("Advertencia: zona riesgosa a \(Int(dist)) m")
+            let rounded = Int((dist / 10).rounded()) * 10
+            status = "Advertencia: zona riesgosa a \(rounded) m"
+        } else {
+            status = nil
         }
+        guard status != lastHazardStatus else { return }
+        lastHazardStatus = status
+        if let s = status { emitStatus(s) }
+        else { emitStatus("Ruta despejada. ¡A correr!") }
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {

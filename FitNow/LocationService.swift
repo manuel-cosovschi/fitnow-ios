@@ -15,6 +15,12 @@ final class LocationService: NSObject, ObservableObject {
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.distanceFilter = 5  // metros: reduce ruido/consumo
+        manager.activityType = .fitness
+        // Permite seguir registrando la corrida con la pantalla bloqueada o la
+        // app en segundo plano (el modo "location" ya está declarado en el
+        // Info.plist) y evita que iOS pause el GPS creyendo que estás quieto.
+        manager.allowsBackgroundLocationUpdates = true
+        manager.pausesLocationUpdatesAutomatically = false
     }
 
     /// Arranca la captura de ubicación. Pide permiso si aún no se decidió.
