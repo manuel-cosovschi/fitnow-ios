@@ -432,9 +432,26 @@ struct OnboardingView: View {
             Array(selectedGoals.map { $0.rawValue }),
             forKey: "fn_fitness_goals"
         )
-        if startTrial {
-            // POST /payments/trial/start handled by backend on next API call
-            UserDefaults.standard.set(true, forKey: "fn_trial_requested")
+        enviarPerfilAlServidor()
+    }
+
+    /// Persiste el nivel y los objetivos en la cuenta del usuario. El nivel define
+    /// la dificultad por defecto de los planes de entrenamiento y los objetivos se
+    /// incorporan al pedido que el servidor le hace al modelo, de modo que el plan
+    /// responda a lo que la persona declaro buscar.
+    ///
+    /// Es una operacion accesoria: si falla, el onboarding termina igual y el
+    /// perfil se puede completar despues desde la pantalla de cuenta.
+    private func enviarPerfilAlServidor() {
+        let payload: [String: Any] = [
+            "fitness_level": selectedLevel.rawValue,
+            "fitness_goals": selectedGoals.map { $0.rawValue },
+        ]
+        guard let data = try? JSONSerialization.data(withJSONObject: payload) else { return }
+        Task {
+            _ = try? await APIClient.shared.request(
+                "account/me", method: "PUT", body: data, authorized: true
+            ) as RespuestaPerfil
         }
     }
 
@@ -464,6 +481,12 @@ struct OnboardingView: View {
 }
 
 // MARK: - Fitness models
+
+/// Respuesta de PUT /account/me. Solo se usa para satisfacer el decodificador:
+/// el onboarding no necesita nada del cuerpo devuelto.
+private struct RespuestaPerfil: Decodable {
+    let id: Int?
+}
 
 enum FitnessGoal: String, CaseIterable {
     case strength   = "strength"
