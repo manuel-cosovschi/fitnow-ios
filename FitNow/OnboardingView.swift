@@ -14,6 +14,7 @@ struct OnboardingView: View {
     // Step 1 — Permisos
     @State private var locationGranted     = false
     @State private var notifGranted        = false
+    @State private var healthGranted       = false
 
     // Step 2 — Objetivos
     @State private var selectedGoals:  Set<FitnessGoal> = []
@@ -156,10 +157,10 @@ struct OnboardingView: View {
                         color: .fnCrimson,
                         title: "HealthKit",
                         description: "Registrar tus entrenamientos en Apple Health (opcional)",
-                        isGranted: false,
+                        isGranted: healthGranted,
                         isOptional: true
                     ) {
-                        // HealthKit requested in RunNavigator when first run starts
+                        requestHealthKit()
                     }
                 }
             }
@@ -440,6 +441,15 @@ struct OnboardingView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             locationGranted = mgr.authorizationStatus == .authorizedWhenInUse ||
                               mgr.authorizationStatus == .authorizedAlways
+        }
+    }
+
+    // Pide el permiso de Apple Salud. Es opcional: si el usuario lo rechaza o el
+    // dispositivo no lo soporta, el resto del onboarding sigue igual.
+    private func requestHealthKit() {
+        Task {
+            let ok = await HealthKitService.shared.requestAuthorization()
+            await MainActor.run { healthGranted = ok }
         }
     }
 
