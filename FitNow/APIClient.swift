@@ -87,8 +87,11 @@ final class APIClient: APIClientProtocol {
 
     let session: URLSession = {
         let cfg = URLSessionConfiguration.default
-        cfg.timeoutIntervalForRequest  = 15
-        cfg.timeoutIntervalForResource = 30
+        // 45 s: la generacion de planes y el analisis con IA pueden tardar
+        // bastante mas que un pedido normal. El backend corta antes y devuelve
+        // su respaldo, asi que este valor es el techo, no el caso habitual.
+        cfg.timeoutIntervalForRequest  = 45
+        cfg.timeoutIntervalForResource = 90
         return URLSession(configuration: cfg)
     }()
 

@@ -801,6 +801,16 @@ struct EnrollmentFlowView: View {
                         ) {
                             Task { await enrollDirect() }
                         }
+                        // Sin esto, si la inscripcion falla (por ejemplo, porque ya
+                        // existe una activa) el boton parece no responder.
+                        if let err = intentError {
+                            Text(err)
+                                .font(.system(size: 13))
+                                .foregroundColor(.fnCrimson)
+                                .multilineTextAlignment(.center)
+                                .frame(maxWidth: .infinity)
+                                .padding(.top, 2)
+                        }
                     }
 
                 case .stripePayment, .success:
