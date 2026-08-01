@@ -429,11 +429,13 @@
 				};
 			};
 			buildConfigurationList = 36820D512E5E169D00B51DAF /* Build configuration list for PBXProject "FitNow" */;
-			developmentRegion = en;
+			developmentRegion = "es-419";
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
+				"es-419",
+				es,
 			);
 			mainGroup = 36820D4D2E5E169D00B51DAF;
 			minimizedProjectReferenceProxies = 1;

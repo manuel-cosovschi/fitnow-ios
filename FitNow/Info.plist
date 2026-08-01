@@ -4,6 +4,13 @@
 <dict>
 	<key>APIBaseURL</key>
 	<string>https://fitnow-api-production.up.railway.app/api/</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>es-419</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>es-419</string>
+		<string>es</string>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

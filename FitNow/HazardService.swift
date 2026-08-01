@@ -107,6 +107,21 @@ final class HazardService {
         return best.map { hazards[$0.idx] }
     }
 
+    /// Todas las zonas dentro de `within`, ordenadas de más cerca a más lejos y
+    /// con la distancia ya calculada. Alimenta los indicadores de borde del
+    /// navegador, que muestran varias zonas a la vez con su distancia en vivo.
+    func nearbyHazards(to c: CLLocationCoordinate2D,
+                       within: CLLocationDistance,
+                       limit: Int = 4) -> [(hazard: HazardArea, distance: CLLocationDistance)] {
+        let me = CLLocation(latitude: c.latitude, longitude: c.longitude)
+        return hazards
+            .map { (hazard: $0, distance: me.distance(from: CLLocation(latitude: $0.lat, longitude: $0.lng))) }
+            .filter { $0.distance <= within }
+            .sorted { $0.distance < $1.distance }
+            .prefix(limit)
+            .map { $0 }
+    }
+
     /// Solo la distancia al hazard más cercano (si está dentro de `within`)
     func nearestHazardDistance(from c: CLLocationCoordinate2D, within: CLLocationDistance) -> CLLocationDistance? {
         var best: CLLocationDistance?
