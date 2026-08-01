@@ -24,6 +24,10 @@ opt_in_rules:
   - unneeded_parentheses_in_closure_argument
 
 identifier_name:
+  # Los modelos decodifican el JSON de la API tal cual, así que hay propiedades
+  # en snake_case a propósito (date_start, provider_id). Queda como aviso: no
+  # tiene sentido frenar el CI por espejar las claves del backend.
+  severity: warning
   min_length: 1
   excluded:
     - id
@@ -39,3 +43,9 @@ identifier_name:
 
 type_name:
   min_length: 2
+
+# Una tupla de tres se usa en un par de lugares donde armar un tipo aparte no
+# aporta nada. Se avisa a partir de tres y se corta en cuatro.
+large_tuple:
+  warning: 3
+  error: 4
