@@ -65,7 +65,6 @@ final class AnalyticsViewModel: ObservableObject {
 
 struct AnalyticsView: View {
     @StateObject private var vm = AnalyticsViewModel()
-    @State private var selectedTab = 0
     @State private var appeared = false
 
     var body: some View {
@@ -77,13 +76,11 @@ struct AnalyticsView: View {
                         .padding(.horizontal, 16)
                 }
 
-                // Segment
-                Picker("", selection: $selectedTab) {
-                    Text("Running").tag(0)
-                    Text("Gimnasio").tag(1)
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal, 16)
+                // El modulo de gimnasio no esta expuesto en la navegacion de esta
+                // version, asi que no hay forma de que el usuario genere sesiones de
+                // gimnasio. Mostrar su pestania implicaba ofrecer una vista que nunca
+                // iba a tener datos. La seccion de gimnasio se conserva en el codigo
+                // (gymSection) para cuando el modulo se incorpore al menu.
 
                 if vm.loading {
                     VStack(spacing: 12) {
@@ -92,18 +89,10 @@ struct AnalyticsView: View {
                         }
                     }
                     .padding(.horizontal, 16)
-                } else if selectedTab == 0 {
-                    if vm.runningSummary == nil && vm.runWeekly.isEmpty {
-                        emptyDataState
-                    } else {
-                        runningSection
-                    }
+                } else if vm.runningSummary == nil && vm.runWeekly.isEmpty {
+                    emptyDataState
                 } else {
-                    if vm.gymSummary == nil && vm.gymWeekly.isEmpty {
-                        emptyDataState
-                    } else {
-                        gymSection
-                    }
+                    runningSection
                 }
             }
             .padding(.bottom, 30)
