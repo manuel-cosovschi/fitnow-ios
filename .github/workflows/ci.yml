@@ -20,13 +20,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.3.app
-
+      # Sin fijar versión de Xcode: fijar la 16.3 dejaba el SDK en iOS 18.4, por
+      # debajo del deployment target del proyecto (18.5) y sin ningún runtime de
+      # simulador compatible en el runner, así que el catálogo de assets no
+      # compilaba nunca y los tests no encontraban destino.
       - name: Show build environment
         run: |
           xcodebuild -version
           swift --version
+          xcrun simctl list runtimes
 
       - name: Resolve SPM dependencies
         run: |
@@ -34,8 +36,11 @@ jobs:
             -project FitNow.xcodeproj \
             -scheme FitNow
 
+      # pipefail y sin "|| true": antes cualquier falla de compilación se
+      # tragaba y el job daba verde con el build roto.
       - name: Build
         run: |
+          set -o pipefail
           xcodebuild build \
             -project FitNow.xcodeproj \
             -scheme FitNow \
@@ -43,10 +48,11 @@ jobs:
             -configuration Debug \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            | xcbeautify --quiet || true
+            | xcbeautify --quiet
 
       - name: Run unit tests
         run: |
+          set -o pipefail
           xcodebuild test \
             -project FitNow.xcodeproj \
             -scheme FitNowTests \
@@ -55,7 +61,7 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             -resultBundlePath TestResults.xcresult \
-            | xcbeautify || true
+            | xcbeautify
 
       - name: Upload test results
         if: always()
@@ -79,4 +85,3 @@ jobs:
 
       - name: Run SwiftLint
         run: swiftlint lint --reporter github-actions-logging FitNow/
-        continue-on-error: true

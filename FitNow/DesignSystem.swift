@@ -7,18 +7,22 @@ extension Color {
         let h = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
         Scanner(string: h).scanHexInt64(&int)
-        let a, r, g, b: UInt64
+        // Se normaliza todo a 0xAARRGGBB antes de separar los canales, así los
+        // formatos de 3, 6 y 8 dígitos se resuelven en un solo lugar.
+        let argb: UInt64
         switch h.count {
-        case 3:  (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6:  (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8:  (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
-        default: (a, r, g, b) = (255, 0, 0, 0)
+        case 3:
+            let r = (int >> 8) * 17, g = (int >> 4 & 0xF) * 17, b = (int & 0xF) * 17
+            argb = 0xFF00_0000 | (r << 16) | (g << 8) | b
+        case 6:  argb = 0xFF00_0000 | int
+        case 8:  argb = int
+        default: argb = 0xFF00_0000
         }
         self.init(.sRGB,
-                  red: Double(r) / 255,
-                  green: Double(g) / 255,
-                  blue: Double(b) / 255,
-                  opacity: Double(a) / 255)
+                  red: Double((argb >> 16) & 0xFF) / 255,
+                  green: Double((argb >> 8) & 0xFF) / 255,
+                  blue: Double(argb & 0xFF) / 255,
+                  opacity: Double((argb >> 24) & 0xFF) / 255)
     }
 }
 

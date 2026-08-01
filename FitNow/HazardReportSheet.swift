@@ -10,11 +10,26 @@ struct HazardReportSheet: View {
     @State private var sent = false
     @State private var failed = false
 
-    private let types: [(key: String, label: String, icon: String, color: Color, severity: Int)] = [
-        ("inseguridad", "Inseguridad", "exclamationmark.shield.fill", .fnSecondary, 3),
-        ("iluminacion", "Mala iluminación", "lightbulb.slash.fill", .fnYellow, 2),
-        ("vereda_rota", "Vereda rota", "road.lanes", .fnPrimary, 2),
-        ("obra", "Obra / corte", "cone.fill", .fnCyan, 2),
+    // Los cuatro tipos que se pueden reportar de un toque. La gravedad viaja
+    // acá porque es la que después pondera el evaluador de rutas.
+    private struct HazardKind: Identifiable {
+        let key: String
+        let label: String
+        let icon: String
+        let color: Color
+        let severity: Int
+        var id: String { key }
+    }
+
+    private let types: [HazardKind] = [
+        HazardKind(key: "inseguridad", label: "Inseguridad",
+                   icon: "exclamationmark.shield.fill", color: .fnSecondary, severity: 3),
+        HazardKind(key: "iluminacion", label: "Mala iluminación",
+                   icon: "lightbulb.slash.fill", color: .fnYellow, severity: 2),
+        HazardKind(key: "vereda_rota", label: "Vereda rota",
+                   icon: "road.lanes", color: .fnPrimary, severity: 2),
+        HazardKind(key: "obra", label: "Obra / corte",
+                   icon: "cone.fill", color: .fnCyan, severity: 2)
     ]
 
     var body: some View {
