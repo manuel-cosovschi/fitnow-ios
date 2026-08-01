@@ -1,0 +1,65 @@
+{
+  "identifier" : "FA5B1C90",
+  "nonRenewingSubscriptions" : [],
+  "products" : [],
+  "settings" : {
+    "_applicationInternalID" : "6478000001",
+    "_developerTeamID" : "8789Q7JGK2",
+    "_lastSynchronizedDate" : 0
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21451234",
+      "localizations" : [],
+      "name" : "FitNow Plus",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "4.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6478000010",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Rutas ilimitadas, análisis detallado de cada corrida y planes de entrenamiento personalizados.",
+              "displayName" : "FitNow Plus mensual",
+              "locale" : "es_AR"
+            }
+          ],
+          "productID" : "com.fitnow.plus.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "FitNow Plus mensual",
+          "subscriptionGroupID" : "21451234",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "39.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6478000011",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Todas las funciones de FitNow Plus durante un año, con un ahorro del 30 % frente al plan mensual.",
+              "displayName" : "FitNow Plus anual",
+              "locale" : "es_AR"
+            }
+          ],
+          "productID" : "com.fitnow.plus.annual",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "FitNow Plus anual",
+          "subscriptionGroupID" : "21451234",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}
