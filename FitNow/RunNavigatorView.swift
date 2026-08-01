@@ -11,13 +11,17 @@ struct RunUserPrefs {
     static let `default` = RunUserPrefs()
 }
 
-// Zona de riesgo que tenés cerca en este momento de la corrida. Se usa para el
-// popup dinámico que salta cuando te acercás y se va cuando la dejás atrás.
-// Es Equatable para que la vista solo se re-anime cuando cambia de verdad.
-struct NearbyHazard: Equatable {
+// Zona de riesgo que tenés cerca en este momento de la corrida. Alimenta los
+// indicadores que se pegan al borde del mapa: uno por zona, con la distancia
+// que baja mientras te acercás y sube cuando la dejás atrás.
+// `bearing` es el rumbo hacia la zona relativo a hacia dónde mira la cámara
+// (0 = adelante, 90 = a tu derecha), y es lo que decide contra qué borde va.
+struct NearbyHazard: Equatable, Identifiable {
+    let id: Int
     let type: String
     let distance: Int
     let severity: Int
+    let bearing: Double
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -42,9 +46,10 @@ struct RunNavigatorView: View {
     @State private var sessionEnded = false
     @State private var showAnalysis = false
     @State private var showReportSheet = false
-    // Zona de riesgo cercana en vivo: alimenta el popup dinámico. nil = despejado.
-    @State private var nearbyHazard: NearbyHazard?
-    // Latido del popup para que "respire" mientras te acercás (estilo Waze).
+    // Zonas de riesgo cercanas en vivo: alimentan los indicadores de borde.
+    // Vacío = ninguna zona a la vista.
+    @State private var nearbyHazards: [NearbyHazard] = []
+    // Latido de los indicadores para que "respiren" mientras te acercás.
     @State private var hazardPulse = false
 
     var body: some View {
@@ -66,10 +71,10 @@ struct RunNavigatorView: View {
                 onLocation: { loc in
                     Task { @MainActor in tracker.addPoint(loc) }
                 },
-                onHazard: { hz in
+                onHazards: { list in
                     DispatchQueue.main.async {
                         withAnimation(.spring(response: 0.42, dampingFraction: 0.72)) {
-                            nearbyHazard = hz
+                            nearbyHazards = list
                         }
                     }
                 }
@@ -78,18 +83,14 @@ struct RunNavigatorView: View {
             .overlay(alignment: .top) {
                 topHUD
             }
-            // Popup dinámico de zona de riesgo: salta animado bajo el HUD cuando
-            // te acercás, muestra el tipo y la distancia en vivo, y se va solo al
-            // dejar la zona atrás. Es la red de seguridad por si la ruta no la
-            // esquivó o el reporte llegó ya en plena corrida.
-            .overlay(alignment: .top) {
-                if let hz = nearbyHazard {
-                    hazardPopup(hz)
-                        .padding(.horizontal, 12)
-                        .padding(.top, 172)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                        .zIndex(3)
-                }
+            // Indicadores de zona de riesgo pegados al borde del mapa: uno por
+            // zona, del lado hacia donde está, con la distancia contando en vivo
+            // mientras te acercás o la dejás atrás. Es la red de seguridad por si
+            // la ruta no la esquivó o el reporte llegó ya en plena corrida.
+            .overlay {
+                hazardEdgeOverlay
+                    .allowsHitTesting(false)
+                    .zIndex(3)
             }
 
             // Botón de reporte rápido de zona (estilo Waze), sobre el dashboard
@@ -212,57 +213,106 @@ struct RunNavigatorView: View {
         .padding(.top, 12)
     }
 
-    // MARK: - Popup dinámico de zona de riesgo
+    // MARK: - Indicadores de zona de riesgo en el borde del mapa
 
-    private func hazardPopup(_ hz: NearbyHazard) -> some View {
-        let color = Self.hazardSeverityColor(hz.severity)
-        return HStack(spacing: 12) {
+    private var hazardEdgeOverlay: some View {
+        GeometryReader { geo in
             ZStack {
-                Circle()
-                    .fill(color.opacity(0.22))
-                    .frame(width: 46, height: 46)
-                    .scaleEffect(hazardPulse ? 1.15 : 0.92)
-                Image(systemName: Coordinator.hazardGlyph(hz.type))
-                    .font(.system(size: 21, weight: .bold))
-                    .foregroundColor(color)
-            }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(Coordinator.hazardTitle(hz.type))
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(.white)
-                    .lineLimit(1)
-                Text("Reducí el ritmo y prestá atención")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.fnSlate)
-                    .lineLimit(1)
-            }
-            Spacer(minLength: 6)
-            VStack(alignment: .trailing, spacing: 0) {
-                Text("\(hz.distance)")
-                    .font(.custom("JetBrains Mono", size: 22).weight(.heavy))
-                    .foregroundColor(color)
-                    .contentTransition(.numericText())
-                Text("metros")
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundColor(.fnSlate)
-                    .textCase(.uppercase)
-                    .tracking(0.5)
+                ForEach(Self.placeOnEdges(nearbyHazards, in: geo.size), id: \.hazard.id) { placed in
+                    hazardChip(placed.hazard)
+                        .position(placed.point)
+                        .transition(.scale(scale: 0.7).combined(with: .opacity))
+                }
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(color.opacity(0.55), lineWidth: 1.5)
-        )
-        .shadow(color: color.opacity(0.35), radius: 12, y: 4)
         .onAppear {
             hazardPulse = false
             withAnimation(.easeInOut(duration: 0.85).repeatForever(autoreverses: true)) {
                 hazardPulse = true
             }
         }
+    }
+
+    /// Un indicador: la flecha apunta hacia la zona, el número es la distancia
+    /// en vivo. Cuanto más cerca estás, más marcado el latido.
+    private func hazardChip(_ hz: NearbyHazard) -> some View {
+        let color = Self.hazardSeverityColor(hz.severity)
+        // Solo late cuando la tenés encima; de lejos queda quieto para no marear.
+        let pulsing = hz.distance <= 120
+        return VStack(spacing: 3) {
+            HStack(spacing: 6) {
+                Image(systemName: "location.north.fill")
+                    .font(.system(size: 10, weight: .black))
+                    .foregroundColor(color)
+                    .rotationEffect(.degrees(hz.bearing))
+                Image(systemName: Coordinator.hazardGlyph(hz.type))
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(color)
+                Text("\(hz.distance)")
+                    .font(.custom("JetBrains Mono", size: 17).weight(.heavy))
+                    .foregroundColor(color)
+                    .contentTransition(.numericText())
+                Text("m")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.fnSlate)
+            }
+            Text(Coordinator.hazardTitle(hz.type))
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .frame(width: Self.hazardChipSize.width)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 13))
+        .overlay(
+            RoundedRectangle(cornerRadius: 13)
+                .stroke(color.opacity(0.6), lineWidth: 1.5)
+        )
+        .shadow(color: color.opacity(0.35), radius: 10, y: 3)
+        .scaleEffect(pulsing && hazardPulse ? 1.06 : 1.0)
+    }
+
+    private static let hazardChipSize = CGSize(width: 132, height: 46)
+
+    /// Pega cada zona contra el borde del mapa según su rumbo, dentro de la
+    /// franja que no tapan el HUD ni el tablero. Si dos caen una encima de la
+    /// otra, la segunda se corre unos grados para que las dos se lean.
+    static func placeOnEdges(_ hazards: [NearbyHazard],
+                             in size: CGSize) -> [(hazard: NearbyHazard, point: CGPoint)] {
+        var placed: [(hazard: NearbyHazard, point: CGPoint)] = []
+        for hz in hazards {
+            var point = edgePosition(for: hz.bearing, in: size)
+            var attempt = 0
+            while attempt < 3,
+                  placed.contains(where: { hypot($0.point.x - point.x, $0.point.y - point.y) < hazardChipSize.width * 0.85 }) {
+                attempt += 1
+                point = edgePosition(for: hz.bearing + Double(attempt) * 26, in: size)
+            }
+            placed.append((hz, point))
+        }
+        return placed
+    }
+
+    /// Proyecta un rumbo relativo (0 = adelante) sobre el borde de la franja
+    /// visible: adelante arriba, atrás abajo, y los costados a los costados.
+    static func edgePosition(for bearing: Double, in size: CGSize) -> CGPoint {
+        let halfChipW = hazardChipSize.width / 2 + 8
+        let halfChipH = hazardChipSize.height / 2 + 4
+        let minX = halfChipW
+        let maxX = max(size.width - halfChipW, minX)
+        let minY = 178 + halfChipH                              // debajo del HUD
+        let maxY = max(size.height - 246 - halfChipH, minY)     // encima del tablero
+        let cx = (minX + maxX) / 2, cy = (minY + maxY) / 2
+        let halfW = (maxX - minX) / 2, halfH = (maxY - minY) / 2
+        guard halfW > 1, halfH > 1 else { return CGPoint(x: cx, y: cy) }
+        let rad = bearing * .pi / 180
+        let dx = CGFloat(sin(rad)), dy = CGFloat(-cos(rad))
+        let tx = abs(dx) < 0.001 ? CGFloat.greatestFiniteMagnitude : halfW / abs(dx)
+        let ty = abs(dy) < 0.001 ? CGFloat.greatestFiniteMagnitude : halfH / abs(dy)
+        let t = min(tx, ty)
+        return CGPoint(x: cx + dx * t, y: cy + dy * t)
     }
 
     private static func hazardSeverityColor(_ severity: Int) -> Color {
@@ -455,11 +505,11 @@ fileprivate struct NavigatorMapRepresentable: UIViewRepresentable {
     let onStatus: (String) -> Void
     let onStep: (String, CLLocationDistance) -> Void
     var onLocation: ((CLLocation) -> Void)? = nil
-    var onHazard: ((NearbyHazard?) -> Void)? = nil
+    var onHazards: (([NearbyHazard]) -> Void)? = nil
 
     func makeCoordinator() -> Coordinator {
         Coordinator(option: option, origin: origin, userPrefs: userPrefs,
-                    onStatus: onStatus, onStep: onStep, onLocation: onLocation, onHazard: onHazard)
+                    onStatus: onStatus, onStep: onStep, onLocation: onLocation, onHazards: onHazards)
     }
 
     func makeUIView(context: Context) -> MKMapView {
@@ -488,7 +538,7 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
     private let onStatus: (String) -> Void
     private let onStep: (String, CLLocationDistance) -> Void
     private let onLocation: ((CLLocation) -> Void)?
-    private let onHazard: ((NearbyHazard?) -> Void)?
+    private let onHazards: (([NearbyHazard]) -> Void)?
 
     private var map: MKMapView!
     private let loc = CLLocationManager()
@@ -519,7 +569,7 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
 
     init(option: RunRouteOption, origin: CLLocationCoordinate2D, userPrefs: RunUserPrefs,
          onStatus: @escaping (String) -> Void, onStep: @escaping (String, CLLocationDistance) -> Void,
-         onLocation: ((CLLocation) -> Void)? = nil, onHazard: ((NearbyHazard?) -> Void)? = nil) {
+         onLocation: ((CLLocation) -> Void)? = nil, onHazards: (([NearbyHazard]) -> Void)? = nil) {
         self.option = option
         self.origin = origin
         self.destination = option.geojson.coords2D.last ?? origin
@@ -527,7 +577,7 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
         self.onStatus = onStatus
         self.onStep = onStep
         self.onLocation = onLocation
-        self.onHazard = onHazard
+        self.onHazards = onHazards
     }
 
     func attach(to map: MKMapView) {
@@ -680,7 +730,7 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
             do {
                 let r = try await calculate(from: src ?? origin, to: destination)
                 applySegments([r]); emitStatus("Ruta lista. ¡A correr!")
-                announceIfNeeded(r.steps.first?.instructions.isEmpty == false ? r.steps.first!.instructions : "Comienzo")
+                announceIfNeeded(r.steps.first?.instructions.isEmpty == false ? Self.localizedInstruction(r.steps.first!.instructions) : "Comienzo")
                 updateInstruction(for: nil)
             } catch { fallBackToSuggestedRoute() }
         }
@@ -728,7 +778,7 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
         do {
             for p in points { let r = try await calculate(from: last, to: p); segments.append(r); last = p }
             applySegments(segments); emitStatus("Ruta lista. ¡A correr!")
-            announceIfNeeded(navSteps.first?.instructions.isEmpty == false ? navSteps.first!.instructions : "Comienzo")
+            announceIfNeeded(navSteps.first?.instructions.isEmpty == false ? Self.localizedInstruction(navSteps.first!.instructions) : "Comienzo")
             updateInstruction(for: nil)
         } catch { fallBackToSuggestedRoute() }
     }
@@ -863,18 +913,28 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
 
     private func updateHazardWarning(around loc: CLLocation) {
         guard loc.horizontalAccuracy > 0, loc.horizontalAccuracy <= 30 else { return }
+        // Radio de los indicadores de borde. Es mucho más ancho que el del aviso
+        // hablado a propósito: querés ver la zona venir desde lejos y que el
+        // contador baje metro a metro, no enterarte a 80 m.
+        let nearby = HazardService.shared.nearbyHazards(to: loc.coordinate, within: 300)
+        onHazards?(nearby.map { item in
+            NearbyHazard(id: item.hazard.id,
+                         type: item.hazard.type,
+                         // Sin redondear a decenas: así el número corre 101, 100, 99…
+                         distance: Int(item.distance.rounded()),
+                         severity: item.hazard.severity ?? 2,
+                         bearing: Self.relativeBearing(from: loc.coordinate,
+                                                       to: item.hazard.center,
+                                                       cameraHeading: map?.camera.heading ?? lastHeading))
+        })
+        // El aviso hablado y el texto de estado siguen usando el umbral corto:
+        // avisar por voz a 300 m sería ruido constante.
         let status: String?
-        // Tomamos el hazard completo (no solo la distancia) para poder pasarle al
-        // popup el tipo y la gravedad. El aviso del popup se actualiza en cada
-        // lectura para que la distancia baje en vivo mientras te acercás.
-        if let h = HazardService.shared.nearestHazard(to: loc.coordinate, within: 80) {
-            let d = loc.distance(from: CLLocation(latitude: h.lat, longitude: h.lng))
-            let rounded = Int((d / 10).rounded()) * 10
+        if let closest = nearby.first, closest.distance <= 80 {
+            let rounded = Int((closest.distance / 10).rounded()) * 10
             status = "Advertencia: zona riesgosa a \(rounded) m"
-            onHazard?(NearbyHazard(type: h.type, distance: rounded, severity: h.severity ?? 2))
         } else {
             status = nil
-            onHazard?(nil)
         }
         guard status != lastHazardStatus else { return }
         lastHazardStatus = status
@@ -891,12 +951,69 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
         let index = nearestStepIndex(to: current?.coordinate)
         if index != currentStepIndex {
             currentStepIndex = index
-            let instr = navSteps[index].instructions.isEmpty ? "Seguí recto" : navSteps[index].instructions
+            let raw = navSteps[index].instructions
+            let instr = raw.isEmpty ? "Seguí recto" : Self.localizedInstruction(raw)
             announceIfNeeded(instr)
         }
         let step = navSteps[currentStepIndex]
         let remaining = remainingDistance(on: step, from: current?.coordinate) ?? step.distance
-        onStep(step.instructions.isEmpty ? "Seguí recto" : step.instructions, remaining)
+        onStep(step.instructions.isEmpty ? "Seguí recto" : Self.localizedInstruction(step.instructions), remaining)
+    }
+
+    /// Red de seguridad del idioma. Con `CFBundleLocalizations` en es-419 MapKit
+    /// devuelve las indicaciones en castellano, pero si el dispositivo fuerza
+    /// otro idioma igual llegan en inglés. Acá se traducen las formas que usa
+    /// MapKit; si el texto ya viene en castellano no se toca nada.
+    static func localizedInstruction(_ text: String) -> String {
+        guard text.range(of: #"\b(turn|onto|Head|Continue|Proceed|Keep|Cross|Arrive|exit|road)\b"#,
+                         options: [.regularExpression, .caseInsensitive]) != nil else { return text }
+        var out = text
+        let table: [(String, String)] = [
+            ("At the end of the road, ", "Al final de la calle, "),
+            ("Cross the street and ", "Cruzá la calle y "),
+            ("Make a U-turn", "Hacé un giro en U"),
+            ("Slight left", "Doblá levemente a la izquierda"),
+            ("Slight right", "Doblá levemente a la derecha"),
+            ("Sharp left", "Doblá cerrado a la izquierda"),
+            ("Sharp right", "Doblá cerrado a la derecha"),
+            ("Turn left", "Doblá a la izquierda"),
+            ("Turn right", "Doblá a la derecha"),
+            ("turn left", "doblá a la izquierda"),
+            ("turn right", "doblá a la derecha"),
+            ("Keep left", "Mantenete a la izquierda"),
+            ("Keep right", "Mantenete a la derecha"),
+            ("Continue", "Seguí"),
+            ("Proceed to", "Seguí hasta"),
+            ("Arrive at", "Llegás a"),
+            ("Head north", "Andá hacia el norte"),
+            ("Head south", "Andá hacia el sur"),
+            ("Head east", "Andá hacia el este"),
+            ("Head west", "Andá hacia el oeste"),
+            (" onto ", " por "),
+            (" on ", " por "),
+            (" toward ", " hacia "),
+            ("Your destination", "Tu destino"),
+            ("is on the left", "queda a la izquierda"),
+            ("is on the right", "queda a la derecha"),
+        ]
+        for (en, es) in table { out = out.replacingOccurrences(of: en, with: es) }
+        return out
+    }
+
+    /// Rumbo hacia la zona medido desde hacia dónde mira la cámara, en grados
+    /// 0..360 (0 = justo adelante, 90 = a la derecha). Con la cámara en modo
+    /// seguimiento el mapa rota con vos, así que este ángulo es el que hay que
+    /// usar para pegar el indicador contra el borde correcto de la pantalla.
+    static func relativeBearing(from: CLLocationCoordinate2D,
+                                to: CLLocationCoordinate2D,
+                                cameraHeading: CLLocationDirection) -> Double {
+        let lat1 = from.latitude * .pi / 180, lat2 = to.latitude * .pi / 180
+        let dLon = (to.longitude - from.longitude) * .pi / 180
+        let y = sin(dLon) * cos(lat2)
+        let x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon)
+        let absolute = atan2(y, x) * 180 / .pi
+        let rel = (absolute - cameraHeading).truncatingRemainder(dividingBy: 360)
+        return rel < 0 ? rel + 360 : rel
     }
 
     private func nearestStepIndex(to coord: CLLocationCoordinate2D?) -> Int {
