@@ -511,10 +511,13 @@ struct RunNavigatorView: View {
     }
 
     private var paceText: String {
-        // Recién mostramos ritmo cuando hay una distancia real (>50 m); antes,
-        // con poca distancia, el ritmo (tiempo/distancia) da números disparatados.
-        guard tracker.totalDistanceM > 50, elapsed > 0 else { return "—" }
-        let pace = elapsed / (tracker.totalDistanceM / 1000.0)
+        // Ritmo de ahora, no promedio de toda la sesión: dividir el tiempo total
+        // por la distancia total arrastra el rato parado antes de arrancar y da
+        // números que no son tu ritmo. Si hace rato que no llega una lectura de
+        // movimiento, el último valor ya no vale y se muestra un guion.
+        guard let pace = tracker.currentPaceSecPerKm,
+              let last = tracker.lastPointAt,
+              Date().timeIntervalSince(last) <= 30 else { return "—" }
         let m = Int(pace) / 60
         let s = Int(pace) % 60
         return String(format: "%d:%02d", m, s)
