@@ -83,14 +83,26 @@ struct RunNavigatorView: View {
             .overlay(alignment: .top) {
                 topHUD
             }
-            // Indicadores de zona de riesgo pegados al borde del mapa: uno por
-            // zona, del lado hacia donde está, con la distancia contando en vivo
-            // mientras te acercás o la dejás atrás. Es la red de seguridad por si
-            // la ruta no la esquivó o el reporte llegó ya en plena corrida.
+            // Popup dinámico de zona de riesgo: salta animado bajo el HUD cuando
+            // entrás en los 80 m, muestra el tipo y la distancia en vivo, y se va
+            // solo al dejar la zona atrás. Es la red de seguridad por si la ruta
+            // no la esquivó o el reporte llegó ya en plena corrida.
+            .overlay(alignment: .top) {
+                if let hz = popupHazard {
+                    hazardPopup(hz)
+                        .padding(.horizontal, 12)
+                        .padding(.top, 172)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(3)
+                }
+            }
+            // Indicadores pegados al borde del mapa: uno por zona a la vista, del
+            // lado hacia donde está y con la distancia contando en vivo. Avisan
+            // de lo que viene mucho antes de que el popup llegue a saltar.
             .overlay {
                 hazardEdgeOverlay
                     .allowsHitTesting(false)
-                    .zIndex(3)
+                    .zIndex(2)
             }
 
             // Botón de reporte rápido de zona (estilo Waze), sobre el dashboard
@@ -213,12 +225,75 @@ struct RunNavigatorView: View {
         .padding(.top, 12)
     }
 
+    // MARK: - Popup dinámico de zona de riesgo
+
+    /// La zona que dispara el popup: la más cercana dentro de los 80 m, igual
+    /// que antes. Sale de la misma lista que alimenta los indicadores de borde,
+    /// que llega ordenada de más cerca a más lejos.
+    private var popupHazard: NearbyHazard? {
+        guard let first = nearbyHazards.first, first.distance <= 80 else { return nil }
+        return first
+    }
+
+    private func hazardPopup(_ hz: NearbyHazard) -> some View {
+        let color = Self.hazardSeverityColor(hz.severity)
+        // El popup redondea a decenas: a esta distancia el número exacto salta
+        // con el ruido del GPS y marea. El contador fino va en el indicador.
+        let rounded = Int((Double(hz.distance) / 10).rounded()) * 10
+        return HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.22))
+                    .frame(width: 46, height: 46)
+                    .scaleEffect(hazardPulse ? 1.15 : 0.92)
+                Image(systemName: Coordinator.hazardGlyph(hz.type))
+                    .font(.system(size: 21, weight: .bold))
+                    .foregroundColor(color)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(Coordinator.hazardTitle(hz.type))
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+                Text("Reducí el ritmo y prestá atención")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.fnSlate)
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 6)
+            VStack(alignment: .trailing, spacing: 0) {
+                Text("\(rounded)")
+                    .font(.custom("JetBrains Mono", size: 22).weight(.heavy))
+                    .foregroundColor(color)
+                    .contentTransition(.numericText())
+                Text("metros")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundColor(.fnSlate)
+                    .textCase(.uppercase)
+                    .tracking(0.5)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(color.opacity(0.55), lineWidth: 1.5)
+        )
+        .shadow(color: color.opacity(0.35), radius: 12, y: 4)
+    }
+
     // MARK: - Indicadores de zona de riesgo en el borde del mapa
 
     private var hazardEdgeOverlay: some View {
         GeometryReader { geo in
             ZStack {
-                ForEach(Self.placeOnEdges(nearbyHazards, in: geo.size), id: \.hazard.id) { placed in
+                // La zona que ya está en el popup no repite indicador: sería la
+                // misma información dos veces, y el popup manda a esa distancia.
+                ForEach(Self.placeOnEdges(nearbyHazards.filter { $0.id != popupHazard?.id },
+                                          in: geo.size,
+                                          topInset: popupHazard == nil ? 178 : 250),
+                        id: \.hazard.id) { placed in
                     hazardChip(placed.hazard)
                         .position(placed.point)
                         .transition(.scale(scale: 0.7).combined(with: .opacity))
@@ -280,15 +355,16 @@ struct RunNavigatorView: View {
     /// franja que no tapan el HUD ni el tablero. Si dos caen una encima de la
     /// otra, la segunda se corre unos grados para que las dos se lean.
     static func placeOnEdges(_ hazards: [NearbyHazard],
-                             in size: CGSize) -> [(hazard: NearbyHazard, point: CGPoint)] {
+                             in size: CGSize,
+                             topInset: CGFloat) -> [(hazard: NearbyHazard, point: CGPoint)] {
         var placed: [(hazard: NearbyHazard, point: CGPoint)] = []
         for hz in hazards {
-            var point = edgePosition(for: hz.bearing, in: size)
+            var point = edgePosition(for: hz.bearing, in: size, topInset: topInset)
             var attempt = 0
             while attempt < 3,
                   placed.contains(where: { hypot($0.point.x - point.x, $0.point.y - point.y) < hazardChipSize.width * 0.85 }) {
                 attempt += 1
-                point = edgePosition(for: hz.bearing + Double(attempt) * 26, in: size)
+                point = edgePosition(for: hz.bearing + Double(attempt) * 26, in: size, topInset: topInset)
             }
             placed.append((hz, point))
         }
@@ -297,12 +373,12 @@ struct RunNavigatorView: View {
 
     /// Proyecta un rumbo relativo (0 = adelante) sobre el borde de la franja
     /// visible: adelante arriba, atrás abajo, y los costados a los costados.
-    static func edgePosition(for bearing: Double, in size: CGSize) -> CGPoint {
+    static func edgePosition(for bearing: Double, in size: CGSize, topInset: CGFloat) -> CGPoint {
         let halfChipW = hazardChipSize.width / 2 + 8
         let halfChipH = hazardChipSize.height / 2 + 4
         let minX = halfChipW
         let maxX = max(size.width - halfChipW, minX)
-        let minY = 178 + halfChipH                              // debajo del HUD
+        let minY = topInset + halfChipH                         // debajo del HUD (y del popup si está)
         let maxY = max(size.height - 246 - halfChipH, minY)     // encima del tablero
         let cx = (minX + maxX) / 2, cy = (minY + maxY) / 2
         let halfW = (maxX - minX) / 2, halfH = (maxY - minY) / 2
