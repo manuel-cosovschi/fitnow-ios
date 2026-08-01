@@ -22,10 +22,8 @@ struct OnboardingView: View {
     // Step 3 — Nivel
     @State private var selectedLevel: FitnessLevel = .beginner
 
-    // Step 4 — FitNow+
-    @State private var startTrial = false
 
-    private let totalSteps = 4
+    private let totalSteps = 3
 
     var body: some View {
         ZStack {
@@ -40,7 +38,6 @@ struct OnboardingView: View {
                     permissionsStep.tag(0)
                     goalsStep.tag(1)
                     levelStep.tag(2)
-                    plusStep.tag(3)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.spring(response: 0.5, dampingFraction: 0.82), value: step)
@@ -104,15 +101,15 @@ struct OnboardingView: View {
             } else {
                 Button { finish() } label: {
                     HStack(spacing: 6) {
-                        Text(startTrial ? "Iniciar prueba gratis" : "Empezar")
+                        Text("Empezar")
                             .font(.system(size: 16, weight: .bold))
-                        Image(systemName: startTrial ? "star.fill" : "checkmark")
+                        Image(systemName: "checkmark")
                             .font(.system(size: 14, weight: .bold))
                     }
                     .foregroundColor(.white)
                     .padding(.horizontal, 28)
                     .padding(.vertical, 14)
-                    .background(startTrial ? FNGradient.provider : FNGradient.primary,
+                    .background(FNGradient.primary,
                                 in: Capsule())
                 }
                 .buttonStyle(ScaleButtonStyle())
@@ -279,80 +276,6 @@ struct OnboardingView: View {
             )
         }
         .buttonStyle(ScaleButtonStyle())
-    }
-
-    // MARK: - Step 4: FitNow+
-
-    private var plusStep: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 24) {
-                stepHeader(
-                    emoji: "⭐️",
-                    title: "Probá FitNow+ gratis",
-                    subtitle: "7 días sin compromiso, cancelás cuando quieras"
-                )
-
-                plusBenefitsCard
-
-                VStack(spacing: 10) {
-                    Button {
-                        withAnimation(.spring(response: 0.3)) { startTrial = true }
-                    } label: {
-                        HStack {
-                            Spacer()
-                            Text(startTrial ? "✓ Prueba activada" : "Activar prueba gratis — 7 días")
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(.white)
-                            Spacer()
-                        }
-                        .padding(.vertical, 16)
-                        .background(startTrial ? FNGradient.success : FNGradient.provider,
-                                    in: RoundedRectangle(cornerRadius: 14))
-                    }
-                    .buttonStyle(ScaleButtonStyle())
-                    .animation(.spring(response: 0.4), value: startTrial)
-
-                    Text("Después, $4.99/mes. Sin cargo hasta el día 8.")
-                        .font(.system(size: 12))
-                        .foregroundColor(.fnAsh)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                }
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 32)
-        }
-    }
-
-    private var plusBenefitsCard: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ForEach([
-                ("star.fill", Color.fnAmber, "Sin publicidad", "Experiencia limpia y sin interrupciones"),
-                ("chart.line.uptrend.xyaxis", Color.fnBlue, "Analytics avanzado", "Splits, pace, HRV y datos de entrenamiento"),
-                ("brain.head.profile", Color.fnPurple, "Coach IA sin límites", "Planes personalizados con contexto biométrico"),
-                ("percent", Color.fnGreen, "Descuentos exclusivos", "Hasta 20% off en actividades seleccionadas"),
-            ], id: \.2) { icon, color, title, desc in
-                HStack(spacing: 14) {
-                    ZStack {
-                        Circle().fill(color.opacity(0.14)).frame(width: 36, height: 36)
-                        Image(systemName: icon)
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(color)
-                    }
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(title).font(.system(size: 14, weight: .bold)).foregroundColor(.fnWhite)
-                        Text(desc).font(.system(size: 12)).foregroundColor(.fnSlate)
-                    }
-                    Spacer()
-                }
-                .padding(.vertical, 12)
-                .padding(.horizontal, 16)
-                if title != "Descuentos exclusivos" {
-                    Divider().background(Color.fnBorder).padding(.leading, 66)
-                }
-            }
-        }
-        .background(Color.fnElevated, in: RoundedRectangle(cornerRadius: 18))
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.fnBorder, lineWidth: 1))
     }
 
     // MARK: - Shared helpers
