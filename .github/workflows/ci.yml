@@ -50,6 +50,9 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             | xcbeautify --quiet
 
+      # Se saltean los de UI: son los stubs que genera Xcode (testExample,
+      # testLaunchPerformance), no verifican nada del producto y se llevaban
+      # varios minutos levantando el simulador en cada corrida.
       - name: Run unit tests
         run: |
           set -o pipefail
@@ -58,6 +61,7 @@ jobs:
             -scheme FitNowTests \
             -destination "platform=iOS Simulator,name=iPhone 16,OS=latest" \
             -configuration Debug \
+            -skip-testing:FitNowUITests \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             -resultBundlePath TestResults.xcresult \

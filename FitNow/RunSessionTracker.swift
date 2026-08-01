@@ -17,6 +17,12 @@ final class RunSessionTracker: ObservableObject {
     // MARK: - Published state
     @Published private(set) var sessionId: Int?
     @Published private(set) var totalDistanceM: CLLocationDistance = 0
+    /// Ritmo actual en segundos por kilómetro, medido sobre los últimos tramos
+    /// de movimiento real. nil = todavía no hay tramo suficiente para calcularlo.
+    @Published private(set) var currentPaceSecPerKm: Double?
+    /// Momento de la última lectura de GPS aceptada. Sirve para saber si el
+    /// ritmo que se está mostrando sigue vigente o quedó viejo porque parqueaste.
+    @Published private(set) var lastPointAt: Date?
     /// Post-run AI analysis, fetched after the run is finalised.
     @Published private(set) var analysis: RunAnalysis?
     @Published private(set) var analyzing = false
@@ -31,6 +37,16 @@ final class RunSessionTracker: ObservableObject {
     private var startRouteId: Int?
     private var startOriginLat: Double = 0
     private var startOriginLng: Double = 0
+    /// Ventana de muestras (instante, distancia acumulada) de los últimos
+    /// `paceWindowSeconds` para calcular el ritmo actual.
+    private var paceWindow: [(t: Date, d: CLLocationDistance)] = []
+    /// Un minuto: suficiente para promediar el ruido del GPS y corto como para
+    /// que el número siga el cambio real cuando pasás de caminar a trotar.
+    private let paceWindowSeconds: TimeInterval = 60
+    /// Mínimos para que el ritmo signifique algo: con menos tiempo o menos
+    /// metros el cociente lo domina el error del GPS.
+    private let paceMinSeconds: TimeInterval = 15
+    private let paceMinMeters: CLLocationDistance = 40
 
     /// Flush when this many points have accumulated
     private let flushThreshold = 10
@@ -44,6 +60,9 @@ final class RunSessionTracker: ObservableObject {
         startedAt = Date()
         totalDistanceM = 0
         lastLocation = nil
+        paceWindow = []
+        currentPaceSecPerKm = nil
+        lastPointAt = nil
         startRouteId   = routeId
         startOriginLat = originLat
         startOriginLng = originLng
@@ -94,6 +113,7 @@ final class RunSessionTracker: ObservableObject {
             totalDistanceM += step
         }
         lastLocation = location
+        updatePace(at: location.timestamp)
 
         var point: [String: Any] = [
             "ts_ms": Int(location.timestamp.timeIntervalSince1970 * 1000),
@@ -106,6 +126,25 @@ final class RunSessionTracker: ObservableObject {
 
         pendingPoints.append(point)
         if pendingPoints.count >= flushThreshold { flush() }
+    }
+
+    /// Ritmo sobre la ventana móvil, no sobre toda la sesión. El promedio desde
+    /// el arranque arrastra el rato que estuviste parado antes de empezar a
+    /// correr, y hasta bien entrada la salida muestra un ritmo que no es el tuyo.
+    private func updatePace(at now: Date) {
+        lastPointAt = now
+        paceWindow.append((now, totalDistanceM))
+        let cutoff = now.addingTimeInterval(-paceWindowSeconds)
+        paceWindow.removeAll { $0.t < cutoff }
+
+        guard let first = paceWindow.first, let last = paceWindow.last else {
+            currentPaceSecPerKm = nil
+            return
+        }
+        let seconds = last.t.timeIntervalSince(first.t)
+        let meters  = last.d - first.d
+        guard seconds >= paceMinSeconds, meters >= paceMinMeters else { return }
+        currentPaceSecPerKm = seconds / (meters / 1000.0)
     }
 
     /// Push accumulated points to the server. Safe to call with 0 points.

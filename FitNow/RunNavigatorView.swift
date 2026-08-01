@@ -511,10 +511,13 @@ struct RunNavigatorView: View {
     }
 
     private var paceText: String {
-        // Recién mostramos ritmo cuando hay una distancia real (>50 m); antes,
-        // con poca distancia, el ritmo (tiempo/distancia) da números disparatados.
-        guard tracker.totalDistanceM > 50, elapsed > 0 else { return "—" }
-        let pace = elapsed / (tracker.totalDistanceM / 1000.0)
+        // Ritmo de ahora, no promedio de toda la sesión: dividir el tiempo total
+        // por la distancia total arrastra el rato parado antes de arrancar y da
+        // números que no son tu ritmo. Si hace rato que no llega una lectura de
+        // movimiento, el último valor ya no vale y se muestra un guion.
+        guard let pace = tracker.currentPaceSecPerKm,
+              let last = tracker.lastPointAt,
+              Date().timeIntervalSince(last) <= 30 else { return "—" }
         let m = Int(pace) / 60
         let s = Int(pace) % 60
         return String(format: "%d:%02d", m, s)
@@ -827,12 +830,21 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
         blueOverlays.append(pl)
         map.addOverlay(pl, level: .aboveLabels)
         emitStatus("Ruta lista. ¡A correr!")
-        updateInstruction(for: nil)
+        // Sin pasos no hay indicaciones giro a giro, pero el trazado del backend
+        // ya viene pegado a las calles. Sin esto el cartel de arriba quedaba en
+        // un guion toda la corrida.
+        onStep("Seguí el recorrido marcado", routeLength(of: coords))
     }
 
     private func applySegments(_ segments: [MKRoute]) {
         clearBlueOverlays()
-        navSteps = segments.flatMap { $0.steps }; currentStepIndex = 0
+        // La ruta se pide por tramos entre puntos de paso, y cada tramo termina
+        // con un "llegaste al destino" que apunta a un punto intermedio, no al
+        // final del circuito. Solo se conserva el del último tramo.
+        navSteps = segments.enumerated().flatMap { index, route -> [MKRoute.Step] in
+            index == segments.count - 1 ? route.steps : Array(route.steps.dropLast())
+        }
+        currentStepIndex = 0
         for r in segments { blueOverlays.append(r.polyline); map.addOverlay(r.polyline, level: .aboveLabels) }
     }
 
@@ -1024,10 +1036,10 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
 
     private func updateInstruction(for current: CLLocation?) {
         guard !navSteps.isEmpty else { return }
-        let index = nearestStepIndex(to: current?.coordinate)
-        if index != currentStepIndex {
-            currentStepIndex = index
-            let raw = navSteps[index].instructions
+        let previous = currentStepIndex
+        advanceStepIfNeeded(to: current?.coordinate)
+        if currentStepIndex != previous {
+            let raw = navSteps[currentStepIndex].instructions
             let instr = raw.isEmpty ? "Seguí recto" : Self.localizedInstruction(raw)
             announceIfNeeded(instr)
         }
@@ -1092,36 +1104,79 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
         return rel < 0 ? rel + 360 : rel
     }
 
-    private func nearestStepIndex(to coord: CLLocationCoordinate2D?) -> Int {
-        guard let c = coord else { return currentStepIndex }
-        var best = currentStepIndex; var bestDist = CLLocationDistance.greatestFiniteMagnitude
-        for (i, s) in navSteps.enumerated() {
-            guard let pl = s.polylineIfAvailable else { continue }
-            let d = distance(from: c, to: pl)
-            if d < bestDist { bestDist = d; best = i }
+    /// El paso avanza de a uno y solo hacia adelante. Antes se elegía el paso
+    /// cuya línea estuviera más cerca tuyo, y como todas las rutas son circuitos
+    /// que terminan donde arrancan, al salir el paso más cercano era el último:
+    /// por eso decía "llegaste al destino" apenas empezabas a correr.
+    private func advanceStepIfNeeded(to coord: CLLocationCoordinate2D?) {
+        guard let c = coord else { return }
+        var advanced = 0
+        while currentStepIndex < navSteps.count - 1, advanced < 3 {
+            let step = navSteps[currentStepIndex]
+            let next = navSteps[currentStepIndex + 1]
+            let remaining = remainingDistance(on: step, from: c) ?? step.distance
+            let toStep = step.polylineIfAvailable.map { distance(from: c, to: $0) }
+                ?? CLLocationDistance.greatestFiniteMagnitude
+            let toNext = next.polylineIfAvailable.map { distance(from: c, to: $0) }
+                ?? CLLocationDistance.greatestFiniteMagnitude
+            // Pasás al siguiente cuando llegás a la maniobra que cierra el paso
+            // actual, o cuando ya estás claramente sobre el tramo que sigue (por
+            // si el GPS se saltea el punto exacto del giro).
+            let llegandoALaManiobra = remaining <= 20
+            let yaEnElSiguiente = toNext <= 25 && toNext + 10 < toStep
+            guard llegandoALaManiobra || yaEnElSiguiente else { break }
+            currentStepIndex += 1
+            advanced += 1
         }
-        return max(best, currentStepIndex)
     }
 
     private func remainingDistance(on step: MKRoute.Step, from coord: CLLocationCoordinate2D?) -> CLLocationDistance? {
         guard let pl = step.polylineIfAvailable else { return step.distance }
         guard let c = coord else { return step.distance }
-        return max(step.distance - distance(from: c, to: pl), 0)
+        return remainingAlong(pl, from: c) ?? step.distance
+    }
+
+    /// Metros que faltan siguiendo el trazado del paso, desde donde estás hasta
+    /// donde el paso termina. Antes se le restaba al largo del paso la distancia
+    /// perpendicular a la línea, que corriendo sobre la ruta es casi cero: el
+    /// contador quedaba clavado en el largo total y no bajaba nunca.
+    private func remainingAlong(_ polyline: MKPolyline, from coord: CLLocationCoordinate2D) -> CLLocationDistance? {
+        let pts = polyline.points(); let count = polyline.pointCount
+        guard count > 1 else { return nil }
+        let p = MKMapPoint(coord)
+        var bestIdx = 0; var bestT = 0.0; var bestDist = CLLocationDistance.greatestFiniteMagnitude
+        for i in 0..<(count - 1) {
+            let (d, t) = projection(of: p, onto: pts[i], pts[i+1])
+            if d < bestDist { bestDist = d; bestIdx = i; bestT = t }
+        }
+        let a = pts[bestIdx], b = pts[bestIdx + 1]
+        let proj = MKMapPoint(x: a.x + (b.x - a.x) * bestT, y: a.y + (b.y - a.y) * bestT)
+        var remaining = proj.distance(to: b)
+        if bestIdx + 1 < count - 1 {
+            for i in (bestIdx + 1)..<(count - 1) { remaining += pts[i].distance(to: pts[i+1]) }
+        }
+        return remaining
     }
 
     private func distance(from coord: CLLocationCoordinate2D, to polyline: MKPolyline) -> CLLocationDistance {
         let point = MKMapPoint(coord); var minDist = CLLocationDistance.greatestFiniteMagnitude
         let pts = polyline.points(); let count = polyline.pointCount
         guard count > 1 else { return minDist }
-        for i in 0..<(count-1) { let d = distancePointToSegment(point, pts[i], pts[i+1]); if d < minDist { minDist = d } }
+        for i in 0..<(count-1) {
+            let d = projection(of: point, onto: pts[i], pts[i+1]).distance
+            if d < minDist { minDist = d }
+        }
         return minDist
     }
 
-    private func distancePointToSegment(_ p: MKMapPoint, _ a: MKMapPoint, _ b: MKMapPoint) -> CLLocationDistance {
+    /// Proyección del punto sobre el segmento: distancia perpendicular y en qué
+    /// fracción del segmento cae (0 = en el principio, 1 = en el final).
+    private func projection(of p: MKMapPoint, onto a: MKMapPoint,
+                            _ b: MKMapPoint) -> (distance: CLLocationDistance, t: Double) {
         let apx = p.x-a.x, apy = p.y-a.y, abx = b.x-a.x, aby = b.y-a.y
         let ab2 = abx*abx + aby*aby
         let t = max(0.0, min(1.0, (apx*abx + apy*aby) / (ab2 == 0 ? 1 : ab2)))
-        return MKMapPoint(x: a.x + abx*t, y: a.y + aby*t).distance(to: p)
+        return (MKMapPoint(x: a.x + abx*t, y: a.y + aby*t).distance(to: p), t)
     }
 
     private func isOffCompositeRoute(current: CLLocation, threshold: CLLocationDistance) -> Bool {
