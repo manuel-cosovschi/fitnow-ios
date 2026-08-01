@@ -830,7 +830,10 @@ fileprivate final class Coordinator: NSObject, MKMapViewDelegate, CLLocationMana
         blueOverlays.append(pl)
         map.addOverlay(pl, level: .aboveLabels)
         emitStatus("Ruta lista. ¡A correr!")
-        updateInstruction(for: nil)
+        // Sin pasos no hay indicaciones giro a giro, pero el trazado del backend
+        // ya viene pegado a las calles. Sin esto el cartel de arriba quedaba en
+        // un guion toda la corrida.
+        onStep("Seguí el recorrido marcado", routeLength(of: coords))
     }
 
     private func applySegments(_ segments: [MKRoute]) {
