@@ -25,9 +25,10 @@ opt_in_rules:
 
 identifier_name:
   # Los modelos decodifican el JSON de la API tal cual, así que hay propiedades
-  # en snake_case a propósito (date_start, provider_id). Queda como aviso: no
-  # tiene sentido frenar el CI por espejar las claves del backend.
-  severity: warning
+  # en snake_case a propósito (date_start, provider_id). El guion bajo pasa a
+  # ser un símbolo válido: no tiene sentido frenar el CI por espejar las claves
+  # del backend, y renombrarlas rompería la decodificación.
+  allowed_symbols: ["_"]
   min_length: 1
   excluded:
     - id
