@@ -40,11 +40,13 @@ final class RunSessionTracker: ObservableObject {
     /// Ventana de muestras (instante, distancia acumulada) de los últimos
     /// `paceWindowSeconds` para calcular el ritmo actual.
     private var paceWindow: [(t: Date, d: CLLocationDistance)] = []
-    private let paceWindowSeconds: TimeInterval = 90
+    /// Un minuto: suficiente para promediar el ruido del GPS y corto como para
+    /// que el número siga el cambio real cuando pasás de caminar a trotar.
+    private let paceWindowSeconds: TimeInterval = 60
     /// Mínimos para que el ritmo signifique algo: con menos tiempo o menos
     /// metros el cociente lo domina el error del GPS.
-    private let paceMinSeconds: TimeInterval = 20
-    private let paceMinMeters: CLLocationDistance = 50
+    private let paceMinSeconds: TimeInterval = 15
+    private let paceMinMeters: CLLocationDistance = 40
 
     /// Flush when this many points have accumulated
     private let flushThreshold = 10
