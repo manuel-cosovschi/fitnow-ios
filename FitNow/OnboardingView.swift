@@ -408,7 +408,10 @@ struct OnboardingView: View {
                         .stroke(isGranted ? Color.fnGreen.opacity(0.4) : Color.fnBorder, lineWidth: 1))
         }
         .buttonStyle(ScaleButtonStyle())
-        .disabled(isGranted || isOptional)
+        // Solo se deshabilita cuando el permiso ya fue concedido. Que un permiso
+        // sea opcional describe si es obligatorio para seguir, no si la fila se
+        // puede tocar: incluir isOptional aca dejaba HealthKit inaccesible.
+        .disabled(isGranted)
     }
 
     // MARK: - Actions
