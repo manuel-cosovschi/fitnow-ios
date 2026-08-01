@@ -14,6 +14,8 @@
 		FF000005FF000005FF000005 /* JetBrainsMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FF000015FF000015FF000015 /* JetBrainsMono-Bold.ttf */; };
 		FF000006FF000006FF000006 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF000016FF000016FF000016 /* SplashView.swift */; };
 		36820F192E82144200B51DAF /* HazardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36820F092E82144200B51DAF /* HazardService.swift */; };
+		FA0010000000000000000004 /* ProviderBalanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0010000000000000000003 /* ProviderBalanceView.swift */; };
+		FA0010000000000000000002 /* HazardReportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0010000000000000000001 /* HazardReportSheet.swift */; };
 		EE220001EE330001EE440001 /* TokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE110001EE220001EE330001 /* TokenStore.swift */; };
 		M1BB0001M1CC0001M1DD0001 /* BiometricService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1AA0001M1BB0001M1CC0001 /* BiometricService.swift */; };
 		M1BB0002M1CC0002M1DD0002 /* AppleSignInService.swift in Sources */ = {isa = PBXBuildFile; fileRef = M1AA0002M1BB0002M1CC0002 /* AppleSignInService.swift */; };
@@ -144,6 +146,8 @@
 		36820F072E82144200B51DAF /* FitNow.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FitNow.entitlements; sourceTree = "<group>"; };
 		36820F082E82144200B51DAF /* FitNowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitNowApp.swift; sourceTree = "<group>"; };
 		36820F092E82144200B51DAF /* HazardService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HazardService.swift; sourceTree = "<group>"; };
+		FA0010000000000000000003 /* ProviderBalanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderBalanceView.swift; sourceTree = "<group>"; };
+		FA0010000000000000000001 /* HazardReportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HazardReportSheet.swift; sourceTree = "<group>"; };
 		36820F0A2E82144200B51DAF /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		36820F0B2E82144200B51DAF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		36820F0C2E82144200B51DAF /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
@@ -284,6 +288,8 @@
 				36820F072E82144200B51DAF /* FitNow.entitlements */,
 				36820F082E82144200B51DAF /* FitNowApp.swift */,
 				36820F092E82144200B51DAF /* HazardService.swift */,
+				FA0010000000000000000003 /* ProviderBalanceView.swift */,
+				FA0010000000000000000001 /* HazardReportSheet.swift */,
 				36820F0A2E82144200B51DAF /* HomeView.swift */,
 				36820F0B2E82144200B51DAF /* Info.plist */,
 				36820F0C2E82144200B51DAF /* KeychainService.swift */,
@@ -489,6 +495,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				36820F192E82144200B51DAF /* HazardService.swift in Sources */,
+				FA0010000000000000000004 /* ProviderBalanceView.swift in Sources */,
+				FA0010000000000000000002 /* HazardReportSheet.swift in Sources */,
 				EE220001EE330001EE440001 /* TokenStore.swift in Sources */,
 				M1BB0001M1CC0001M1DD0001 /* BiometricService.swift in Sources */,
 				M1BB0002M1CC0002M1DD0002 /* AppleSignInService.swift in Sources */,
